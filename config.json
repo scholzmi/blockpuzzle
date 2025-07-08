@@ -1,5 +1,5 @@
 {
-  "version": "V1.53",
+  "version": "V1.54",
   "probabilities": {
     "zonk": 0.05,
     "joker": 0.20,
@@ -33,7 +33,7 @@
     "zonk": [
       { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "red" },
       { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "color": "red" },
-      { "name": "U-Gross", "shape": [1, 5, 6, 10, 11, 12, 13], "color": "red" },
+      { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "color": "red" },
       { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "yellow" }
     ],
     "joker": [
