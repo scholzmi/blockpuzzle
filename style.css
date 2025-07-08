@@ -37,7 +37,7 @@ h1 {
 .spiel-info {
     display: flex;
     justify-content: space-between;
-    width: 364px; /* Angepasst an 9x9 Feld */
+    width: 364px;
     font-size: 1.2em;
     color: #3c4043;
     padding: 10px;
@@ -49,8 +49,8 @@ h1 {
 /* Spielfeld-Styles */
 #spielbrett {
     display: grid;
-    grid-template-columns: repeat(9, 40px); /* Angepasst an 9x9 Feld */
-    grid-template-rows: repeat(9, 40px); /* Angepasst an 9x9 Feld */
+    grid-template-columns: repeat(9, 40px);
+    grid-template-rows: repeat(9, 40px);
     border: 2px solid #E0E0E0;
     background-color: rgba(248, 249, 250, 0.8);
     margin-top: 20px;
@@ -68,7 +68,10 @@ h1 {
 
 .belegt {
     border: 1px solid rgba(0, 0, 0, 0.2);
-    /* Hintergrundfarbe wird per JS gesetzt */
+}
+
+.vorschau {
+    /* Farbe wird per JS gesetzt */
 }
 
 .vorschau-ungueltig {
@@ -82,15 +85,18 @@ h1 {
     align-items: center;
     gap: 10px;
     margin-top: 20px;
-    width: 364px; /* Angepasst an 9x9 Feld */
-    height: 180px;
+    width: 364px;
+    /* Höhe wird jetzt durch die quadratischen Kinder bestimmt */
     padding: 10px;
     box-sizing: border-box;
 }
 
 .figur-slot {
     width: 33.33%;
-    height: 100%;
+    /* NEU: Erzwingt ein quadratisches Seitenverhältnis */
+    aspect-ratio: 1 / 1; 
+    /* ENTFERNT: height: 100%; */
+    
     display: flex;
     justify-content: center;
     align-items: center;
@@ -111,7 +117,6 @@ h1 {
 .figur-block {
     width: 20px;
     height: 20px;
-    /* Hintergrundfarbe wird per JS gesetzt */
     border: 1px solid #fff;
     box-sizing: border-box;
     border-radius: 2px;
