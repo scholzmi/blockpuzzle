@@ -10,7 +10,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative; 
-    overscroll-behavior: none;
+    overscroll-behavior: none; /* Verhindert "pull-to-refresh" auf Mobilgeräten */
 }
 
 /* Hintergrundbild mit Transparenz */
@@ -31,7 +31,7 @@ body::before {
 }
 
 body, #spielbrett {
-    user-select: none;
+    user-select: none; /* Verhindert Text-Markierung */
 }
 
 /* Neuer Hauptcontainer für das Layout */
@@ -199,6 +199,7 @@ h1, h2 {
 @media (max-width: 1024px) {
     body {
         height: auto; /* Erlaubt wieder scrollen */
+        padding: 10px;
     }
     .haupt-container {
         flex-direction: column;
@@ -207,5 +208,9 @@ h1, h2 {
         width: 100%;
         max-width: 364px; /* Passt sich an die Spielbreite an */
         box-sizing: border-box;
+        margin-bottom: 20px;
+    }
+    #info-container {
+        order: 3; /* Verschiebt die Info-Box ans Ende */
     }
 }
