@@ -9,6 +9,11 @@ body {
     margin: 20px;
 }
 
+/* Verhindert Textauswahl beim schnellen Klicken */
+body, #spielbrett {
+    user-select: none;
+}
+
 h1 {
     color: #4285F4;
 }
@@ -22,6 +27,7 @@ h1 {
     background-color: #f8f9fa;
     margin-top: 20px;
     width: max-content;
+    position: relative; /* Wichtig für die Vorschau */
 }
 
 .zelle {
@@ -37,82 +43,61 @@ h1 {
 }
 
 .vorschau {
-    background-color: rgba(66, 133, 244, 0.3);
+    background-color: rgba(66, 133, 244, 0.5);
+}
+
+.vorschau-ungueltig {
+    background-color: rgba(234, 67, 53, 0.5);
 }
 
 
-/* Figuren-Auswahl */
+/* Figuren-Auswahl mit festen Slots */
 #figuren-auswahl {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 30px;
+    gap: 10px;
     margin-top: 20px;
-    height: 200px;
+    width: 404px; /* Breite des Spielbretts */
+    height: 180px;
     padding: 10px;
+    box-sizing: border-box;
 }
 
-.figur-container {
-    display: grid;
-    cursor: grab;
-    border: 2px solid transparent;
-    padding: 5px;
-    border-radius: 4px;
+.figur-slot {
+    width: 33.33%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
     transition: background-color 0.2s;
 }
 
-.figur-container:hover {
-    background-color: #e8f0fe;
+.figur-slot:hover {
+    background-color: #f8f9fa;
 }
 
-.figur-container.ungueltig .figur-block {
-    background-color: #ea4335 !important;
+/* Container für die Figur innerhalb des Slots */
+.figur-container {
+    display: grid;
+    cursor: pointer;
 }
 
 .figur-block {
-    width: 40px;
-    height: 40px;
+    width: 30px; /* Etwas kleiner für bessere Optik in den Slots */
+    height: 30px;
     background-color: #4285F4;
     border: 1px solid #fff;
     box-sizing: border-box;
     border-radius: 2px;
 }
 
-/* Footer-Styles */
-footer {
-    text-align: center;
-    margin-top: 40px;
-    padding-top: 20px;
-    width: 100%;
-    max-width: 400px;
-    border-top: 1px solid #E0E0E0;
-    color: #70757a;
-}
-
-.spende-bereich p {
-    margin: 0 0 10px 0;
-    font-size: 1em;
-}
-
-.qr-code {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 10px;
-}
-
-.paypal-link {
-    color: #1a73e8;
-    text-decoration: none;
-    font-size: 0.9em;
-}
-
-.paypal-link:hover {
-    text-decoration: underline;
-}
-
-.impressum {
-    margin-top: 25px;
-    font-size: 0.75em; /* Schriftgrösse reduziert */
-    color: #70757a;
-    white-space: nowrap; /* Verhindert unerwünschten Umbruch */
-}
+/* Footer-Styles (unverändert) */
+footer { text-align: center; margin-top: 40px; padding-top: 20px; width: 100%; max-width: 400px; border-top: 1px solid #E0E0E0; color: #70757a; }
+.spende-bereich p { margin: 0 0 10px 0; font-size: 1em; }
+.qr-code { width: 100px; height: 100px; margin-bottom: 10px; }
+.paypal-link { color: #1a73e8; text-decoration: none; font-size: 0.9em; }
+.paypal-link:hover { text-decoration: underline; }
+.impressum { margin-top: 25px; font-size: 0.75em; color: #70757a; white-space: nowrap; }

@@ -2,165 +2,215 @@ document.addEventListener('DOMContentLoaded', () => {
     // === DOM-Elemente ===
     const spielbrettElement = document.getElementById('spielbrett');
     const punkteElement = document.getElementById('punkte');
-    const figurenAuswahlElement = document.getElementById('figuren-auswahl');
+    const figurenSlots = document.querySelectorAll('.figur-slot');
 
     // === Spiel-Konstanten und Variablen ===
     const BREITE = 10;
     const HOEHE = 10;
     let spielbrett = []; 
     let punkte = 0;
-    let aktuelleFiguren = []; 
-    
-    // Variablen für die Drag-Interaktion
-    let gezogeneFigur = null; 
-    let gezogenesElement = null;
-    let letzteVorschauKoordinaten = { x: -1, y: -1 };
+    let figurenInSlots = [null, null, null]; // Speichert die Daten der 3 Figuren
+
+    // Zustand für die Klick-Steuerung
+    let ausgewaehlteFigur = null;
+    let ausgewaehlterSlotIndex = -1;
 
     // === Figuren-Definitionen (unverändert) ===
     const FIGUREN_POOL = [
-        { name: 'grossesL', form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] }, { name: 'kleinesL', form: [[1, 0], [1, 0], [1, 1]] }, { name: 'zForm1', form: [[1, 1, 0], [0, 1, 1]] }, { name: 'zForm2', form: [[0, 1, 1], [1, 1, 0]] }, { name: 'plus', form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] }, { name: 'i3', form: [[1, 1, 1]] }, { name: 'block3x3', form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { name: 'block2x3', form: [[1, 1, 1], [1, 1, 1]] }, { name: 'gerade4', form: [[1, 1, 1, 1]] }, { name: 'gerade5', form: [[1, 1, 1, 1, 1]] }, { name: 'punkt', form: [[1]] }
+        { form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] }, { form: [[1, 0], [1, 0], [1, 1]] }, { form: [[1, 1, 0], [0, 1, 1]] }, { form: [[0, 1, 1], [1, 1, 0]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] }, { form: [[1, 1, 1]] }, { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[1, 1, 1], [1, 1, 1]] }, { form: [[1, 1, 1, 1]] }, { form: [[1, 1, 1, 1, 1]] }, { form: [[1]] }
     ];
 
+    // === Kernlogik ===
+
     /**
-     * Erstellt das HTML-Element für eine Figur
+     * Setzt das Spiel zurück oder startet es initial.
      */
-    function erstelleFigurElement(figur) {
-        const container = document.createElement('div');
-        container.classList.add('figur-container');
-        container.setAttribute('draggable', 'true');
-        container.dataset.figurId = figur.id;
-        const form = figur.form;
-        container.style.gridTemplateRows = `repeat(${form.length}, 40px)`;
-        container.style.gridTemplateColumns = `repeat(${form[0].length}, 40px)`;
-        for (let y = 0; y < form.length; y++) {
-            for (let x = 0; x < form[0].length; x++) {
-                const block = document.createElement('div');
-                if (form[y][x] === 1) block.classList.add('figur-block');
-                container.appendChild(block);
-            }
+    function spielStart() {
+        punkte = 0;
+        punkteElement.textContent = punkte;
+        spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0));
+        zeichneSpielfeld();
+        generiereNeueFiguren();
+    }
+
+    /**
+     * Füllt die drei Slots mit neuen, zufälligen und rotierten Figuren.
+     */
+    function generiereNeueFiguren() {
+        for (let i = 0; i < 3; i++) {
+            const vorlage = FIGUREN_POOL[Math.floor(Math.random() * FIGUREN_POOL.length)];
+            const form = rotiereFigur(vorlage.form);
+            figurenInSlots[i] = { form: form, id: i };
+            zeichneFigurInSlot(i);
         }
-        return container;
+        if (istSpielVorbei()) {
+            setTimeout(() => alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`), 100);
+        }
     }
 
     /**
-     * Löscht alle Vorschau-Hervorhebungen vom Spielfeld.
+     * Platziert eine Figur auf dem Spielfeld, aktualisiert Punkte und prüft auf volle Reihen.
      */
-    function loescheVorschau() {
-        document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(z => {
-            z.classList.remove('vorschau', 'vorschau-ungueltig');
+    function platziereFigur(figur, startX, startY) {
+        let blockAnzahl = 0;
+        figur.form.forEach((reihe, y) => {
+            reihe.forEach((block, x) => {
+                if (block === 1) {
+                    spielbrett[startY + y][startX + x] = 1;
+                    blockAnzahl++;
+                }
+            });
         });
+        punkte += blockAnzahl;
+        leereVolleLinien();
+        zeichneSpielfeld();
+        punkteElement.textContent = punkte;
+
+        // Zustand zurücksetzen
+        figurenInSlots[ausgewaehlterSlotIndex] = null;
+        ausgewaehlteFigur = null;
+        ausgewaehlterSlotIndex = -1;
+        spielbrettElement.style.cursor = 'default';
+
+        // Prüfen, ob neue Figuren gebraucht werden
+        if (figurenInSlots.every(f => f === null)) {
+            generiereNeueFiguren();
+        } else if (istSpielVorbei()) {
+            setTimeout(() => alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`), 100);
+        }
     }
 
-    /**
-     * Zeigt die Vorschau an (blau für gültig, rot für ungültig).
-     */
-    function zeigeVorschau(startX, startY) {
-        loescheVorschau();
-        if (!gezogeneFigur) return;
+    // === Event-Handler ===
 
-        const kannAblegen = kannPlatzieren(gezogeneFigur, startX, startY);
+    /**
+     * Wählt eine Figur aus einem Slot aus oder bricht die Auswahl ab.
+     */
+    function figurSlotKlick(index) {
+        if (ausgewaehlteFigur && ausgewaehlterSlotIndex === index) {
+            // Auswahl abbrechen bei erneutem Klick
+            abbrechen();
+            return;
+        }
+        
+        // Nur auswählen, wenn eine Figur im Slot ist
+        if (figurenInSlots[index]) {
+            ausgewaehlteFigur = figurenInSlots[index];
+            ausgewaehlterSlotIndex = index;
+            figurenSlots[index].innerHTML = ''; // Figur aus Slot entfernen
+            spielbrettElement.style.cursor = 'pointer';
+        }
+    }
+    
+    /**
+     * Bricht die Figurenauswahl ab und legt sie zurück in den Slot.
+     */
+    function abbrechen() {
+        if (ausgewaehlterSlotIndex !== -1) {
+            loescheVorschau();
+            zeichneFigurInSlot(ausgewaehlterSlotIndex); // Figur zurückzeichnen
+            ausgewaehlteFigur = null;
+            ausgewaehlterSlotIndex = -1;
+            spielbrettElement.style.cursor = 'default';
+        }
+    }
+    
+    /**
+     * Verarbeitet die Mausbewegung über dem Spielfeld und zeigt die Vorschau an.
+     */
+    function mausBewegungAufBrett(e) {
+        if (!ausgewaehlteFigur) return;
+        
+        const rect = spielbrettElement.getBoundingClientRect();
+        const mausX = e.clientX - rect.left;
+        const mausY = e.clientY - rect.top;
+
+        const zielX = Math.floor(mausX / 40);
+        const zielY = Math.floor(mausY / 40);
+
+        loescheVorschau();
+        zeichneVorschau(ausgewaehlteFigur, zielX, zielY);
+    }
+    
+    /**
+     * Verarbeitet einen Klick auf dem Spielfeld, um eine Figur zu platzieren.
+     */
+    function klickAufBrett(e) {
+        if (!ausgewaehlteFigur) return;
+
+        const rect = spielbrettElement.getBoundingClientRect();
+        const mausX = e.clientX - rect.left;
+        const mausY = e.clientY - rect.top;
+
+        const zielX = Math.floor(mausX / 40);
+        const zielY = Math.floor(mausY / 40);
+
+        if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) {
+            platziereFigur(ausgewaehlteFigur, zielX, zielY);
+        }
+    }
+
+    // === Hilfs- und Zeichenfunktionen ===
+
+    function zeichneVorschau(figur, startX, startY) {
+        const kannAblegen = kannPlatzieren(figur, startX, startY);
         const vorschauKlasse = kannAblegen ? 'vorschau' : 'vorschau-ungueltig';
         
-        const form = gezogeneFigur.form;
-        for (let y = 0; y < form.length; y++) {
-            for (let x = 0; x < form[0].length; x++) {
-                if (form[y][x] === 1) {
+        figur.form.forEach((reihe, y) => {
+            reihe.forEach((block, x) => {
+                if (block === 1) {
                     const brettY = startY + y;
                     const brettX = startX + x;
-                    if (brettY < HOEHE && brettX < BREITE) {
+                    if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) {
                        const zellenIndex = brettY * BREITE + brettX;
                        spielbrettElement.children[zellenIndex]?.classList.add(vorschauKlasse);
                     }
                 }
-            }
-        }
+            });
+        });
     }
 
-
-    // === Event Listener ===
-    
-    figurenAuswahlElement.addEventListener('dragstart', (e) => {
-        if (e.target.classList.contains('figur-container')) {
-            const figurId = parseInt(e.target.dataset.figurId);
-            gezogeneFigur = aktuelleFiguren.find(f => f.id === figurId);
-            gezogenesElement = e.target;
-
-            // Den Standard-"Geist" des Browsers durch ein leeres Bild ersetzen
-            const ghost = new Image();
-            ghost.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-            e.dataTransfer.setDragImage(ghost, 0, 0);
-
-            // Figur im Auswahlbereich unsichtbar machen
-            setTimeout(() => e.target.style.visibility = 'hidden', 0);
-        }
-    });
-    
-    figurenAuswahlElement.addEventListener('dragend', (e) => {
-        if(gezogenesElement) {
-            // Figur im Auswahlbereich wieder sichtbar machen
-            gezogenesElement.style.visibility = 'visible';
-        }
-        loescheVorschau();
-        gezogeneFigur = null;
-        gezogenesElement = null;
-    });
-
-    spielbrettElement.addEventListener('dragover', (e) => {
-        e.preventDefault(); 
-        const zielZelle = e.target.closest('.zelle');
+    function zeichneFigurInSlot(index) {
+        const slot = figurenSlots[index];
+        slot.innerHTML = '';
+        const figur = figurenInSlots[index];
         
-        if (zielZelle) {
-            const x = parseInt(zielZelle.dataset.x);
-            const y = parseInt(zielZelle.dataset.y);
+        if (figur) {
+            const container = document.createElement('div');
+            container.classList.add('figur-container');
+            const form = figur.form;
+            container.style.gridTemplateRows = `repeat(${form.length}, 30px)`;
+            container.style.gridTemplateColumns = `repeat(${form[0].length}, 30px)`;
             
-            if (x !== letzteVorschauKoordinaten.x || y !== letzteVorschauKoordinaten.y) {
-                 zeigeVorschau(x, y);
-                 letzteVorschauKoordinaten = { x, y };
-            }
+            form.forEach(reihe => {
+                reihe.forEach(block => {
+                    const blockDiv = document.createElement('div');
+                    if (block === 1) blockDiv.classList.add('figur-block');
+                    container.appendChild(blockDiv);
+                });
+            });
+            slot.appendChild(container);
         }
+    }
+    
+    function loescheVorschau() { document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(z => z.classList.remove('vorschau', 'vorschau-ungueltig')); }
+    function zeichneSpielfeld() { spielbrett.forEach((reihe, y) => reihe.forEach((zelle, x) => { const z = spielbrettElement.children[y * BREITE + x]; z.className = 'zelle'; if(zelle === 1) z.classList.add('belegt'); })); }
+    function rotiereFigur(matrix) { let m = matrix; for (let i = 0; i < Math.floor(Math.random() * 4); i++) { m = m[0].map((_, colIndex) => m.map(row => row[colIndex]).reverse()); } return m; }
+    function kannPlatzieren(figur, startX, startY) { for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] === 1) return false; } } } return true; }
+    function leereVolleLinien() { const vR = [], vS = []; for(let y=0; y<HOEHE; y++) if(spielbrett[y].every(z=>z===1)) vR.push(y); for(let x=0; x<BREITE; x++) { let voll=true; for(let y=0; y<HOEHE; y++) if(spielbrett[y][x]===0) voll=false; if(voll) vS.push(x); } vR.forEach(y=>spielbrett[y].fill(0)); vS.forEach(x=>spielbrett.forEach(r=>r[x]=0)); if(vR.length+vS.length > 0) punkte += (vR.length+vS.length) * 10 * (vR.length+vS.length); }
+    function istSpielVorbei() { for(const f of figurenInSlots) { if(f) { for(let y=0; y<HOEHE; y++) for(let x=0; x<BREITE; x++) if(kannPlatzieren(f, x, y)) return false; } } return true; }
+
+    // === Event Listener zuweisen ===
+    figurenSlots.forEach((slot, index) => {
+        slot.addEventListener('click', () => figurSlotKlick(index));
     });
 
-    spielbrettElement.addEventListener('dragleave', (e) => {
-        loescheVorschau();
-        letzteVorschauKoordinaten = { x: -1, y: -1 };
+    spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
+    spielbrettElement.addEventListener('mouseleave', loescheVorschau);
+    spielbrettElement.addEventListener('click', klickAufBrett);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') abbrechen();
     });
 
-    spielbrettElement.addEventListener('drop', (e) => {
-        e.preventDefault();
-        loescheVorschau();
-
-        if (!gezogeneFigur || !e.target.classList.contains('zelle')) return;
-
-        const x = parseInt(e.target.dataset.x);
-        const y = parseInt(e.target.dataset.y);
-        
-        if (kannPlatzieren(gezogeneFigur, x, y)) {
-            platziereFigur(gezogeneFigur, x, y);
-            leereVolleLinien();
-            
-            gezogenesElement.remove(); // Figur aus der Auswahl entfernen
-            
-            aktuelleFiguren[gezogeneFigur.id] = null;
-            
-            // Wenn alle 3 Figuren gespielt wurden, neue generieren
-            if (aktuelleFiguren.every(f => f === null)) {
-                setTimeout(generiereNeueFiguren, 100);
-            }
-            // KORREKTUR: Die "istSpielVorbei"-Prüfung wurde von hier entfernt.
-        }
-    });
-
-
-    // --- Unveränderte Kernfunktionen ---
-    function rotiereFigur(matrix) { const r = Math.floor(Math.random() * 4); let m = matrix; for (let i = 0; i < r; i++) { m = m[0].map((v, i) => m.map(row => row[i]).reverse()); } return m; }
-    function erstelleSpielfeld() { spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); spielbrettElement.innerHTML = ''; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const z = document.createElement('div'); z.classList.add('zelle'); z.dataset.x = x; z.dataset.y = y; spielbrettElement.appendChild(z); } } }
-    function zeichneSpielfeld() { for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const z = spielbrettElement.children[y * BREITE + x]; if (spielbrett[y][x] === 1) { z.classList.add('belegt'); } else { z.classList.remove('belegt'); } } } }
-    function generiereNeueFiguren() { figurenAuswahlElement.innerHTML = ''; aktuelleFiguren = []; for (let i = 0; i < 3; i++) { const v = FIGUREN_POOL[Math.floor(Math.random() * FIGUREN_POOL.length)]; const f = rotiereFigur(v.form); const figur = { id: i, form: f }; aktuelleFiguren.push(figur); const fe = erstelleFigurElement(figur); figurenAuswahlElement.appendChild(fe); } if (istSpielVorbei()) { setTimeout(() => alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`), 100); } }
-    function kannPlatzieren(figur, startX, startY) { const form = figur.form; for (let y = 0; y < form.length; y++) { for (let x = 0; x < form[0].length; x++) { if (form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX >= BREITE || bY >= HOEHE || bY < 0 || bX < 0 || spielbrett[bY][bX] === 1) return false; } } } return true; }
-    function platziereFigur(figur, startX, startY) { const form = figur.form; let blockAnzahl = 0; for (let y = 0; y < form.length; y++) { for (let x = 0; x < form[0].length; x++) { if (form[y][x] === 1) { spielbrett[startY + y][startX + x] = 1; blockAnzahl++; } } } punkte += blockAnzahl; }
-    function leereVolleLinien() { let vR = [], vS = [], lG = 0; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y].every(z => z === 1)) { vR.push(y); lG++; } } for (let x = 0; x < BREITE; x++) { let sV = true; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y][x] === 0) { sV = false; break; } } if (sV) { vS.push(x); lG++; } } vR.forEach(y => { for (let x = 0; x < BREITE; x++) spielbrett[y][x] = 0; }); vS.forEach(x => { for (let y = 0; y < HOEHE; y++) spielbrett[y][x] = 0; }); if(lG > 0) { punkte += lG * 10 * lG; } zeichneSpielfeld(); punkteElement.textContent = punkte; }
-    function istSpielVorbei() { for(const f of aktuelleFiguren) { if (!f) continue; for(let y = 0; y < HOEHE; y++) { for(let x = 0; x < BREITE; x++) { if (kannPlatzieren(f, x, y)) return false; } } } return true; }
-    function spielStart() { erstelleSpielfeld(); zeichneSpielfeld(); generiereNeueFiguren(); }
-
+    // === Spiel starten ===
     spielStart();
 });
