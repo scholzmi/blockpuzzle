@@ -10,7 +10,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative; 
-    overscroll-behavior: none; /* Verhindert "pull-to-refresh" auf Mobilgeräten */
+    overscroll-behavior: none;
 }
 
 /* Hintergrundbild mit Transparenz */
@@ -31,7 +31,7 @@ body::before {
 }
 
 body, #spielbrett {
-    user-select: none; /* Verhindert Text-Markierung */
+    user-select: none;
 }
 
 /* Neuer Hauptcontainer für das Layout */
@@ -83,8 +83,8 @@ h1, h2 {
 #anleitung-inhalt {
     font-size: 0.9em;
     line-height: 1.5;
-    max-height: 400px; /* Verhindert, dass die Box zu hoch wird */
-    overflow-y: auto; /* Fügt eine Scrollbar hinzu, falls nötig */
+    max-height: 400px;
+    overflow-y: auto;
     transition: all 0.3s ease;
 }
 
@@ -99,13 +99,10 @@ h1, h2 {
     background-color: #f0f0f0;
 }
 
-/* Zustand für versteckte Anleitung */
 #anleitung-container.versteckt #anleitung-inhalt {
     display: none;
 }
 
-
-/* Info-Leiste (Punkte, Rekord) */
 .spiel-info {
     display: flex;
     justify-content: space-between;
@@ -117,7 +114,6 @@ h1, h2 {
     box-sizing: border-box;
 }
 
-/* Leiste für die Dreh-Joker */
 #dreh-joker-leiste {
     display: flex;
     justify-content: space-between;
@@ -136,7 +132,6 @@ h1, h2 {
 .joker-box.voll { background-color: #34A853; }
 .joker-box.verbraucht { background-color: rgba(52, 168, 83, 0.3); }
 
-/* Spielfeld-Styles */
 #spielbrett {
     display: grid;
     grid-template-columns: repeat(9, 40px);
@@ -159,7 +154,6 @@ h1, h2 {
 .belegt { border: 1px solid rgba(0, 0, 0, 0.2); }
 .blocker { background-color: #333 !important; border-color: #000 !important; }
 
-/* Figuren-Auswahl */
 #figuren-auswahl {
     display: flex;
     justify-content: center;
@@ -194,23 +188,9 @@ h1, h2 {
 .paypal-link:hover { text-decoration: underline; }
 .impressum { margin-top: 25px; font-size: 0.85em; color: #70757a; line-height: 1.5; text-align: center; }
 
-
-/* Media Query für kleinere Bildschirme / mobile Ansicht */
 @media (max-width: 1024px) {
-    body {
-        height: auto; /* Erlaubt wieder scrollen */
-        padding: 10px;
-    }
-    .haupt-container {
-        flex-direction: column;
-    }
-    .seiten-box {
-        width: 100%;
-        max-width: 364px; /* Passt sich an die Spielbreite an */
-        box-sizing: border-box;
-        margin-bottom: 20px;
-    }
-    #info-container {
-        order: 3; /* Verschiebt die Info-Box ans Ende */
-    }
+    body { height: auto; padding: 10px; }
+    .haupt-container { flex-direction: column; }
+    .seiten-box { width: 100%; max-width: 364px; box-sizing: border-box; margin-bottom: 20px; }
+    #info-container { order: 3; }
 }
