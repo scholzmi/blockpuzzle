@@ -47,7 +47,6 @@ body.boss-key-aktiv::before {
     opacity: 1;
 }
 
-
 h1 {
     color: #4285F4;
 }
@@ -88,10 +87,6 @@ h1 {
 .belegt {
     border: 1px solid rgba(0, 0, 0, 0.2);
     /* Hintergrundfarbe wird per JS gesetzt */
-}
-
-.vorschau-ungueltig {
-    background-color: rgba(234, 67, 53, 0.5);
 }
 
 /* Figuren-Auswahl mit festen Slots */
