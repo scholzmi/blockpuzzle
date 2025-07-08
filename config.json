@@ -1,8 +1,9 @@
 {
-  "version": "V1.10",
+  "version": "V1.20",
   "probabilities": {
     "zonk": 0.05,
-    "joker": 0.20
+    "joker": 0.20,
+    "jokerProbabilityReductionInterval": 5
   },
   "figures": {
     "normal": [
@@ -29,7 +30,8 @@
       { "name": "Diagonale-4", "shape": [1, 7, 13, 19] }
     ],
     "joker": [
-      { "name": "Punkt", "shape": [1] }
+      { "name": "Punkt", "shape": [1] },
+      { "name": "Joker I-2", "shape": [1, 2] }
     ]
   }
 }

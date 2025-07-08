@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BREITE = 9;
     const HOEHE = 9;
-    const MAX_FIGUR_GROESSE = 5; // Definiert das 5x5 Raster für die Figuren-Definition
+    const MAX_FIGUR_GROESSE = 5;
 
     // === Spiel-Variablen ===
     let spielbrett = [], punkte = 0, rekord = 0, figurenInSlots = [null, null, null];
@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Wandelt eine Figur von Zahlenkoordinaten (z.B. [1, 2, 6]) in eine 2D-Matrix um.
-     * Schneidet die Matrix auf die kleinstmögliche Grösse zu.
      */
     function parseShape(shapeCoords) {
         let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0));
@@ -41,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Matrix auf die tatsächliche Grösse der Figur zuschneiden
         const croppedMatrix = [];
         for (let y = minRow; y <= maxRow; y++) {
             croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1));
@@ -60,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             versionElement.textContent = spielConfig.version;
             
-            // Figuren-Pools aus der Konfiguration erstellen
             normaleFiguren = spielConfig.figures.normal.map(f => ({ form: parseShape(f.shape) }));
             zonkFiguren = spielConfig.figures.zonk.map(f => ({ form: parseShape(f.shape) }));
             jokerFiguren = spielConfig.figures.joker.map(f => ({ form: parseShape(f.shape) }));
@@ -79,8 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const jokerProb = spielConfig.probabilities.joker;
         const zonkProb = spielConfig.probabilities.zonk;
+        const reductionInterval = spielConfig.probabilities.jokerProbabilityReductionInterval || 5; // Fallback auf 5
         
-        const jokerReduktion = Math.floor((rundenZaehler - 1) / 5) * 0.01;
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
         const aktuelleJokerProb = Math.max(0.03, jokerProb - jokerReduktion);
 
         for (let i = 0; i < 3; i++) {
@@ -90,7 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (zufallsZahl < zonkProb) {
                 zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
             } else if (zufallsZahl < zonkProb + aktuelleJokerProb) {
-                zufallsFigur = jokerFiguren[0];
+                // Wählt jetzt einen ZUFÄLLIGEN Joker aus der Liste
+                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
             } else {
                 zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
             }
