@@ -14,50 +14,35 @@ document.addEventListener('DOMContentLoaded', () => {
     let ausgewaehlteFigur = null;
     let ausgewaehlterSlotIndex = -1;
 
-    // ===================================================================================
-    // NEU: Erweiterte Figuren-Liste mit allen vordefinierten Rotationen
-    // ===================================================================================
+    // === Figuren-Pool mit allen Rotationen ===
     const FIGUREN_POOL = [
-        // 3x3 Block (1 Variante)
-        { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] },
-        // Plus (1 Variante)
-        { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] },
-        // Punkt (1 Variante)
-        { form: [[1]] },
-
-        // Gerade 5 (2 Varianten)
-        { form: [[1, 1, 1, 1, 1]] },
-        { form: [[1], [1], [1], [1], [1]] },
-        // Gerade 4 (2 Varianten)
-        { form: [[1, 1, 1, 1]] },
-        { form: [[1], [1], [1], [1]] },
-        // Gerade 3 (I) (2 Varianten)
-        { form: [[1, 1, 1]] },
-        { form: [[1], [1], [1]] },
-        
-        // 2x3 Block (2 Varianten)
-        { form: [[1, 1, 1], [1, 1, 1]] },
-        { form: [[1, 1], [1, 1], [1, 1]] },
-
-        // Z-Form (2 Varianten)
-        { form: [[1, 1, 0], [0, 1, 1]] },
-        { form: [[0, 1], [1, 1], [1, 0]] },
-        // S-Form (2 Varianten)
-        { form: [[0, 1, 1], [1, 1, 0]] },
-        { form: [[1, 0], [1, 1], [0, 1]] },
-
-        // kleines L (4 Varianten)
-        { form: [[1, 0], [1, 0], [1, 1]] },
-        { form: [[1, 1, 1], [1, 0, 0]] },
-        { form: [[1, 1], [0, 1], [0, 1]] },
-        { form: [[0, 0, 1], [1, 1, 1]] },
-        
-        // großes L (4 Varianten)
-        { form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] },
-        { form: [[1, 1, 1, 1], [1, 0, 0, 0]] },
-        { form: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] },
-        { form: [[0, 0, 0, 1], [1, 1, 1, 1]] }
+        { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] }, { form: [[1]] },
+        { form: [[1, 1, 1, 1, 1]] }, { form: [[1], [1], [1], [1], [1]] },
+        { form: [[1, 1, 1, 1]] }, { form: [[1], [1], [1], [1]] },
+        { form: [[1, 1, 1]] }, { form: [[1], [1], [1]] },
+        { form: [[1, 1, 1], [1, 1, 1]] }, { form: [[1, 1], [1, 1], [1, 1]] },
+        { form: [[1, 1, 0], [0, 1, 1]] }, { form: [[0, 1], [1, 1], [1, 0]] },
+        { form: [[0, 1, 1], [1, 1, 0]] }, { form: [[1, 0], [1, 1], [0, 1]] },
+        { form: [[1, 0], [1, 0], [1, 1]] }, { form: [[1, 1, 1], [1, 0, 0]] },
+        { form: [[1, 1], [0, 1], [0, 1]] }, { form: [[0, 0, 1], [1, 1, 1]] },
+        { form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] }, { form: [[1, 1, 1, 1], [1, 0, 0, 0]] },
+        { form: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] }, { form: [[0, 0, 0, 1], [1, 1, 1, 1]] }
     ];
+
+    // ===================================================================================
+    // KORREKTUR: Diese Funktion wurde wieder hinzugefügt. Sie erstellt das Gitter.
+    // ===================================================================================
+    function erstelleSpielfeld() {
+        spielbrettElement.innerHTML = ''; // Wichtig: Altes Gitter leeren
+        spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0));
+        for (let y = 0; y < HOEHE; y++) {
+            for (let x = 0; x < BREITE; x++) {
+                const zelle = document.createElement('div');
+                zelle.classList.add('zelle');
+                spielbrettElement.appendChild(zelle);
+            }
+        }
+    }
     // ===================================================================================
 
     // === Kernlogik ===
@@ -65,14 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function spielStart() {
         punkte = 0;
         punkteElement.textContent = punkte;
-        spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0));
-        zeichneSpielfeld();
+        erstelleSpielfeld(); // Erstellt das Gitter aus DOM-Elementen
+        zeichneSpielfeld();  // Färbt das Gitter basierend auf den Daten
         generiereNeueFiguren();
     }
 
     function generiereNeueFiguren() {
         for (let i = 0; i < 3; i++) {
-            // Wählt eine zufällige, bereits fertig gedrehte Figur aus dem Pool
             const zufallsFigur = FIGUREN_POOL[Math.floor(Math.random() * FIGUREN_POOL.length)];
             figurenInSlots[i] = { form: zufallsFigur.form, id: i };
             zeichneFigurInSlot(i);
@@ -80,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (istSpielVorbei()) {
             setTimeout(() => {
                 alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`);
-                spielStart(); // Spiel nach dem "OK" Klick neu starten
+                spielStart();
             }, 100);
         }
     }
@@ -110,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (istSpielVorbei()) {
              setTimeout(() => {
                 alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`);
-                spielStart(); // Spiel nach dem "OK" Klick neu starten
+                spielStart();
             }, 100);
         }
     }
