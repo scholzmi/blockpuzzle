@@ -16,19 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let gezogenesElement = null;
     let letzteVorschauKoordinaten = { x: -1, y: -1 };
 
-    // === Figuren-Definitionen ===
+    // === Figuren-Definitionen (unverändert) ===
     const FIGUREN_POOL = [
-        { name: 'grossesL', form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] },
-        { name: 'kleinesL', form: [[1, 0], [1, 0], [1, 1]] },
-        { name: 'zForm1', form: [[1, 1, 0], [0, 1, 1]] },
-        { name: 'zForm2', form: [[0, 1, 1], [1, 1, 0]] },
-        { name: 'plus', form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] },
-        { name: 'i3', form: [[1, 1, 1]] },
-        { name: 'block3x3', form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] },
-        { name: 'block2x3', form: [[1, 1, 1], [1, 1, 1]] },
-        { name: 'gerade4', form: [[1, 1, 1, 1]] },
-        { name: 'gerade5', form: [[1, 1, 1, 1, 1]] },
-        { name: 'punkt', form: [[1]] }
+        { name: 'grossesL', form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] }, { name: 'kleinesL', form: [[1, 0], [1, 0], [1, 1]] }, { name: 'zForm1', form: [[1, 1, 0], [0, 1, 1]] }, { name: 'zForm2', form: [[0, 1, 1], [1, 1, 0]] }, { name: 'plus', form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] }, { name: 'i3', form: [[1, 1, 1]] }, { name: 'block3x3', form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { name: 'block2x3', form: [[1, 1, 1], [1, 1, 1]] }, { name: 'gerade4', form: [[1, 1, 1, 1]] }, { name: 'gerade5', form: [[1, 1, 1, 1, 1]] }, { name: 'punkt', form: [[1]] }
     ];
 
     /**
@@ -39,17 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
         container.classList.add('figur-container');
         container.setAttribute('draggable', 'true');
         container.dataset.figurId = figur.id;
-
         const form = figur.form;
         container.style.gridTemplateRows = `repeat(${form.length}, 40px)`;
         container.style.gridTemplateColumns = `repeat(${form[0].length}, 40px)`;
-
         for (let y = 0; y < form.length; y++) {
             for (let x = 0; x < form[0].length; x++) {
                 const block = document.createElement('div');
-                if (form[y][x] === 1) {
-                    block.classList.add('figur-block');
-                }
+                if (form[y][x] === 1) block.classList.add('figur-block');
                 container.appendChild(block);
             }
         }
@@ -57,34 +43,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Löscht die Vorschau-Hervorhebung vom Spielfeld.
+     * Löscht alle Vorschau-Hervorhebungen vom Spielfeld.
      */
     function loescheVorschau() {
-        document.querySelectorAll('.vorschau').forEach(z => z.classList.remove('vorschau'));
+        document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(z => {
+            z.classList.remove('vorschau', 'vorschau-ungueltig');
+        });
     }
 
     /**
-     * Zeigt die Vorschau an oder färbt den Stein rot.
+     * Zeigt die Vorschau an (blau für gültig, rot für ungültig).
      */
     function zeigeVorschau(startX, startY) {
         loescheVorschau();
-        if (!gezogeneFigur || !gezogenesElement) return;
+        if (!gezogeneFigur) return;
 
-        if (kannPlatzieren(gezogeneFigur, startX, startY)) {
-            gezogenesElement.classList.remove('ungueltig');
-            const form = gezogeneFigur.form;
-            for (let y = 0; y < form.length; y++) {
-                for (let x = 0; x < form[0].length; x++) {
-                    if (form[y][x] === 1) {
-                        const brettY = startY + y;
-                        const brettX = startX + x;
-                        const zellenIndex = brettY * BREITE + brettX;
-                        spielbrettElement.children[zellenIndex]?.classList.add('vorschau');
+        const kannAblegen = kannPlatzieren(gezogeneFigur, startX, startY);
+        const vorschauKlasse = kannAblegen ? 'vorschau' : 'vorschau-ungueltig';
+        
+        const form = gezogeneFigur.form;
+        for (let y = 0; y < form.length; y++) {
+            for (let x = 0; x < form[0].length; x++) {
+                if (form[y][x] === 1) {
+                    const brettY = startY + y;
+                    const brettX = startX + x;
+                    if (brettY < HOEHE && brettX < BREITE) {
+                       const zellenIndex = brettY * BREITE + brettX;
+                       spielbrettElement.children[zellenIndex]?.classList.add(vorschauKlasse);
                     }
                 }
             }
-        } else {
-            gezogenesElement.classList.add('ungueltig');
         }
     }
 
@@ -93,18 +81,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     figurenAuswahlElement.addEventListener('dragstart', (e) => {
         if (e.target.classList.contains('figur-container')) {
-            setTimeout(() => e.target.style.opacity = '0.5', 0);
-
             const figurId = parseInt(e.target.dataset.figurId);
             gezogeneFigur = aktuelleFiguren.find(f => f.id === figurId);
             gezogenesElement = e.target;
+
+            // Den Standard-"Geist" des Browsers durch ein leeres Bild ersetzen
+            const ghost = new Image();
+            ghost.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            e.dataTransfer.setDragImage(ghost, 0, 0);
+
+            // Figur im Auswahlbereich unsichtbar machen
+            setTimeout(() => e.target.style.visibility = 'hidden', 0);
         }
     });
     
     figurenAuswahlElement.addEventListener('dragend', (e) => {
         if(gezogenesElement) {
-            gezogenesElement.style.opacity = '1';
-            gezogenesElement.classList.remove('ungueltig');
+            // Figur im Auswahlbereich wieder sichtbar machen
+            gezogenesElement.style.visibility = 'visible';
         }
         loescheVorschau();
         gezogeneFigur = null;
@@ -128,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     spielbrettElement.addEventListener('dragleave', (e) => {
         loescheVorschau();
-        if(gezogenesElement) gezogenesElement.classList.remove('ungueltig');
         letzteVorschauKoordinaten = { x: -1, y: -1 };
     });
 
@@ -145,16 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
             platziereFigur(gezogeneFigur, x, y);
             leereVolleLinien();
             
-            const figurElement = document.querySelector(`[data-figur-id="${gezogeneFigur.id}"]`);
-            if(figurElement) figurElement.remove();
+            gezogenesElement.remove(); // Figur aus der Auswahl entfernen
             
             aktuelleFiguren[gezogeneFigur.id] = null;
             
+            // Wenn alle 3 Figuren gespielt wurden, neue generieren
             if (aktuelleFiguren.every(f => f === null)) {
                 setTimeout(generiereNeueFiguren, 100);
-            } else if (istSpielVorbei()) {
-                 setTimeout(() => alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`), 100);
             }
+            // KORREKTUR: Die "istSpielVorbei"-Prüfung wurde von hier entfernt.
         }
     });
 
@@ -164,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function erstelleSpielfeld() { spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); spielbrettElement.innerHTML = ''; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const z = document.createElement('div'); z.classList.add('zelle'); z.dataset.x = x; z.dataset.y = y; spielbrettElement.appendChild(z); } } }
     function zeichneSpielfeld() { for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const z = spielbrettElement.children[y * BREITE + x]; if (spielbrett[y][x] === 1) { z.classList.add('belegt'); } else { z.classList.remove('belegt'); } } } }
     function generiereNeueFiguren() { figurenAuswahlElement.innerHTML = ''; aktuelleFiguren = []; for (let i = 0; i < 3; i++) { const v = FIGUREN_POOL[Math.floor(Math.random() * FIGUREN_POOL.length)]; const f = rotiereFigur(v.form); const figur = { id: i, form: f }; aktuelleFiguren.push(figur); const fe = erstelleFigurElement(figur); figurenAuswahlElement.appendChild(fe); } if (istSpielVorbei()) { setTimeout(() => alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`), 100); } }
-    function kannPlatzieren(figur, startX, startY) { const form = figur.form; for (let y = 0; y < form.length; y++) { for (let x = 0; x < form[0].length; x++) { if (form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX >= BREITE || bY >= HOEHE || spielbrett[bY][bX] === 1) return false; } } } return true; }
+    function kannPlatzieren(figur, startX, startY) { const form = figur.form; for (let y = 0; y < form.length; y++) { for (let x = 0; x < form[0].length; x++) { if (form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX >= BREITE || bY >= HOEHE || bY < 0 || bX < 0 || spielbrett[bY][bX] === 1) return false; } } } return true; }
     function platziereFigur(figur, startX, startY) { const form = figur.form; let blockAnzahl = 0; for (let y = 0; y < form.length; y++) { for (let x = 0; x < form[0].length; x++) { if (form[y][x] === 1) { spielbrett[startY + y][startX + x] = 1; blockAnzahl++; } } } punkte += blockAnzahl; }
     function leereVolleLinien() { let vR = [], vS = [], lG = 0; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y].every(z => z === 1)) { vR.push(y); lG++; } } for (let x = 0; x < BREITE; x++) { let sV = true; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y][x] === 0) { sV = false; break; } } if (sV) { vS.push(x); lG++; } } vR.forEach(y => { for (let x = 0; x < BREITE; x++) spielbrett[y][x] = 0; }); vS.forEach(x => { for (let y = 0; y < HOEHE; y++) spielbrett[y][x] = 0; }); if(lG > 0) { punkte += lG * 10 * lG; } zeichneSpielfeld(); punkteElement.textContent = punkte; }
     function istSpielVorbei() { for(const f of aktuelleFiguren) { if (!f) continue; for(let y = 0; y < HOEHE; y++) { for(let x = 0; x < BREITE; x++) { if (kannPlatzieren(f, x, y)) return false; } } } return true; }
