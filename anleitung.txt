@@ -1,0 +1,17 @@
+**Spielanleitung ZenPuzzle**
+
+**Ziel des Spiels:**
+Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
+
+**Steuerung (PC):**
+* **Auswählen:** Klicke eine Figur in den unteren Slots an, um sie aufzunehmen.
+* **Platzieren:** Klicke auf eine freie Stelle auf dem Spielfeld.
+* **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung verbraucht einen Dreh-Joker.
+* **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
+* **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
+
+**Steuerung (Mobil):**
+* Die Steuerung erfolgt durch Tippen und Ziehen (Drag & Drop).
+
+**Dreh-Joker:**
+Du hast 5 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 5 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
