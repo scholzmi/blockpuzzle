@@ -7,6 +7,7 @@ body {
     color: #3c4043;
     margin: 20px;
     position: relative; 
+    overscroll-behavior: none; /* Verhindert "pull-to-refresh" auf Mobilgeräten */
 }
 
 /* Hintergrundbild mit Transparenz */
@@ -15,8 +16,8 @@ body::before {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-image: url('bg.jpg');
     background-size: cover;
     background-position: center;
@@ -27,7 +28,7 @@ body::before {
 }
 
 body, #spielbrett {
-    user-select: none;
+    user-select: none; /* Verhindert Text-Markierung */
 }
 
 /* Wrapper für den Boss-Key */
@@ -69,8 +70,8 @@ h1 {
     display: flex;
     justify-content: space-between;
     width: 364px;
-    margin-top: 15px; /* Abstand zur Info-Leiste */
-    margin-bottom: 15px; /* Abstand zum Spielfeld */
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 
 .joker-box {
@@ -88,7 +89,6 @@ h1 {
 .joker-box.verbraucht {
     background-color: rgba(52, 168, 83, 0.3); /* Leichtes Grün */
 }
-
 
 /* Spielfeld-Styles */
 #spielbrett {
