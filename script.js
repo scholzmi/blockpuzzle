@@ -22,47 +22,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
     
     // ===================================================================================
-    // EVENT LISTENER ZUWEISUNG (KORRIGIERT)
+    // KORRIGIERTE HILFSFUNKTION
     // ===================================================================================
-    /**
-     * Weist alle Event-Listener zu. Hört jetzt immer auf Klick UND Touch.
-     */
-    function eventListenerZuweisen() {
-        // --- Globale Listener für alle Geräte ---
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                abbrechen();
-            } else if (e.key.toLowerCase() === 'b') {
-                toggleBossKey();
+    function loescheVorschau() {
+        // KORREKTUR: Sucht jetzt nach beiden Vorschau-Klassen, um die Spur zu verhindern.
+        document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(zelle => {
+            zelle.classList.remove('vorschau', 'vorschau-ungueltig');
+            if (!zelle.classList.contains('belegt')) {
+                zelle.style.backgroundColor = '';
             }
         });
-
-        // --- Listener für Klick-Steuerung (Desktop) ---
-        figurenSlots.forEach((slot, index) => {
-            slot.addEventListener('click', () => figurSlotKlick(index));
-        });
-        spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
-        spielbrettElement.addEventListener('mouseleave', loescheVorschau);
-        spielbrettElement.addEventListener('click', klickAufBrett);
-        spielbrettElement.addEventListener('contextmenu', e => {
-            e.preventDefault();
-            if (ausgewaehlteFigur) {
-                ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-            }
-        });
-
-        // --- Listener für Touch-Steuerung (Mobil) ---
-        figurenSlots.forEach((slot, index) => {
-            slot.dataset.slotId = index; // Wichtig: ID für Touch-Events setzen
-            slot.addEventListener('touchstart', dragStartTouch, { passive: false });
-        });
-        window.addEventListener('touchmove', dragMoveTouch, { passive: false });
-        window.addEventListener('touchend', dropTouch);
     }
     // ===================================================================================
-    
-    // KERNLOGIK (Unverändert, aber vollständig hier)
+
+    // === Kernlogik ===
     async function spielStart() {
         const configGeladen = await ladeKonfiguration();
         if (!configGeladen) {
@@ -215,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // HILFSFUNKTIONEN
     function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
@@ -224,18 +196,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function pruefeUndSpeichereRekord() { if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie("rekord", rekord, 365); alert(`Neuer Rekord: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
     function zeichneSpielfeld() { spielbrett.forEach((reihe, y) => { reihe.forEach((farbName, x) => { const zelle = spielbrettElement.children[y * BREITE + x]; zelle.className = 'zelle'; zelle.style.backgroundColor = ''; if (farbName !== 0) { zelle.classList.add('belegt'); zelle.style.backgroundColor = spielConfig.colorThemes[farbName]?.placed || spielConfig.colorThemes['default'].placed; } }); }); }
-    function zeichneVorschau(figur, startX, startY) { loescheVorschau(); if (!figur) return; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zelle = spielbrettElement.children[brettY * BREITE + brettX]; const zustandDarunter = spielbrett[brettY][brettX]; zelle.classList.add('vorschau'); if (zustandDarunter === 0) { const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbTheme.preview; } else { const farbThemeDarunter = spielConfig.colorThemes[zustandDarunter] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbThemeDarunter.preview; } } } }); }); }
+    function zeichneVorschau(figur, startX, startY) { loescheVorschau(); if (!figur) return; const kannAblegen = kannPlatzieren(figur, startX, startY); figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zelle = spielbrettElement.children[brettY * BREITE + brettX]; const zustandDarunter = spielbrett[brettY][brettX]; zelle.classList.add('vorschau'); if (zustandDarunter === 0) { const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbTheme.preview; } else { const farbThemeDarunter = spielConfig.colorThemes[zustandDarunter] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbThemeDarunter.preview; } } } }); }); }
     function zeichneFigurInSlot(index) { const slot = figurenSlots[index]; slot.innerHTML = ''; const figur = figurenInSlots[index]; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => { reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); }); }); slot.appendChild(container); } }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] !== 0) return false; } } } return true; }
     function leereVolleLinien() { let vR = [], vS = []; for(let y=0; y<HOEHE; y++) if(spielbrett[y].every(z => z !== 0)) vR.push(y); for(let x=0; x<BREITE; x++) { let voll=true; for(let y=0; y<HOEHE; y++) if(spielbrett[y][x] === 0) voll=false; if(voll) vS.push(x); } if (vR.length > 0 || vS.length > 0) { vR.forEach(y=>spielbrett[y].fill(0)); vS.forEach(x=>spielbrett.forEach(r=>r[x]=0)); const linien = vR.length + vS.length; punkte += linien * 10 * linien; } zeichneSpielfeld(); }
-    function loescheVorschau() { document.querySelectorAll('.vorschau').forEach(zelle => { zelle.classList.remove('vorschau'); if (!zelle.classList.contains('belegt')) { zelle.style.backgroundColor = ''; } }); }
     
-    // TOUCH-FUNKTIONEN
+    function eventListenerZuweisen() {
+        const istTouchGeraet = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { abbrechen(); } else if (e.key.toLowerCase() === 'b') { toggleBossKey(); } });
+        if (istTouchGeraet) {
+            figurenSlots.forEach((slot, index) => { slot.dataset.slotId = index; slot.addEventListener('touchstart', dragStartTouch, { passive: false }); });
+            window.addEventListener('touchmove', dragMoveTouch, { passive: false });
+            window.addEventListener('touchend', dropTouch);
+        } else {
+            figurenSlots.forEach((slot, index) => { slot.addEventListener('click', () => figurSlotKlick(index)); });
+            spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
+            spielbrettElement.addEventListener('mouseleave', loescheVorschau);
+            spielbrettElement.addEventListener('click', klickAufBrett);
+            spielbrettElement.addEventListener('contextmenu', e => { e.preventDefault(); if (ausgewaehlteFigur) { ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form); zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y); } });
+        }
+    }
+    
     function dragStartTouch(e) { e.preventDefault(); const slot = e.currentTarget; const index = parseInt(slot.dataset.slotId, 10); if (figurenInSlots[index]) { if(ausgewaehlteFigur) abbrechen(); ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; gezogenesElement = figurenSlots[index].querySelector('.figur-container').cloneNode(true); document.body.append(gezogenesElement); gezogenesElement.style.position = 'absolute'; gezogenesElement.style.zIndex = '1000'; gezogenesElement.style.pointerEvents = 'none'; figurenSlots[index].innerHTML = ''; dragMoveTouch(e); } }
     function dragMoveTouch(e) { if (!ausgewaehlteFigur || !gezogenesElement) return; e.preventDefault(); const touch = e.touches[0]; gezogenesElement.style.left = (touch.pageX - gezogenesElement.offsetWidth / 2) + 'px'; gezogenesElement.style.top = (touch.pageY - gezogenesElement.offsetHeight / 2) + 'px'; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); if (zelle) { const rect = spielbrettElement.getBoundingClientRect(); const mausX = touch.clientX - rect.left; const mausY = touch.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); letztesZiel = {x: zielX, y: zielY}; zeichneVorschau(ausgewaehlteFigur, zielX, zielY); } }
     function dropTouch(e) { if (!ausgewaehlteFigur) return; if (gezogenesElement) { gezogenesElement.remove(); } const touch = e.changedTouches[0]; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); let platziert = false; if (zelle) { if (kannPlatzieren(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y)) { platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y); platziert = true; } } if (!platziert) { zeichneFigurInSlot(ausgewaehlterSlotIndex); } ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; gezogenesElement = null; }
 
-    // === Spiel initialisieren ===
-    eventListenerZuweisen();
+    // === Spiel starten ===
     spielStart();
 });
