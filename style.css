@@ -64,6 +64,32 @@ h1 {
     box-sizing: border-box;
 }
 
+/* Leiste für die Dreh-Joker */
+#dreh-joker-leiste {
+    display: flex;
+    justify-content: space-between;
+    width: 364px;
+    margin-top: 15px; /* Abstand zur Info-Leiste */
+    margin-bottom: 15px; /* Abstand zum Spielfeld */
+}
+
+.joker-box {
+    width: 65px;
+    height: 65px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    border: 2px solid rgba(0,0,0,0.2);
+}
+
+.joker-box.voll {
+    background-color: #34A853; /* Dunkelgrün */
+}
+
+.joker-box.verbraucht {
+    background-color: rgba(52, 168, 83, 0.3); /* Leichtes Grün */
+}
+
+
 /* Spielfeld-Styles */
 #spielbrett {
     display: grid;
@@ -71,7 +97,6 @@ h1 {
     grid-template-rows: repeat(9, 40px);
     border: 2px solid #E0E0E0;
     background-color: rgba(248, 249, 250, 0.8);
-    margin-top: 20px;
     width: max-content;
     position: relative;
 }
@@ -86,7 +111,15 @@ h1 {
 
 .belegt {
     border: 1px solid rgba(0, 0, 0, 0.2);
-    /* Hintergrundfarbe wird per JS gesetzt */
+}
+
+.blocker {
+    background-color: #333 !important;
+    border-color: #000 !important;
+}
+
+.vorschau {
+    /* Diese Klasse dient nur als JS-Marker */
 }
 
 /* Figuren-Auswahl mit festen Slots */
