@@ -19,9 +19,9 @@ h1 {
     grid-template-columns: repeat(10, 40px);
     grid-template-rows: repeat(10, 40px);
     border: 2px solid #E0E0E0;
-    width: 404px;
     background-color: #f8f9fa;
     margin-top: 20px;
+    width: max-content;
 }
 
 .zelle {
@@ -36,6 +36,11 @@ h1 {
     border: 1px solid #1a73e8;
 }
 
+.vorschau {
+    background-color: rgba(66, 133, 244, 0.3);
+}
+
+
 /* Figuren-Auswahl */
 #figuren-auswahl {
     display: flex;
@@ -43,7 +48,8 @@ h1 {
     align-items: center;
     gap: 30px;
     margin-top: 20px;
-    height: 120px;
+    height: 200px;
+    padding: 10px;
 }
 
 .figur-container {
@@ -52,15 +58,20 @@ h1 {
     border: 2px solid transparent;
     padding: 5px;
     border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 .figur-container:hover {
     background-color: #e8f0fe;
 }
 
+.figur-container.ungueltig .figur-block {
+    background-color: #ea4335 !important;
+}
+
 .figur-block {
-    width: 20px;
-    height: 20px;
+    width: 40px;
+    height: 40px;
     background-color: #4285F4;
     border: 1px solid #fff;
     box-sizing: border-box;
@@ -100,8 +111,8 @@ footer {
 }
 
 .impressum {
-    margin-top: 20px;
-    font-size: 0.8em;
-    line-height: 1.4;
+    margin-top: 25px;
+    font-size: 0.75em; /* Schriftgrösse reduziert */
     color: #70757a;
+    white-space: nowrap; /* Verhindert unerwünschten Umbruch */
 }
