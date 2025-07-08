@@ -37,20 +37,20 @@ h1 {
 .spiel-info {
     display: flex;
     justify-content: space-between;
-    width: 364px; 
+    width: 364px; /* Angepasst an 9x9 Feld */
     font-size: 1.2em;
     color: #3c4043;
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
-    box-sizing: border-box; /* NEU: Stellt exakte Breite sicher */
+    box-sizing: border-box;
 }
 
 /* Spielfeld-Styles */
 #spielbrett {
     display: grid;
-    grid-template-columns: repeat(9, 40px);
-    grid-template-rows: repeat(9, 40px);
+    grid-template-columns: repeat(9, 40px); /* Angepasst an 9x9 Feld */
+    grid-template-rows: repeat(9, 40px); /* Angepasst an 9x9 Feld */
     border: 2px solid #E0E0E0;
     background-color: rgba(248, 249, 250, 0.8);
     margin-top: 20px;
@@ -63,20 +63,20 @@ h1 {
     height: 40px;
     border: 1px solid #E0E0E0;
     box-sizing: border-box;
-    transition: background-color 0.1s; /* Sanfter Übergang für Farben */
+    transition: background-color 0.1s;
 }
 
-/* Die Klassen bleiben zur Identifizierung, aber ohne feste Farbe */
 .belegt {
     border: 1px solid rgba(0, 0, 0, 0.2);
+    /* Hintergrundfarbe wird per JS gesetzt */
 }
 
 .vorschau {
-    /* Farbe wird per JS gesetzt */
+    /* Hintergrundfarbe wird per JS gesetzt */
 }
 
 .vorschau-ungueltig {
-    background-color: rgba(234, 67, 53, 0.5); /* Rot für ungültig bleibt fix */
+    background-color: rgba(234, 67, 53, 0.5);
 }
 
 /* Figuren-Auswahl mit festen Slots */
@@ -86,7 +86,7 @@ h1 {
     align-items: center;
     gap: 10px;
     margin-top: 20px;
-    width: 364px;
+    width: 364px; /* Angepasst an 9x9 Feld */
     height: 180px;
     padding: 10px;
     box-sizing: border-box;
@@ -115,6 +115,7 @@ h1 {
 .figur-block {
     width: 20px;
     height: 20px;
+    /* Hintergrundfarbe wird per JS gesetzt */
     border: 1px solid #fff;
     box-sizing: border-box;
     border-radius: 2px;

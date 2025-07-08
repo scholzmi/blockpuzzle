@@ -1,5 +1,5 @@
 {
-  "version": "V1.30",
+  "version": "V1.35",
   "probabilities": {
     "zonk": 0.05,
     "joker": 0.20,
@@ -16,17 +16,10 @@
   "figures": {
     "normal": [
       { "name": "I-2", "shape": [1, 2], "color": "blue" },
-      { "name": "I-3", "shape": [1, 2, 3], "color": "blue" },
-      { "name": "I-4", "shape": [1, 2, 3, 4], "color": "blue" },
-      { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "yellow" },
-      { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "green" },
-      { "name": "T-Form", "shape": [1, 2, 3, 7], "color": "purple" },
-      { "name": "S-Form", "shape": [2, 3, 6, 7], "color": "green" },
-      { "name": "Z-Form", "shape": [1, 2, 7, 8], "color": "red" }
+      { "name": "I-3", "shape": [1, 2, 3], "color": "blue" }
     ],
     "zonk": [
-      { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "blue" },
-      { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "color": "red" }
+      { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "blue" }
     ],
     "joker": [
       { "name": "Punkt", "shape": [1], "color": "yellow" }
