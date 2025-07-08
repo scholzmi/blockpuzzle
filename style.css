@@ -78,31 +78,43 @@ h1, h2 {
     background-color: rgba(255, 255, 255, 0.75);
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
 }
 
-#anleitung-inhalt {
-    font-size: 0.9em;
-    line-height: 1.5;
-    max-height: 400px; /* Verhindert, dass die Box zu hoch wird */
-    overflow-y: auto; /* Fügt eine Scrollbar hinzu, falls nötig */
+/* Styling für die Toggle-Icons */
+.toggle-icon {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    color: #888;
+}
+
+.toggle-icon:hover {
+    color: #000;
+}
+
+/* Das Icon wird per CSS gesetzt (Pfeil nach oben) */
+.toggle-icon::before {
+    content: '▲';
+}
+
+/* Wenn die Box versteckt ist, wird der Pfeil nach unten angezeigt */
+.seiten-box.versteckt .toggle-icon::before {
+    content: '▼';
+}
+
+#anleitung-inhalt, #info-inhalt {
     transition: all 0.3s ease;
 }
 
-#anleitung-toggle-btn {
-    display: block;
-    width: 100%;
-    padding: 8px;
-    margin-top: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #f0f0f0;
-}
-
-#anleitung-container.versteckt #anleitung-inhalt {
+/* Zustand für versteckten Inhalt */
+.seiten-box.versteckt #anleitung-inhalt,
+.seiten-box.versteckt #info-inhalt {
     display: none;
 }
-
 
 /* Info-Leiste (Punkte, Rekord) */
 .spiel-info {
@@ -185,7 +197,7 @@ h1, h2 {
 .figur-container { display: grid; cursor: pointer; }
 .figur-block { width: 20px; height: 20px; border: 1px solid #fff; box-sizing: border-box; border-radius: 2px; }
 
-/* Info-Box rechts (ehemals Footer) */
+/* Info-Box rechts */
 .spende-bereich { 
     text-align: center; 
 }
