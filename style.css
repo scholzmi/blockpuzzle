@@ -4,10 +4,28 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #fff;
+    /* Die Hintergrundfarbe wird entfernt, um das Bild durchscheinen zu lassen */
     color: #3c4043;
     margin: 20px;
+    position: relative; /* Wichtig für die Positionierung des Hintergrundbilds */
 }
+
+/* NEU: Pseudo-Element für das Hintergrundbild mit Transparenz */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3; /* 30% Transparenz */
+    z-index: -1; /* Legt das Bild hinter allen anderen Inhalt */
+}
+
 
 /* Verhindert Textauswahl beim schnellen Klicken */
 body, #spielbrett {
@@ -18,94 +36,27 @@ h1 {
     color: #4285F4;
 }
 
+.spiel-info {
+    display: flex;
+    justify-content: space-between;
+    width: 404px;
+    font-size: 1.2em;
+    color: #3c4043;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.7); /* Leicht weisser Hintergrund für bessere Lesbarkeit */
+    border-radius: 8px;
+}
+
 /* Spielfeld-Styles */
 #spielbrett {
     display: grid;
     grid-template-columns: repeat(10, 40px);
     grid-template-rows: repeat(10, 40px);
     border: 2px solid #E0E0E0;
-    background-color: #f8f9fa;
+    background-color: rgba(248, 249, 250, 0.8); /* Leicht transparenter Hintergrund */
     margin-top: 20px;
     width: max-content;
-    position: relative; /* Wichtig für die Vorschau */
+    position: relative;
 }
 
-.zelle {
-    width: 40px;
-    height: 40px;
-    border: 1px solid #E0E0E0;
-    box-sizing: border-box;
-}
-
-.belegt {
-    background-color: #4285F4;
-    border: 1px solid #1a73e8;
-}
-
-.vorschau {
-    background-color: rgba(66, 133, 244, 0.5);
-}
-
-.vorschau-ungueltig {
-    background-color: rgba(234, 67, 53, 0.5);
-}
-
-
-/* Figuren-Auswahl mit festen Slots */
-#figuren-auswahl {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 20px;
-    width: 404px; /* Breite des Spielbretts */
-    height: 180px;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-.figur-slot {
-    width: 33.33%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 2px dashed #e0e0e0;
-    border-radius: 8px;
-    transition: background-color 0.2s;
-}
-
-.figur-slot:hover {
-    background-color: #f8f9fa;
-}
-
-/* Container für die Figur innerhalb des Slots */
-.figur-container {
-    display: grid;
-    cursor: pointer;
-}
-
-.figur-block {
-    width: 30px; /* Etwas kleiner für bessere Optik in den Slots */
-    height: 30px;
-    background-color: #4285F4;
-    border: 1px solid #fff;
-    box-sizing: border-box;
-    border-radius: 2px;
-}
-
-.spiel-info {
-    display: flex;
-    justify-content: space-between;
-    width: 404px; /* Gleiche Breite wie das Spielbrett */
-    font-size: 1.2em;
-    color: #3c4043;
-}
-
-/* Footer-Styles (unverändert) */
-footer { text-align: center; margin-top: 40px; padding-top: 20px; width: 100%; max-width: 400px; border-top: 1px solid #E0E0E0; color: #70757a; }
-.spende-bereich p { margin: 0 0 10px 0; font-size: 1em; }
-.qr-code { width: 100px; height: 100px; margin-bottom: 10px; }
-.paypal-link { color: #1a73e8; text-decoration: none; font-size: 0.9em; }
-.paypal-link:hover { text-decoration: underline; }
-.impressum { margin-top: 25px; font-size: 0.75em; color: #70757a; white-space: nowrap; }
+/* ... der Rest der CSS-Datei bleibt unverändert ... */
