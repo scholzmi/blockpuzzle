@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let gezogeneFigur = null; // Die Figur, die gerade per Drag-and-Drop bewegt wird
 
     // === Figuren-Definitionen ===
-    // Die Formen werden als 2D-Arrays aus 0 und 1 definiert.
-    // Dies macht Rotationen und Kollisionsprüfungen einfacher.
     const FIGUREN_POOL = [
         // großes L (1,4,7,8,9) -> 3x3
         { name: 'grossesL', form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] },
