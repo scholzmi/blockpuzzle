@@ -1,0 +1,19 @@
+#spielbrett {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    border: 2px solid #E0E0E0;
+    width: 404px; /* 10 * 40px + 2 * 2px border */
+    background-color: #f8f9fa;
+}
+
+.zelle {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #E0E0E0;
+    box-sizing: border-box; /* Wichtig, damit der Rand nicht die Grösse beeinflusst */
+}
+
+.belegt {
+    background-color: #4285F4;
+}
