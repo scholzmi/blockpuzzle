@@ -136,7 +136,6 @@ footer {
     font-size: 1em;
 }
 
-/* KORRIGIERT: Regel für den QR-Code, die verloren gegangen war */
 .qr-code {
     width: 100px;
     height: 100px;
@@ -157,5 +156,6 @@ footer {
     margin-top: 25px;
     font-size: 0.75em;
     color: #70757a;
-    white-space: nowrap;
+    line-height: 1.4; /* Etwas Zeilenabstand für die Lesbarkeit */
+    /* GEÄNDERT: white-space: nowrap; wurde entfernt, um den Umbruch zu erlauben */
 }
