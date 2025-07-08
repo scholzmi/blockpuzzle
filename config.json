@@ -1,5 +1,5 @@
 {
-  "version": "V1.50",
+  "version": "V1.51",
   "probabilities": {
     "zonk": 0.05,
     "joker": 0.20,
@@ -15,19 +15,18 @@
   },
   "figures": {
     "normal": [
-      { "name": "I-2", "shape": [1, 2], "color": "blue" },
-      { "name": "I-3", "shape": [1, 2, 3], "color": "purple" },
-      { "name": "I-4", "shape": [1, 2, 3, 4], "color": "red" },
-      { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "yellow" },
-      { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "green" },
-      { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "color": "blue" },
-      { "name": "L-Klein", "shape": [1, 6, 11, 12], "color": "red" },
-      { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "color": "green" },
+      { "name": "I-3", "shape": [1, 2, 3], "color": "blue" },
+      { "name": "I-4", "shape": [1, 2, 3, 4], "color": "blue" },
+      { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "purple" },
+      { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "purple" },
+      { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "color": "purple" },
+      { "name": "L-Klein", "shape": [1, 6, 11, 12], "color": "blue" },
+      { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "color": "blue" },
       { "name": "T-Form", "shape": [1, 2, 3, 7], "color": "purple" },
       { "name": "S-Form", "shape": [2, 3, 6, 7], "color": "yellow" },
-      { "name": "Z-Form", "shape": [1, 2, 7, 8], "color": "green" },
+      { "name": "Z-Form", "shape": [1, 2, 7, 8], "color": "yellow" },
       { "name": "Plus", "shape": [2, 6, 7, 8, 12], "color": "red" },
-      { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "color": "blue" },
+      { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "color": "red" },
       { "name": "Winkel-Klein", "shape": [1, 2, 6], "color": "purple" },
       { "name": "Diagonale-3", "shape": [1, 7, 13], "color": "yellow" }
     ],
@@ -35,7 +34,7 @@
       { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "red" },
       { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "color": "red" },
       { "name": "U-Gross", "shape": [1, 5, 6, 10, 11, 12, 13], "color": "red" },
-      { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "red" }
+      { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "yellow" }
     ],
     "joker": [
       { "name": "Punkt", "shape": [1], "color": "green" },
