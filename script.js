@@ -8,61 +8,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BREITE = 9;
     const HOEHE = 9;
-    
+    const MAX_FIGUR_GROESSE = 5; // Definiert das 5x5 Raster für die Figuren-Definition
+
+    // === Spiel-Variablen ===
     let spielbrett = [], punkte = 0, rekord = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, ausgewaehlterSlotIndex = -1, rundenZaehler = 0;
     let letztesZiel = {x: -1, y: -1};
-    
-    // === Figuren-Pools mit den neuen Figuren ===
-    const ZONK_FIGUREN_POOL = [
-        { form: [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]] }, // 4x4
-        { form: [[1, 1, 1, 1, 1]] }, // 1x5
-        { form: [[1], [1], [1], [1], [1]] },  // 5x1
-        { form: [[1, 0, 1], [1, 0, 1], [1, 1, 1]] }, // grosses U
-        { form: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]] }, // Diagonale 4
-        { form: [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]] }  // Diagonale 4 (gedreht)
-    ];
 
-    const JOKER_FIGUR = { form: [[1]] };
+    // === Konfigurations- und Figuren-Variablen (werden aus JSON geladen) ===
+    let spielConfig = {};
+    let normaleFiguren = [];
+    let zonkFiguren = [];
+    let jokerFiguren = [];
 
-    const NORMALE_FIGUREN_POOL = [
-        // Neue Figuren
-        { form: [[1, 1]] },               // NEU: 1x2
-        { form: [[1], [1]] },             // NEU: 2x1
-        { form: [[1, 1], [1, 1]] }, // 2x2
-        { form: [[1, 1, 1], [1, 1, 1]] }, // 2x3
-        { form: [[1, 1], [1, 1], [1, 1]] }, // 3x2
-        { form: [[0, 1, 0], [1, 1, 1]] }, { form: [[1, 0], [1, 1], [1, 0]] }, { form: [[1, 1, 1], [0, 1, 0]] }, { form: [[0, 1], [1, 1], [0, 1]] }, // T-Formen
-        { form: [[1, 0, 1], [1, 1, 1]] }, // kleines u
-        { form: [[1, 1], [1, 0]] },       // kleiner Winkel
-        { form: [[1, 0, 0], [0, 1, 0], [0, 0, 1]] }, // Diagonale 3
-        { form: [[0, 0, 1], [0, 1, 0], [1, 0, 0]] }, // Diagonale 3 (gedreht)
+    /**
+     * Wandelt eine Figur von Zahlenkoordinaten (z.B. [1, 2, 6]) in eine 2D-Matrix um.
+     * Schneidet die Matrix auf die kleinstmögliche Grösse zu.
+     */
+    function parseShape(shapeCoords) {
+        let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0));
+        let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1;
+
+        shapeCoords.forEach(coord => {
+            const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE);
+            const col = (coord - 1) % MAX_FIGUR_GROESSE;
+            if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) {
+                tempMatrix[row][col] = 1;
+                minRow = Math.min(minRow, row);
+                maxRow = Math.max(maxRow, row);
+                minCol = Math.min(minCol, col);
+                maxCol = Math.max(maxCol, col);
+            }
+        });
         
-        // Bisherige normale Figuren
-        { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] },
-        { form: [[1, 1, 1, 1]] }, { form: [[1], [1], [1], [1]] },
-        { form: [[1, 1, 1]] }, { form: [[1], [1], [1]] },
-        { form: [[1, 1, 0], [0, 1, 1]] }, { form: [[0, 1], [1, 1], [1, 0]] },
-        { form: [[0, 1, 1], [1, 1, 0]] }, { form: [[1, 0], [1, 1], [0, 1]] },
-        { form: [[1, 0], [1, 0], [1, 1]] }, { form: [[1, 1, 1], [1, 0, 0]] },
-        { form: [[1, 1], [0, 1], [0, 1]] }, { form: [[0, 0, 1], [1, 1, 1]] },
-        { form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] }, { form: [[1, 1, 1, 1], [1, 0, 0, 0]] },
-        { form: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] }, { form: [[0, 0, 0, 1], [1, 1, 1, 1]] }
-    ];
+        // Matrix auf die tatsächliche Grösse der Figur zuschneiden
+        const croppedMatrix = [];
+        for (let y = minRow; y <= maxRow; y++) {
+            croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1));
+        }
+        return croppedMatrix;
+    }
+
+    /**
+     * Lädt die gesamte Spielkonfiguration aus der config.json
+     */
+    async function ladeKonfiguration() {
+        try {
+            const antwort = await fetch('config.json');
+            if (!antwort.ok) throw new Error('Netzwerk-Antwort war nicht ok.');
+            spielConfig = await antwort.json();
+            
+            versionElement.textContent = spielConfig.version;
+            
+            // Figuren-Pools aus der Konfiguration erstellen
+            normaleFiguren = spielConfig.figures.normal.map(f => ({ form: parseShape(f.shape) }));
+            zonkFiguren = spielConfig.figures.zonk.map(f => ({ form: parseShape(f.shape) }));
+            jokerFiguren = spielConfig.figures.joker.map(f => ({ form: parseShape(f.shape) }));
+
+        } catch (error) {
+            console.error('Fehler beim Laden der Konfigurationsdatei:', error);
+            versionElement.textContent = "Error!";
+        }
+    }
+
+    /**
+     * Wählt eine Figur basierend auf den Wahrscheinlichkeiten aus der Konfiguration.
+     */
+    function generiereNeueFiguren() {
+        rundenZaehler++;
+        
+        const jokerProb = spielConfig.probabilities.joker;
+        const zonkProb = spielConfig.probabilities.zonk;
+        
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / 5) * 0.01;
+        const aktuelleJokerProb = Math.max(0.03, jokerProb - jokerReduktion);
+
+        for (let i = 0; i < 3; i++) {
+            let zufallsFigur;
+            const zufallsZahl = Math.random();
+
+            if (zufallsZahl < zonkProb) {
+                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
+            } else if (zufallsZahl < zonkProb + aktuelleJokerProb) {
+                zufallsFigur = jokerFiguren[0];
+            } else {
+                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
+            }
+            
+            figurenInSlots[i] = { form: zufallsFigur.form, id: i };
+            zeichneFigurInSlot(i);
+        }
+
+        if (istSpielVorbei()) {
+            setTimeout(pruefeUndSpeichereRekord, 100);
+        }
+    }
+
+    // === Die restlichen Funktionen bleiben logisch identisch ===
+    async function spielStart() {
+        await ladeKonfiguration();
+        const gespeicherterRekord = getCookie("rekord");
+        rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0;
+        rekordElement.textContent = rekord;
+        punkte = 0;
+        punkteElement.textContent = punkte;
+        rundenZaehler = 0;
+        erstelleSpielfeld();
+        zeichneSpielfeld();
+        generiereNeueFiguren();
+    }
     
-    // ... (alle weiteren Funktionen bleiben unverändert) ...
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) { return false; } } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
-    async function ladeKonfiguration() { try { const antwort = await fetch('config.json'); if (!antwort.ok) throw new Error('Netzwerk-Antwort war nicht ok.'); const config = await antwort.json(); versionElement.textContent = config.version; } catch (error) { console.error('Fehler beim Laden der Konfigurationsdatei:', error); versionElement.textContent = "?.??"; } }
-    async function spielStart() { await ladeKonfiguration(); const gespeicherterRekord = getCookie("rekord"); rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0; rekordElement.textContent = rekord; punkte = 0; punkteElement.textContent = punkte; rundenZaehler = 0; erstelleSpielfeld(); zeichneSpielfeld(); generiereNeueFiguren(); }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie("rekord", rekord, 365); alert(`Neuer Rekord: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-    function generiereNeueFiguren() { rundenZaehler++; const jokerReduktion = Math.floor((rundenZaehler - 1) / 5) * 0.01; const aktuelleJokerWahrscheinlichkeit = Math.max(0.03, 0.20 - jokerReduktion); const zonkWahrscheinlichkeit = 0.05; for (let i = 0; i < 3; i++) { let zufallsFigur; const zufallsZahl = Math.random(); if (zufallsZahl < zonkWahrscheinlichkeit) { zufallsFigur = ZONK_FIGUREN_POOL[Math.floor(Math.random() * ZONK_FIGUREN_POOL.length)]; } else if (zufallsZahl < zonkWahrscheinlichkeit + aktuelleJokerWahrscheinlichkeit) { zufallsFigur = JOKER_FIGUR; } else { zufallsFigur = NORMALE_FIGUREN_POOL[Math.floor(Math.random() * NORMALE_FIGUREN_POOL.length)]; } figurenInSlots[i] = { form: zufallsFigur.form, id: i }; zeichneFigurInSlot(i); } if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function platziereFigur(figur, startX, startY) { let blockAnzahl = 0; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { spielbrett[startY + y][startX + x] = 1; blockAnzahl++; } }); }); punkte += blockAnzahl; leereVolleLinien(); zeichneSpielfeld(); punkteElement.textContent = punkte; figurenInSlots[ausgewaehlterSlotIndex] = null; ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; if (figurenInSlots.every(f => f === null)) { generiereNeueFiguren(); } else if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function figurSlotKlick(index) { if (ausgewaehlteFigur && ausgewaehlterSlotIndex === index) { abbrechen(); return; } if (figurenInSlots[index]) { ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; figurenSlots[index].innerHTML = ''; spielbrettElement.style.cursor = 'pointer'; } }
-    function abbrechen() { if (ausgewaehlterSlotIndex !== -1) { zeichneFigurInSlot(ausgewaehlterSlotIndex); loescheVorschau(); ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; } }
+    function abbrechen() { if (ausgewaehlterSlotIndex !== -1) { loescheVorschau(); zeichneFigurInSlot(ausgewaehlterSlotIndex); ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; } }
     function mausBewegungAufBrett(e) { if (!ausgewaehlteFigur) return; const rect = spielbrettElement.getBoundingClientRect(); const mausX = e.clientX - rect.left; const mausY = e.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); letztesZiel = {x: zielX, y: zielY}; zeichneVorschau(ausgewaehlteFigur, zielX, zielY); }
     function klickAufBrett(e) { if (!ausgewaehlteFigur) return; const rect = spielbrettElement.getBoundingClientRect(); const mausX = e.clientX - rect.left; const mausY = e.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) { platziereFigur(ausgewaehlteFigur, zielX, zielY); } }
     function zeichneVorschau(figur, startX, startY) { loescheVorschau(); if (!figur) return; const kannAblegen = kannPlatzieren(figur, startX, startY); const vorschauKlasse = kannAblegen ? 'vorschau' : 'vorschau-ungueltig'; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zellenIndex = brettY * BREITE + brettX; spielbrettElement.children[zellenIndex]?.classList.add(vorschauKlasse); } } }); }); }
@@ -77,6 +141,5 @@ document.addEventListener('DOMContentLoaded', () => {
     function dropTouch(e) { if (!ausgewaehlteFigur) return; if (gezogenesElement) { gezogenesElement.style.opacity = '1'; } const touch = e.changedTouches[0]; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); if (zelle) { const rect = spielbrettElement.getBoundingClientRect(); const mausX = touch.clientX - rect.left; const mausY = touch.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) { const slot = e.currentTarget; slot.innerHTML = ''; platziereFigur(ausgewaehlteFigur, zielX, zielY); } } ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; gezogenesElement = null; }
     
     // === Spiel starten ===
-    eventListenerZuweisen();
     spielStart();
 });
