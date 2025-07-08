@@ -14,16 +14,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let spielbrett = [], punkte = 0, rekord = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, ausgewaehlterSlotIndex = -1, rundenZaehler = 0;
     let letztesZiel = {x: -1, y: -1};
-    let gezogenesElement = null; // Für Touch-Steuerung
 
     // === Konfigurations- und Figuren-Variablen ===
-    let spielConfig = {};
-    let normaleFiguren = [];
-    let zonkFiguren = [];
-    let jokerFiguren = [];
-
+    let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
+    
     // ===================================================================================
-    // KERNLOGIK
+    // KORRIGIERTE FUNKTION
+    // ===================================================================================
+    /**
+     * Löscht die Vorschau-Hervorhebung vom Spielfeld.
+     */
+    function loescheVorschau() {
+        document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(zelle => {
+            zelle.classList.remove('vorschau', 'vorschau-ungueltig');
+            
+            // WICHTIG: Setzt den Hintergrund nur zurück, wenn die Zelle nicht
+            // permanent belegt ist, um gelegte Steine nicht zu löschen.
+            if (!zelle.classList.contains('belegt')) {
+                zelle.style.backgroundColor = '';
+            }
+        });
+    }
     // ===================================================================================
 
     /**
@@ -31,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function ladeKonfiguration() {
         try {
-            const antwort = await fetch('config.json?v=' + new Date().getTime()); // Cache umgehen
+            const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error('Netzwerk-Antwort war nicht ok.');
             spielConfig = await antwort.json();
             
@@ -53,8 +64,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Startet das Spiel oder setzt es zurück.
+     * Wählt eine Figur basierend auf den Wahrscheinlichkeiten aus der Konfiguration.
      */
+    function generiereNeueFiguren() {
+        rundenZaehler++;
+        const probs = spielConfig.probabilities || {};
+        const jokerProb = probs.joker || 0;
+        const zonkProb = probs.zonk || 0;
+        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
+        const aktuelleJokerProb = Math.max(0.03, jokerProb - jokerReduktion);
+        for (let i = 0; i < 3; i++) {
+            let zufallsFigur = null;
+            const zufallsZahl = Math.random();
+            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
+                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
+            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
+                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
+            } else if (normaleFiguren.length > 0) {
+                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
+            }
+            if (zufallsFigur) {
+                figurenInSlots[i] = { form: zufallsFigur.form, color: zufallsFigur.color, id: i };
+                zeichneFigurInSlot(i);
+            }
+        }
+        if (istSpielVorbei()) {
+            setTimeout(pruefeUndSpeichereRekord, 100);
+        }
+    }
+
     async function spielStart() {
         await ladeKonfiguration();
         const gespeicherterRekord = getCookie("rekord");
@@ -67,76 +106,23 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSpielfeld();
         generiereNeueFiguren();
     }
-
-    /**
-     * Wählt eine Figur basierend auf den Wahrscheinlichkeiten aus der Konfiguration.
-     */
-    function generiereNeueFiguren() {
-        rundenZaehler++;
-        
-        const probs = spielConfig.probabilities || {};
-        const jokerProb = probs.joker || 0;
-        const zonkProb = probs.zonk || 0;
-        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
-        
-        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
-        const aktuelleJokerProb = Math.max(0.03, jokerProb - jokerReduktion);
-
-        for (let i = 0; i < 3; i++) {
-            let zufallsFigur = null;
-            const zufallsZahl = Math.random();
-
-            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
-                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
-            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
-                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
-            } else if (normaleFiguren.length > 0) {
-                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
-            }
-            
-            if (zufallsFigur) {
-                figurenInSlots[i] = { form: zufallsFigur.form, color: zufallsFigur.color, id: i };
-                zeichneFigurInSlot(i);
-            }
-        }
-
-        if (istSpielVorbei()) {
-            setTimeout(pruefeUndSpeichereRekord, 100);
-        }
-    }
     
-    // ===================================================================================
-    // EVENT-HANDLER UND STEUERUNGSLOGIK
-    // ===================================================================================
-
-    /**
-     * KORRIGIERT: Die Logik zum Auswählen einer Figur wurde vereinfacht und robuster gemacht.
-     */
     function figurSlotKlick(index) {
-        // Wenn auf den bereits ausgewählten Stein geklickt wird, Auswahl aufheben.
         if (ausgewaehlterSlotIndex === index) {
             abbrechen();
             return;
         }
-
-        // Wenn ein Stein im geklickten Slot verfügbar ist.
         if (figurenInSlots[index]) {
-            // Falls bereits ein anderer Stein ausgewählt war, diesen zuerst zurücklegen.
             if (ausgewaehlterSlotIndex !== -1) {
                 zeichneFigurInSlot(ausgewaehlterSlotIndex);
             }
-            
-            // Neuen Stein auswählen.
             ausgewaehlteFigur = figurenInSlots[index];
             ausgewaehlterSlotIndex = index;
-            figurenSlots[index].innerHTML = ''; // Stein aus Slot entfernen.
+            figurenSlots[index].innerHTML = '';
             spielbrettElement.style.cursor = 'pointer';
         }
     }
 
-    /**
-     * Bricht die Auswahl ab und legt die Figur in den Slot zurück.
-     */
     function abbrechen() {
         if (ausgewaehlterSlotIndex === -1) return;
         loescheVorschau();
@@ -146,29 +132,24 @@ document.addEventListener('DOMContentLoaded', () => {
         spielbrettElement.style.cursor = 'default';
     }
 
-    /**
-     * Platziert die ausgewählte Figur auf dem Spielfeld.
-     */
     function platziereFigur(figur, startX, startY) {
         let blockAnzahl = 0;
         figur.form.forEach((reihe, y) => {
             reihe.forEach((block, x) => {
-                if (block === 1) {
-                    spielbrett[startY + y][startX + x] = figur.color;
-                    blockAnzahl++;
-                }
+                if (block === 1) { spielbrett[startY + y][startX + x] = figur.color; blockAnzahl++; }
             });
         });
         punkte += blockAnzahl;
         leereVolleLinien();
-        zeichneSpielfeld();
+        // zeichneSpielfeld() wird in leereVolleLinien aufgerufen oder hier, falls nichts geleert wurde.
+        if (!vR.length && !vS.length) {
+             zeichneSpielfeld();
+        }
         punkteElement.textContent = punkte;
-        
         figurenInSlots[ausgewaehlterSlotIndex] = null;
         ausgewaehlteFigur = null;
         ausgewaehlterSlotIndex = -1;
         spielbrettElement.style.cursor = 'default';
-        
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
         } else if (istSpielVorbei()) {
@@ -198,12 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             platziereFigur(ausgewaehlteFigur, zielX, zielY);
         }
     }
-    
-    // ===================================================================================
-    // HILFSFUNKTIONEN (ZEICHNEN, PRÜFEN, ETC.)
-    // ===================================================================================
 
-    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
@@ -211,99 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function pruefeUndSpeichereRekord() { if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie("rekord", rekord, 365); alert(`Neuer Rekord: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
     function zeichneSpielfeld() { spielbrett.forEach((reihe, y) => { reihe.forEach((farbName, x) => { const zelle = spielbrettElement.children[y * BREITE + x]; zelle.className = 'zelle'; zelle.style.backgroundColor = ''; if (farbName !== 0) { zelle.classList.add('belegt'); zelle.style.backgroundColor = spielConfig.colorThemes[farbName]?.placed || spielConfig.colorThemes['default'].placed; } }); }); }
-    function zeichneVorschau(figur, startX, startY) { loescheVorschau(); if (!figur) return; const kannAblegen = kannPlatzieren(figur, startX, startY); figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zelle = spielbrettElement.children[brettY * BREITE + brettX]; if (kannAblegen) { zelle?.classList.add('vorschau'); zelle.style.backgroundColor = spielConfig.colorThemes[figur.color]?.preview || spielConfig.colorThemes['default'].preview; } else { zelle?.classList.add('vorschau-ungueltig'); } } } }); }); }
     function zeichneFigurInSlot(index) { const slot = figurenSlots[index]; slot.innerHTML = ''; const figur = figurenInSlots[index]; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => { reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); }); }); slot.appendChild(container); } }
     function kannPlatzieren(figur, startX, startY) { for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] !== 0) return false; } } } return true; }
-    function leereVolleLinien() { const vR = [], vS = []; for(let y=0; y<HOEHE; y++) if(spielbrett[y].every(z => z !== 0)) vR.push(y); for(let x=0; x<BREITE; x++) { let voll=true; for(let y=0; y<HOEHE; y++) if(spielbrett[y][x] === 0) voll=false; if(voll) vS.push(x); } vR.forEach(y=>spielbrett[y].fill(0)); vS.forEach(x=>spielbrett.forEach(r=>r[x]=0)); const linien = vR.length + vS.length; if(linien > 0) punkte += linien * 10 * linien; }
-    function loescheVorschau() { document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(z => { z.classList.remove('vorschau', 'vorschau-ungueltig'); z.style.backgroundColor=''; }); }
+    function leereVolleLinien() { let vR = [], vS = []; for(let y=0; y<HOEHE; y++) if(spielbrett[y].every(z => z !== 0)) vR.push(y); for(let x=0; x<BREITE; x++) { let voll=true; for(let y=0; y<HOEHE; y++) if(spielbrett[y][x] === 0) voll=false; if(voll) vS.push(x); } vR.forEach(y=>spielbrett[y].fill(0)); vS.forEach(x=>spielbrett.forEach(r=>r[x]=0)); zeichneSpielfeld(); const linien = vR.length + vS.length; if(linien > 0) punkte += linien * 10 * linien; }
+    function eventListenerZuweisen() { const istTouchGeraet = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0); if (istTouchGeraet) { figurenSlots.forEach(slot => { slot.addEventListener('touchstart', dragStartTouch, { passive: false }); }); window.addEventListener('touchmove', dragMoveTouch, { passive: false }); window.addEventListener('touchend', dropTouch); } else { figurenSlots.forEach((slot, index) => { slot.addEventListener('click', () => figurSlotKlick(index)); }); spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett); spielbrettElement.addEventListener('mouseleave', loescheVorschau); spielbrettElement.addEventListener('click', klickAufBrett); window.addEventListener('keydown', (e) => { if (e.key === 'Escape') abbrechen(); }); spielbrettElement.addEventListener('contextmenu', e => { e.preventDefault(); if (ausgewaehlteFigur) { ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form); zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y); } }); } }
+    function dragStartTouch(e) { e.preventDefault(); const slot = e.currentTarget; const index = parseInt(slot.dataset.slotId, 10); if (figurenInSlots[index]) { ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; gezogenesElement = slot.querySelector('.figur-container'); if (gezogenesElement) { gezogenesElement.style.opacity = '0.5'; } } }
+    function dragMoveTouch(e) { if (!ausgewaehlteFigur) return; e.preventDefault(); const touch = e.touches[0]; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); if (zelle) { const rect = spielbrettElement.getBoundingClientRect(); const mausX = touch.clientX - rect.left; const mausY = touch.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); zeichneVorschau(ausgewaehlteFigur, zielX, zielY); } }
+    function dropTouch(e) { if (!ausgewaehlteFigur) return; if (gezogenesElement) { gezogenesElement.style.opacity = '1'; } const touch = e.changedTouches[0]; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); if (zelle) { const rect = spielbrettElement.getBoundingClientRect(); const mausX = touch.clientX - rect.left; const mausY = touch.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) { platziereFigur(ausgewaehlteFigur, zielX, zielY); } } ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; gezogenesElement = null; }
     
-    // ===================================================================================
-    // EVENT LISTENER ZUWEISUNG (DESKTOP & TOUCH)
-    // ===================================================================================
-    
-    function eventListenerZuweisen() {
-        const istTouchGeraet = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        if (istTouchGeraet) {
-            figurenSlots.forEach(slot => {
-                slot.addEventListener('touchstart', dragStartTouch, { passive: false });
-            });
-            // Touch-Move und -End Listener werden global hinzugefügt, um das Ziehen ausserhalb des Slots zu ermöglichen
-            window.addEventListener('touchmove', dragMoveTouch, { passive: false });
-            window.addEventListener('touchend', dropTouch);
-        } else {
-            figurenSlots.forEach((slot, index) => {
-                slot.addEventListener('click', () => figurSlotKlick(index));
-            });
-            spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
-            spielbrettElement.addEventListener('mouseleave', loescheVorschau);
-            spielbrettElement.addEventListener('click', klickAufBrett);
-            window.addEventListener('keydown', (e) => { if (e.key === 'Escape') abbrechen(); });
-            spielbrettElement.addEventListener('contextmenu', e => {
-                e.preventDefault();
-                if (ausgewaehlteFigur) {
-                    ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                    zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-                }
-            });
-        }
-    }
-    
-    function dragStartTouch(e) {
-        e.preventDefault();
-        const slot = e.currentTarget;
-        const index = parseInt(slot.dataset.slotId, 10);
-        if (figurenInSlots[index]) {
-            ausgewaehlteFigur = figurenInSlots[index];
-            ausgewaehlterSlotIndex = index;
-            gezogenesElement = slot.querySelector('.figur-container');
-            if (gezogenesElement) {
-                gezogenesElement.style.opacity = '0.5';
-            }
-        }
-    }
-    
-    function dragMoveTouch(e) {
-        if (!ausgewaehlteFigur) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY);
-        const zelle = elementUnterTouch?.closest('.zelle');
-        loescheVorschau();
-        if (zelle) {
-            const rect = spielbrettElement.getBoundingClientRect();
-            const mausX = touch.clientX - rect.left;
-            const mausY = touch.clientY - rect.top;
-            const zielX = Math.floor(mausX / 40);
-            const zielY = Math.floor(mausY / 40);
-            zeichneVorschau(ausgewaehlteFigur, zielX, zielY);
-        }
-    }
-    
-    function dropTouch(e) {
-        if (!ausgewaehlteFigur) return;
-        if (gezogenesElement) {
-            gezogenesElement.style.opacity = '1';
-        }
-        const touch = e.changedTouches[0];
-        const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY);
-        const zelle = elementUnterTouch?.closest('.zelle');
-        loescheVorschau();
-        if (zelle) {
-            const rect = spielbrettElement.getBoundingClientRect();
-            const mausX = touch.clientX - rect.left;
-            const mausY = touch.clientY - rect.top;
-            const zielX = Math.floor(mausX / 40);
-            const zielY = Math.floor(mausY / 40);
-            if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) {
-                platziereFigur(ausgewaehlteFigur, zielX, zielY);
-            }
-        }
-        ausgewaehlteFigur = null;
-        ausgewaehlterSlotIndex = -1;
-        gezogenesElement = null;
-    }
-
     // === Spiel starten ===
-    eventListenerZuweisen();
     spielStart();
 });
