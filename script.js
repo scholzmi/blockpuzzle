@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // === DOM-Elemente ===
     const spielbrettElement = document.getElementById('spielbrett');
     const punkteElement = document.getElementById('punkte');
-    const rekordElement = document.getElementById('rekord'); // NEU
+    const rekordElement = document.getElementById('rekord');
     const figurenSlots = document.querySelectorAll('.figur-slot');
 
     // === Spiel-Konstanten und Variablen ===
@@ -10,15 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const HOEHE = 10;
     let spielbrett = []; 
     let punkte = 0;
-    let rekord = 0; // NEU
+    let rekord = 0;
     let figurenInSlots = [null, null, null];
-
     let ausgewaehlteFigur = null;
     let ausgewaehlterSlotIndex = -1;
 
-    // === Figuren-Pool mit allen Rotationen (unverändert) ===
-    const FIGUREN_POOL = [
-        { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] }, { form: [[1]] },
+    // === Figuren-Pools für gewichtete Auswahl ===
+    const PUNKT_FIGUR = { form: [[1]] };
+    const NORMALE_FIGUREN_POOL = [
+        { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] },
         { form: [[1, 1, 1, 1, 1]] }, { form: [[1], [1], [1], [1], [1]] },
         { form: [[1, 1, 1, 1]] }, { form: [[1], [1], [1], [1]] },
         { form: [[1, 1, 1]] }, { form: [[1], [1], [1]] },
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { form: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] }, { form: [[0, 0, 0, 1], [1, 1, 1, 1]] }
     ];
 
-    // === NEU: Cookie-Hilfsfunktionen ===
+    // === Cookie-Hilfsfunktionen ===
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -53,42 +53,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
     
-    /**
-     * NEU: Prüft am Spielende, ob ein neuer Rekord aufgestellt wurde.
-     */
     function pruefeUndSpeichereRekord() {
         if (punkte > rekord) {
             rekord = punkte;
             rekordElement.textContent = rekord;
-            setCookie("rekord", rekord, 365); // Speichert den Rekord für 1 Jahr
+            setCookie("rekord", rekord, 365);
             alert(`Neuer Rekord: ${rekord} Punkte!`);
         } else {
             alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`);
         }
-        spielStart(); // Spiel nach dem "OK" Klick neu starten
+        spielStart();
     }
 
-
-    // === Kernlogik (leicht angepasst) ===
+    // === Kernlogik ===
+    function erstelleSpielfeld() {
+        spielbrettElement.innerHTML = '';
+        spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0));
+        for (let y = 0; y < HOEHE; y++) {
+            for (let x = 0; x < BREITE; x++) {
+                const zelle = document.createElement('div');
+                zelle.classList.add('zelle');
+                spielbrettElement.appendChild(zelle);
+            }
+        }
+    }
 
     function spielStart() {
-        // Rekord aus Cookie laden
         const gespeicherterRekord = getCookie("rekord");
         if (gespeicherterRekord) {
-            rekord = parseInt(gespeicherterRekord, 10);
+            rekord = parseInt(gespeicherterRekord, 10) || 0;
             rekordElement.textContent = rekord;
         }
-
         punkte = 0;
         punkteElement.textContent = punkte;
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
     }
-
+    
     function generiereNeueFiguren() {
         for (let i = 0; i < 3; i++) {
-            const zufallsFigur = FIGUREN_POOL[Math.floor(Math.random() * FIGUREN_POOL.length)];
+            let zufallsFigur;
+            if (Math.random() < 0.2) { 
+                zufallsFigur = PUNKT_FIGUR;
+            } else {
+                zufallsFigur = NORMALE_FIGUREN_POOL[Math.floor(Math.random() * NORMALE_FIGUREN_POOL.length)];
+            }
             figurenInSlots[i] = { form: zufallsFigur.form, id: i };
             zeichneFigurInSlot(i);
         }
@@ -98,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function platziereFigur(figur, startX, startY) {
-        // ... (Funktion bleibt fast gleich)
         let blockAnzahl = 0;
         figur.form.forEach((reihe, y) => {
             reihe.forEach((block, x) => {
@@ -122,8 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === Restliche Funktionen und Event Listener (unverändert) ===
-    function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
+    // === Event-Handler und Hilfsfunktionen ===
     function figurSlotKlick(index) { if (ausgewaehlteFigur && ausgewaehlterSlotIndex === index) { abbrechen(); return; } if (figurenInSlots[index]) { ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; figurenSlots[index].innerHTML = ''; spielbrettElement.style.cursor = 'pointer'; } }
     function abbrechen() { if (ausgewaehlterSlotIndex !== -1) { loescheVorschau(); zeichneFigurInSlot(ausgewaehlterSlotIndex); ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; } }
     function mausBewegungAufBrett(e) { if (!ausgewaehlteFigur) return; const rect = spielbrettElement.getBoundingClientRect(); const mausX = e.clientX - rect.left; const mausY = e.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); loescheVorschau(); zeichneVorschau(ausgewaehlteFigur, zielX, zielY); }
