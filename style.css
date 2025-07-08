@@ -33,10 +33,11 @@ h1 {
     color: #4285F4;
 }
 
+/* Info-Leiste (Punkte, Version, Rekord) */
 .spiel-info {
     display: flex;
     justify-content: space-between;
-    width: 404px;
+    width: 364px; /* Angepasst an 9x9 Feld */
     font-size: 1.2em;
     color: #3c4043;
     padding: 10px;
@@ -47,8 +48,8 @@ h1 {
 /* Spielfeld-Styles */
 #spielbrett {
     display: grid;
-    grid-template-columns: repeat(10, 40px);
-    grid-template-rows: repeat(10, 40px);
+    grid-template-columns: repeat(9, 40px); /* Angepasst an 9x9 Feld */
+    grid-template-rows: repeat(9, 40px); /* Angepasst an 9x9 Feld */
     border: 2px solid #E0E0E0;
     background-color: rgba(248, 249, 250, 0.8);
     margin-top: 20px;
@@ -83,7 +84,7 @@ h1 {
     align-items: center;
     gap: 10px;
     margin-top: 20px;
-    width: 404px;
+    width: 364px; /* Angepasst an 9x9 Feld */
     height: 180px;
     padding: 10px;
     box-sizing: border-box;
@@ -156,6 +157,5 @@ footer {
     margin-top: 25px;
     font-size: 0.75em;
     color: #70757a;
-    line-height: 1.4; /* Etwas Zeilenabstand für die Lesbarkeit */
-    /* GEÄNDERT: white-space: nowrap; wurde entfernt, um den Umbruch zu erlauben */
+    line-height: 1.4;
 }
