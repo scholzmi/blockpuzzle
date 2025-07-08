@@ -3,25 +3,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const spielbrettElement = document.getElementById('spielbrett');
     const punkteElement = document.getElementById('punkte');
     const rekordElement = document.getElementById('rekord');
-    const versionElement = document.getElementById('version'); // NEU
+    const versionElement = document.getElementById('version');
     const figurenSlots = document.querySelectorAll('.figur-slot');
 
-    // ... (Variablen und Figuren-Pools bleiben unverändert) ...
+    // === Spiel-Konstanten und Variablen ===
     const BREITE = 10, HOEHE = 10;
     let spielbrett = [], punkte = 0, rekord = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, ausgewaehlterSlotIndex = -1;
-    const PUNKT_FIGUR = { form: [[1]] };
+    
+    // NEU: Rundenzähler für dynamische Wahrscheinlichkeit
+    let rundenZaehler = 0;
+
+    // ===================================================================================
+    // NEU: Aufgeteilte Figuren-Pools für die neue Wahrscheinlichkeitslogik
+    // ===================================================================================
+    const ZONK_FIGUREN_POOL = [
+        { form: [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]] }, // 4x4
+        { form: [[1, 1, 1, 1, 1]] }, // 1x5
+        { form: [[1], [1], [1], [1], [1]] }  // 5x1
+    ];
+
+    const JOKER_FIGUR = { form: [[1]] };
+
     const NORMALE_FIGUREN_POOL = [
+        // Neue Figuren
+        { form: [[1, 1], [1, 1]] }, // 2x2
+        { form: [[1, 1, 1], [1, 1, 1]] }, // 2x3
+        { form: [[1, 1], [1, 1], [1, 1]] }, // 3x2
+        // T-Form (5,7,8,9) und ihre 3 Rotationen
+        { form: [[0, 1, 0], [1, 1, 1]] },
+        { form: [[1, 0], [1, 1], [1, 0]] },
+        { form: [[1, 1, 1], [0, 1, 0]] },
+        { form: [[0, 1], [1, 1], [0, 1]] },
+        
+        // Bisherige normale Figuren
         { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] },
-        { form: [[1, 1, 1, 1, 1]] }, { form: [[1], [1], [1], [1], [1]] }, { form: [[1, 1, 1, 1]] }, { form: [[1], [1], [1], [1]] },
-        { form: [[1, 1, 1]] }, { form: [[1], [1], [1]] }, { form: [[1, 1, 1], [1, 1, 1]] }, { form: [[1, 1], [1, 1], [1, 1]] },
-        { form: [[1, 1, 0], [0, 1, 1]] }, { form: [[0, 1], [1, 1], [1, 0]] }, { form: [[0, 1, 1], [1, 1, 0]] }, { form: [[1, 0], [1, 1], [0, 1]] },
-        { form: [[1, 0], [1, 0], [1, 1]] }, { form: [[1, 1, 1], [1, 0, 0]] }, { form: [[1, 1], [0, 1], [0, 1]] }, { form: [[0, 0, 1], [1, 1, 1]] },
+        { form: [[1, 1, 1, 1]] }, { form: [[1], [1], [1], [1]] },
+        { form: [[1, 1, 1]] }, { form: [[1], [1], [1]] },
+        { form: [[1, 1, 0], [0, 1, 1]] }, { form: [[0, 1], [1, 1], [1, 0]] },
+        { form: [[0, 1, 1], [1, 1, 0]] }, { form: [[1, 0], [1, 1], [0, 1]] },
+        { form: [[1, 0], [1, 0], [1, 1]] }, { form: [[1, 1, 1], [1, 0, 0]] },
+        { form: [[1, 1], [0, 1], [0, 1]] }, { form: [[0, 0, 1], [1, 1, 1]] },
         { form: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] }, { form: [[1, 1, 1, 1], [1, 0, 0, 0]] },
         { form: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] }, { form: [[0, 0, 0, 1], [1, 1, 1, 1]] }
     ];
+    // ===================================================================================
 
-    // === NEU: Funktion zum Laden der Konfiguration ===
     async function ladeKonfiguration() {
         try {
             const antwort = await fetch('config.json');
@@ -34,33 +61,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === Kernlogik (leicht angepasst) ===
+    // === Kernlogik (angepasst) ===
     async function spielStart() {
-        await ladeKonfiguration(); // Lädt die Version
+        await ladeKonfiguration();
         
-        // Lädt den Rekord aus dem Cookie
         const gespeicherterRekord = getCookie("rekord");
-        if (gespeicherterRekord) {
-            rekord = parseInt(gespeicherterRekord, 10) || 0;
-            rekordElement.textContent = rekord;
-        } else {
-            rekord = 0;
-            rekordElement.textContent = 0;
-        }
+        rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0;
+        rekordElement.textContent = rekord;
 
         punkte = 0;
         punkteElement.textContent = punkte;
+        rundenZaehler = 0; // Rundenzähler zurücksetzen
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
     }
     
-    // ... (alle anderen Funktionen wie generiereNeueFiguren, platziereFigur, Event-Handler etc. bleiben unverändert) ...
+    // ===================================================================================
+    // GEÄNDERT: Diese Funktion nutzt nun die neue, komplexe Wahrscheinlichkeitslogik.
+    // ===================================================================================
+    function generiereNeueFiguren() {
+        rundenZaehler++;
+        
+        // Dynamische Wahrscheinlichkeit für den Joker berechnen
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / 5) * 0.01;
+        const aktuelleJokerWahrscheinlichkeit = Math.max(0.03, 0.20 - jokerReduktion);
+
+        const zonkWahrscheinlichkeit = 0.05; // 5%
+
+        for (let i = 0; i < 3; i++) {
+            let zufallsFigur;
+            const zufallsZahl = Math.random();
+
+            if (zufallsZahl < zonkWahrscheinlichkeit) {
+                // 5% Chance für eine Zonk-Figur
+                zufallsFigur = ZONK_FIGUREN_POOL[Math.floor(Math.random() * ZONK_FIGUREN_POOL.length)];
+            } else if (zufallsZahl < zonkWahrscheinlichkeit + aktuelleJokerWahrscheinlichkeit) {
+                // (z.B. 20%) Chance für den Joker
+                zufallsFigur = JOKER_FIGUR;
+            } else {
+                // Restliche Chance für eine normale Figur
+                zufallsFigur = NORMALE_FIGUREN_POOL[Math.floor(Math.random() * NORMALE_FIGUREN_POOL.length)];
+            }
+            
+            figurenInSlots[i] = { form: zufallsFigur.form, id: i };
+            zeichneFigurInSlot(i);
+        }
+
+        if (istSpielVorbei()) {
+            setTimeout(pruefeUndSpeichereRekord, 100);
+        }
+    }
+    // ===================================================================================
+
+    // ... (alle anderen Funktionen und Event-Handler bleiben unverändert) ...
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie("rekord", rekord, 365); alert(`Neuer Rekord: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-    function generiereNeueFiguren() { for (let i = 0; i < 3; i++) { let zufallsFigur; if (Math.random() < 0.2) { zufallsFigur = PUNKT_FIGUR; } else { zufallsFigur = NORMALE_FIGUREN_POOL[Math.floor(Math.random() * NORMALE_FIGUREN_POOL.length)]; } figurenInSlots[i] = { form: zufallsFigur.form, id: i }; zeichneFigurInSlot(i); } if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function platziereFigur(figur, startX, startY) { let blockAnzahl = 0; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { spielbrett[startY + y][startX + x] = 1; blockAnzahl++; } }); }); punkte += blockAnzahl; leereVolleLinien(); zeichneSpielfeld(); punkteElement.textContent = punkte; figurenInSlots[ausgewaehlterSlotIndex] = null; ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; if (figurenInSlots.every(f => f === null)) { generiereNeueFiguren(); } else if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function figurSlotKlick(index) { if (ausgewaehlteFigur && ausgewaehlterSlotIndex === index) { abbrechen(); return; } if (figurenInSlots[index]) { ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; figurenSlots[index].innerHTML = ''; spielbrettElement.style.cursor = 'pointer'; } }
     function abbrechen() { if (ausgewaehlterSlotIndex !== -1) { loescheVorschau(); zeichneFigurInSlot(ausgewaehlterSlotIndex); ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; } }
@@ -74,13 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function leereVolleLinien() { const vR = [], vS = []; for(let y=0; y<HOEHE; y++) if(spielbrett[y].every(z=>z===1)) vR.push(y); for(let x=0; x<BREITE; x++) { let voll=true; for(let y=0; y<HOEHE; y++) if(spielbrett[y][x]===0) voll=false; if(voll) vS.push(x); } vR.forEach(y=>spielbrett[y].fill(0)); vS.forEach(x=>spielbrett.forEach(r=>r[x]=0)); const linien = vR.length + vS.length; if(linien > 0) punkte += linien * 10 * linien; }
     function istSpielVorbei() { for(const f of figurenInSlots) { if(f) { for(let y=0; y<HOEHE; y++) for(let x=0; x<BREITE; x++) if(kannPlatzieren(f, x, y)) return false; } } return true; }
 
-    // === Event Listener zuweisen ===
-    figurenSlots.forEach((slot, index) => { slot.addEventListener('click', () => figurSlotKlick(index)); });
-    spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
-    spielbrettElement.addEventListener('mouseleave', loescheVorschau);
-    spielbrettElement.addEventListener('click', klickAufBrett);
-    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') abbrechen(); });
-
+    // === Event Listener Zuweisung (unverändert) ===
+    const istTouchGeraet = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    // ... (der Rest der Event-Listener-Logik bleibt gleich)
+    function eventListenerZuweisen() { if (istTouchGeraet) { figurenSlots.forEach(slot => { slot.addEventListener('touchstart', dragStartTouch, { passive: false }); slot.addEventListener('touchmove', dragMoveTouch, { passive: false }); slot.addEventListener('touchend', dropTouch); }); } else { figurenSlots.forEach((slot, index) => { slot.addEventListener('click', () => figurSlotKlick(index)); }); spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett); spielbrettElement.addEventListener('mouseleave', loescheVorschau); spielbrettElement.addEventListener('click', klickAufBrett); window.addEventListener('keydown', (e) => { if (e.key === 'Escape') abbrechen(); }); } }
+    function dragStartTouch(e) { e.preventDefault(); const slot = e.currentTarget; ausgewaehlterSlotIndex = parseInt(slot.dataset.slotId, 10); if (figurenInSlots[ausgewaehlterSlotIndex]) { ausgewaehlteFigur = figurenInSlots[ausgewaehlterSlotIndex]; gezogenesElement = slot.querySelector('.figur-container'); if (gezogenesElement) { gezogenesElement.style.opacity = '0.5'; } } }
+    function dragMoveTouch(e) { e.preventDefault(); if (!ausgewaehlteFigur) return; const touch = e.touches[0]; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); if (zelle) { const rect = spielbrettElement.getBoundingClientRect(); const mausX = touch.clientX - rect.left; const mausY = touch.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); zeichneVorschau(ausgewaehlteFigur, zielX, zielY); } }
+    function dropTouch(e) { if (!ausgewaehlteFigur) return; if (gezogenesElement) { gezogenesElement.style.opacity = '1'; } const touch = e.changedTouches[0]; const elementUnterTouch = document.elementFromPoint(touch.clientX, touch.clientY); const zelle = elementUnterTouch?.closest('.zelle'); loescheVorschau(); if (zelle) { const rect = spielbrettElement.getBoundingClientRect(); const mausX = touch.clientX - rect.left; const mausY = touch.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) { const slot = e.currentTarget; slot.innerHTML = ''; platziereFigur(ausgewaehlteFigur, zielX, zielY); } } ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; gezogenesElement = null; }
+    
     // === Spiel starten ===
+    eventListenerZuweisen();
     spielStart();
 });
