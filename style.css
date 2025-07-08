@@ -71,10 +71,6 @@ h1 {
     /* Hintergrundfarbe wird per JS gesetzt */
 }
 
-.vorschau {
-    /* Hintergrundfarbe wird per JS gesetzt */
-}
-
 .vorschau-ungueltig {
     background-color: rgba(234, 67, 53, 0.5);
 }
