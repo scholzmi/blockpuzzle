@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const JOKER_FIGUR = { form: [[1]] };
 
     const NORMALE_FIGUREN_POOL = [
+        // Neue Figuren
+        { form: [[1, 1]] },               // NEU: 1x2
+        { form: [[1], [1]] },             // NEU: 2x1
         { form: [[1, 1], [1, 1]] }, // 2x2
         { form: [[1, 1, 1], [1, 1, 1]] }, // 2x3
         { form: [[1, 1], [1, 1], [1, 1]] }, // 3x2
@@ -34,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { form: [[1, 1], [1, 0]] },       // kleiner Winkel
         { form: [[1, 0, 0], [0, 1, 0], [0, 0, 1]] }, // Diagonale 3
         { form: [[0, 0, 1], [0, 1, 0], [1, 0, 0]] }, // Diagonale 3 (gedreht)
+        
+        // Bisherige normale Figuren
         { form: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] }, { form: [[0, 1, 0], [1, 1, 1], [0, 1, 0]] },
         { form: [[1, 1, 1, 1]] }, { form: [[1], [1], [1], [1]] },
         { form: [[1, 1, 1]] }, { form: [[1], [1], [1]] },
@@ -45,45 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { form: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] }, { form: [[0, 0, 0, 1], [1, 1, 1, 1]] }
     ];
     
-    // === KORRIGIERTE FUNKTION ===
-    /**
-     * Bricht die Figurenauswahl ab und legt sie zurück in den Slot.
-     */
-    function abbrechen() {
-        if (ausgewaehlterSlotIndex !== -1) {
-            // Alte Vorschau auf dem Brett löschen
-            loescheVorschau();
-            // Figur wieder im Slot sichtbar machen
-            zeichneFigurInSlot(ausgewaehlterSlotIndex); 
-            // Auswahl zurücksetzen
-            ausgewaehlteFigur = null;
-            ausgewaehlterSlotIndex = -1;
-            spielbrettElement.style.cursor = 'default';
-        }
-    }
-    
-    // === Restliche Funktionen (unverändert, aber hier zur Vollständigkeit) ===
-    function zeichneFigurInSlot(index) {
-        const slot = figurenSlots[index];
-        slot.innerHTML = '';
-        const figur = figurenInSlots[index];
-        if (figur) {
-            const container = document.createElement('div');
-            container.classList.add('figur-container');
-            const form = figur.form;
-            container.style.gridTemplateRows = `repeat(${form.length}, 20px)`;
-            container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`;
-            form.forEach(reihe => {
-                reihe.forEach(block => {
-                    const blockDiv = document.createElement('div');
-                    if (block === 1) blockDiv.classList.add('figur-block');
-                    container.appendChild(blockDiv);
-                });
-            });
-            slot.appendChild(container);
-        }
-    }
-    
+    // ... (alle weiteren Funktionen bleiben unverändert) ...
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) { return false; } } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     async function ladeKonfiguration() { try { const antwort = await fetch('config.json'); if (!antwort.ok) throw new Error('Netzwerk-Antwort war nicht ok.'); const config = await antwort.json(); versionElement.textContent = config.version; } catch (error) { console.error('Fehler beim Laden der Konfigurationsdatei:', error); versionElement.textContent = "?.??"; } }
@@ -95,9 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function generiereNeueFiguren() { rundenZaehler++; const jokerReduktion = Math.floor((rundenZaehler - 1) / 5) * 0.01; const aktuelleJokerWahrscheinlichkeit = Math.max(0.03, 0.20 - jokerReduktion); const zonkWahrscheinlichkeit = 0.05; for (let i = 0; i < 3; i++) { let zufallsFigur; const zufallsZahl = Math.random(); if (zufallsZahl < zonkWahrscheinlichkeit) { zufallsFigur = ZONK_FIGUREN_POOL[Math.floor(Math.random() * ZONK_FIGUREN_POOL.length)]; } else if (zufallsZahl < zonkWahrscheinlichkeit + aktuelleJokerWahrscheinlichkeit) { zufallsFigur = JOKER_FIGUR; } else { zufallsFigur = NORMALE_FIGUREN_POOL[Math.floor(Math.random() * NORMALE_FIGUREN_POOL.length)]; } figurenInSlots[i] = { form: zufallsFigur.form, id: i }; zeichneFigurInSlot(i); } if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function platziereFigur(figur, startX, startY) { let blockAnzahl = 0; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { spielbrett[startY + y][startX + x] = 1; blockAnzahl++; } }); }); punkte += blockAnzahl; leereVolleLinien(); zeichneSpielfeld(); punkteElement.textContent = punkte; figurenInSlots[ausgewaehlterSlotIndex] = null; ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; if (figurenInSlots.every(f => f === null)) { generiereNeueFiguren(); } else if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function figurSlotKlick(index) { if (ausgewaehlteFigur && ausgewaehlterSlotIndex === index) { abbrechen(); return; } if (figurenInSlots[index]) { ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; figurenSlots[index].innerHTML = ''; spielbrettElement.style.cursor = 'pointer'; } }
+    function abbrechen() { if (ausgewaehlterSlotIndex !== -1) { zeichneFigurInSlot(ausgewaehlterSlotIndex); loescheVorschau(); ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; spielbrettElement.style.cursor = 'default'; } }
     function mausBewegungAufBrett(e) { if (!ausgewaehlteFigur) return; const rect = spielbrettElement.getBoundingClientRect(); const mausX = e.clientX - rect.left; const mausY = e.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); letztesZiel = {x: zielX, y: zielY}; zeichneVorschau(ausgewaehlteFigur, zielX, zielY); }
     function klickAufBrett(e) { if (!ausgewaehlteFigur) return; const rect = spielbrettElement.getBoundingClientRect(); const mausX = e.clientX - rect.left; const mausY = e.clientY - rect.top; const zielX = Math.floor(mausX / 40); const zielY = Math.floor(mausY / 40); if (kannPlatzieren(ausgewaehlteFigur, zielX, zielY)) { platziereFigur(ausgewaehlteFigur, zielX, zielY); } }
     function zeichneVorschau(figur, startX, startY) { loescheVorschau(); if (!figur) return; const kannAblegen = kannPlatzieren(figur, startX, startY); const vorschauKlasse = kannAblegen ? 'vorschau' : 'vorschau-ungueltig'; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zellenIndex = brettY * BREITE + brettX; spielbrettElement.children[zellenIndex]?.classList.add(vorschauKlasse); } } }); }); }
+    function zeichneFigurInSlot(index) { const slot = figurenSlots[index]; slot.innerHTML = ''; const figur = figurenInSlots[index]; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => { reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) blockDiv.classList.add('figur-block'); container.appendChild(blockDiv); }); }); slot.appendChild(container); } }
     function loescheVorschau() { document.querySelectorAll('.vorschau, .vorschau-ungueltig').forEach(z => z.classList.remove('vorschau', 'vorschau-ungueltig')); }
     function zeichneSpielfeld() { spielbrett.forEach((reihe, y) => reihe.forEach((zelle, x) => { const z = spielbrettElement.children[y * BREITE + x]; z.className = 'zelle'; if(zelle === 1) z.classList.add('belegt'); })); }
     function kannPlatzieren(figur, startX, startY) { for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] === 1) return false; } } } return true; }
