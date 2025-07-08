@@ -1,5 +1,5 @@
 {
-  "version": "V2.13",
+  "version": "V2.14",
   "probabilities": {
     "zonk": 0.05,
     "joker": 0.20,
@@ -15,30 +15,30 @@
   },
   "figures": {
     "normal": [
-      { "name": "I-3", "shape": [1, 2, 3], "color": "blue" },
-      { "name": "I-4", "shape": [1, 2, 3, 4], "color": "blue" },
-      { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "purple" },
-      { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "purple" },
-      { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "color": "purple" },
-      { "name": "L-Klein", "shape": [1, 6, 11, 12], "color": "blue" },
-      { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "color": "blue" },
-      { "name": "T-Form", "shape": [1, 2, 3, 7], "color": "purple" },
-      { "name": "S-Form", "shape": [2, 3, 6, 7], "color": "yellow" },
-      { "name": "Z-Form", "shape": [1, 2, 7, 8], "color": "yellow" },
-      { "name": "Plus", "shape": [2, 6, 7, 8, 12], "color": "red" },
-      { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "color": "red" },
-      { "name": "Winkel-Klein", "shape": [1, 2, 6], "color": "purple" },
-      { "name": "Diagonale-3", "shape": [1, 7, 13], "color": "yellow" }
+      { "name": "I-3", "shape": [1, 2, 3], "color": "blue", "symmetrisch": false },
+      { "name": "I-4", "shape": [1, 2, 3, 4], "color": "blue", "symmetrisch": false },
+      { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "purple", "symmetrisch": true },
+      { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "purple", "symmetrisch": true },
+      { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "color": "purple", "symmetrisch": true },
+      { "name": "L-Klein", "shape": [1, 6, 11, 12], "color": "blue", "symmetrisch": false },
+      { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "color": "blue", "symmetrisch": false },
+      { "name": "T-Form", "shape": [1, 2, 3, 7], "color": "purple", "symmetrisch": false },
+      { "name": "S-Form", "shape": [2, 3, 6, 7], "color": "yellow", "symmetrisch": false },
+      { "name": "Z-Form", "shape": [1, 2, 7, 8], "color": "yellow", "symmetrisch": false },
+      { "name": "Plus", "shape": [2, 6, 7, 8, 12], "color": "red", "symmetrisch": false },
+      { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "color": "red", "symmetrisch": false },
+      { "name": "Winkel-Klein", "shape": [1, 2, 6], "color": "purple", "symmetrisch": false },
+      { "name": "Diagonale-3", "shape": [1, 7, 13], "color": "yellow", "symmetrisch": false }
     ],
     "zonk": [
-      { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "red" },
-      { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "color": "red" },
-      { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "color": "red" },
-      { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "yellow" }
+      { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "red", "symmetrisch": false },
+      { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "color": "red", "symmetrisch": true },
+      { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "color": "red", "symmetrisch": false },
+      { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "yellow", "symmetrisch": false }
     ],
     "joker": [
-      { "name": "Punkt", "shape": [1], "color": "green" },
-      { "name": "Joker I-2", "shape": [1, 2], "color": "green" }
+      { "name": "Punkt", "shape": [1], "color": "green", "symmetrisch": true },
+      { "name": "Joker I-2", "shape": [1, 2], "color": "green", "symmetrisch": false }
     ]
   }
 }
