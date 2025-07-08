@@ -111,8 +111,8 @@ h1 {
 }
 
 .figur-block {
-    width: 30px;
-    height: 30px;
+    width: 20px;  /* GEÄNDERT: Blöcke in der Auswahl sind kleiner */
+    height: 20px; /* GEÄNDERT: Blöcke in der Auswahl sind kleiner */
     background-color: #4285F4;
     border: 1px solid #fff;
     box-sizing: border-box;
