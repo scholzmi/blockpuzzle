@@ -191,4 +191,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // === Spiel starten und Steuerung initialisieren ===
     eventListenerZuweisen();
     spielStart();
-}); 
+});
