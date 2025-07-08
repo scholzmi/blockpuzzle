@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Startet das gesamte Spiel.
      */
     async function spielStart() {
-        const configGeladen = await ladeKonfiguration();
+        const [configGeladen] = await Promise.all([ladeKonfiguration(), ladeAnleitung()]);
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
     }
-
+    
     /**
      * Lädt die Anleitung aus der anleitung.txt
      */
@@ -87,15 +87,21 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
         }
     }
-
+    
+    // ===================================================================================
+    // KORRIGIERTER EVENT LISTENER
+    // ===================================================================================
     /**
-     * Weist alle Event-Listener zu.
+     * Weist alle Event-Listener zu, inklusive dem für den Anleitungs-Button.
      */
     function eventListenerZuweisen() {
+        // Globale Listener
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
+
+        // Listener für Figuren und Spielfeld
         figurenSlots.forEach((slot, index) => {
             slot.addEventListener('click', () => figurSlotKlick(index));
         });
@@ -119,15 +125,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
             }
         });
+        
+        // KORREKTUR: Listener für den Anleitung-Button wird hier korrekt zugewiesen
         if(anleitungToggleBtn) {
             anleitungToggleBtn.addEventListener('click', () => {
-                anleitungContainer.classList.toggle('versteckt');
-                anleitungToggleBtn.textContent = anleitungContainer.classList.contains('versteckt') ? 'Anleitung anzeigen' : 'Verbergen';
+                if (anleitungContainer) {
+                    anleitungContainer.classList.toggle('versteckt');
+                    anleitungToggleBtn.textContent = anleitungContainer.classList.contains('versteckt') ? 'Anleitung anzeigen' : 'Verbergen';
+                }
             });
         }
     }
 
-    // === Alle weiteren Funktionen... ===
+    // === Alle restlichen Funktionen (unverändert) ===
     function generiereNeueFiguren() { rundenZaehler++; const probs = spielConfig.probabilities || {}; const jokerProb = probs.joker || 0; const zonkProb = probs.zonk || 0; const reductionInterval = probs.jokerProbabilityReductionInterval || 5; const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01; const aktuelleJokerProb = Math.max(0.03, jokerProb - jokerReduktion); for (let i = 0; i < 3; i++) { let zufallsFigur = null; const zufallsZahl = Math.random(); if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) { zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)]; } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) { zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)]; } else if (normaleFiguren.length > 0) { zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)]; } if (zufallsFigur) { let form = zufallsFigur.form; const anzahlRotationen = Math.floor(Math.random() * 4); for (let r = 0; r < anzahlRotationen; r++) { form = dreheFigur90Grad(form); } figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, id: i }; zeichneFigurInSlot(i); } else { figurenInSlots[i] = null; } } if (istSpielVorbei()) { setTimeout(pruefeUndSpeichereRekord, 100); } }
     function figurSlotKlick(index) { if (ausgewaehlterSlotIndex === index) { abbrechen(); return; } if (figurenInSlots[index]) { if (ausgewaehlterSlotIndex !== -1) { zeichneFigurInSlot(ausgewaehlterSlotIndex); } ausgewaehlteFigur = figurenInSlots[index]; ausgewaehlterSlotIndex = index; hatFigurGedreht = false; figurenSlots[index].innerHTML = ''; spielbrettElement.style.cursor = 'pointer'; } }
     function abbrechen() { if (ausgewaehlterSlotIndex === -1) return; if (hatFigurGedreht) { verbrauchteJoker--; zeichneJokerLeiste(); } const index = ausgewaehlterSlotIndex; ausgewaehlteFigur = null; ausgewaehlterSlotIndex = -1; hatFigurGedreht = false; penaltyAktiviert = false; zeichneSpielfeld(); zeichneFigurInSlot(index); spielbrettElement.style.cursor = 'default'; }
@@ -151,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function pruefeUndSpeichereRekord() { if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie("rekord", rekord, 365); alert(`Neuer Rekord: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
 
+    // === Spiel starten ===
     eventListenerZuweisen();
     spielStart();
 });
