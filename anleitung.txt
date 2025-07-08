@@ -10,8 +10,5 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
 
-**Steuerung (Mobil):**
-* Die Steuerung erfolgt durch Tippen und Ziehen (Drag & Drop).
-
 **Dreh-Joker:**
 Du hast 5 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 5 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
