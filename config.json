@@ -1,6 +1,6 @@
 {
-    "version": "V7.00",
-    "letzteAenderung": "Getrennte Settings für Spielmodi",
+    "version": "V7.01",
+    "letzteAenderung": "nicht verzagen, gemini fragen",
     "gameSettings": {
         "normal": {
             "timerDuration": 60,

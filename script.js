@@ -13,8 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const anleitungToggleIcon = document.getElementById('anleitung-toggle-icon');
     const hardModeSchalter = document.getElementById('hard-mode-schalter');
     const hardModeLabel = document.getElementById('hard-mode-label');
-    const timerBox = document.getElementById('timer-box');
-    const timerAnzeige = document.getElementById('timer');
+    const timerBar = document.getElementById('timer-bar');
     const refreshFigurenButton = document.getElementById('refresh-figuren-button');
     const punkteAnimationElement = document.getElementById('punkte-animation');
     const originalerTitel = document.title;
@@ -80,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
-        startTimer(); // Timer startet jetzt immer
+        startTimer();
     }
 
     function updateHardModeLabel() {
@@ -436,33 +435,42 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('boss-key-aktiv');
         if (document.body.classList.contains('boss-key-aktiv')) {
             document.title = "Photo Gallery";
-            if (istHardMode) stopTimer();
+            stopTimer();
             abbrechen();
         } else {
             document.title = originalerTitel;
-            if (istHardMode) resumeTimer();
+            resumeTimer();
         }
     }
 
     function startTimer() {
-        verbleibendeZeit = getGameSetting('timerDuration');
-        timerAnzeige.textContent = verbleibendeZeit;
+        const timerDuration = getGameSetting('timerDuration');
+        verbleibendeZeit = timerDuration;
+        
         if (timerInterval) clearInterval(timerInterval);
+        
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
-            timerAnzeige.textContent = verbleibendeZeit;
+            const progress = (verbleibendeZeit / timerDuration) * 100;
+            timerBar.style.setProperty('--timer-progress', `${progress / 100}`);
+
             if (verbleibendeZeit <= 0) {
                 const anzahl = getGameSetting('timerPenaltyCount');
                 platziereStrafsteine(anzahl);
-                verbleibendeZeit = getGameSetting('timerDuration');
+                verbleibendeZeit = timerDuration;
             }
         }, 1000);
     }
 
-    function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+    function stopTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
     function resumeTimer() {
-        if (timerInterval || !istHardMode) return;
-        startTimer();
+        if (!timerInterval) {
+            startTimer();
+        }
     }
 
     function platziereStrafsteine(anzahl) {
