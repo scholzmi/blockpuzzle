@@ -1,9 +1,9 @@
 {
-    "version": "V7.01",
+    "version": "V7.02",
     "letzteAenderung": "nicht verzagen, gemini fragen",
     "gameSettings": {
         "normal": {
-            "timerDuration": 60,
+            "timerDuration": 300,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
             "refreshPenaltyPoints": 100
