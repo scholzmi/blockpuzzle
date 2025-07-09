@@ -22,5 +22,22 @@ Du hast 5 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder auf
 
 **Zählweise**
 Punkte gibt es für das Ablegen der Figuren. Die Figuren sind im Hintergrund in drei Schwierigkeitsgrade eingeteilt.
-Die Figuren aus der Joker Kategorie zählen ihren Punktwert. Die Figuren aus der normalen Kategorie zählen den doppelten Punktwert. Die Figuren aus der Zonk Kategorie (rot oder purpur) zählen ihren fünffachen Punktwert.
+Die Figuren aus der Joker Kategorie (grün) zählen ihren Punktwert, sind dafür leicht zu platzieren.
+Die Figuren aus der normalen Kategorie zählen den doppelten Punktwert. Die Figuren aus der Zonk Kategorie (rot oder purpur) zählen ihren fünffachen Punktwert.
 Für das Benutzen des Refresh Buttons fallen 200 Punkte an.
+
+Das Punktesystem für das **Eliminieren von Reihen** ist so aufgebaut, dass es belohnt wird, mehrere Linien auf einmal zu entfernen.
+
+Die Formel dafür lautet: (Anzahl der Linien)² * 10
+
+Das bedeutet:
+
+1 Reihe gibt: 1 * 1 * 10 = 10 Punkte
+
+2 Reihen geben: 2 * 2 * 10 = 40 Punkte
+
+3 Reihen geben: 3 * 3 * 10 = 90 Punkte
+
+4 Reihen geben: 4 * 4 * 10 = 160 Punkte
+
+Wenn du also eine Reihe und eine Spalte gleichzeitig leerst (insgesamt 2 Linien), erhältst du 40 Punkte.
