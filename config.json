@@ -1,5 +1,5 @@
 {
-    "version": "V5.11",
+    "version": "V5.12",
     "letzteAenderung": "Refresh Button",
     "probabilities": {
         "zonk": 0.03,
@@ -20,7 +20,7 @@
             { "name": "I-3", "shape": [1, 2, 3], "color": "blue", "symmetrisch": false },
             { "name": "I-4", "shape": [1, 2, 3, 4], "color": "blue", "symmetrisch": false },
             { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "yellow", "symmetrisch": true },
-            { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "blue", "symmetrisch": true },
+            { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "blue", "symmetrisch": false },
             { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "color": "yellow", "symmetrisch": true },
             { "name": "L-Klein", "shape": [1, 6, 11, 12], "color": "blue", "symmetrisch": false },
             { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "color": "blue", "symmetrisch": false },
