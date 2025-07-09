@@ -9,7 +9,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative; 
+    position: relative;
     overscroll-behavior: none; /* Verhindert "pull-to-refresh" auf Mobilgeräten */
 }
 
@@ -44,7 +44,7 @@ body, #spielbrett {
 .spiel-wrapper, .seiten-box {
     transition: opacity 0.3s ease-in-out;
 }
-body.boss-key-aktiv .spiel-wrapper, 
+body.boss-key-aktiv .spiel-wrapper,
 body.boss-key-aktiv .seiten-box {
     opacity: 0;
     pointer-events: none;
@@ -235,6 +235,11 @@ input:checked + .slider:before {
     background-color: #333 !important;
     border-color: #000 !important;
 }
+
+.linie-vorschau {
+    background-color: rgba(52, 168, 83, 0.2) !important; /* Leichter grüner Schimmer */
+}
+
 
 .auswahl-container {
     display: flex;

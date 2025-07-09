@@ -1,6 +1,6 @@
 {
-    "version": "V5.12",
-    "letzteAenderung": "Refresh Button",
+    "version": "V5.20",
+    "letzteAenderung": "Andeuten welche Reihen eliminiert werden",
     "probabilities": {
         "zonk": 0.03,
         "joker": 0.40,

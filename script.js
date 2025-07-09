@@ -152,8 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                zeichneSpielfeld();
-                zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
+                mausBewegungAufBrett(e); // Neu, um Vorschau direkt zu aktualisieren
             }
         });
         hardModeSchalter.addEventListener('change', () => spielStart(true));
@@ -364,8 +363,87 @@ document.addEventListener('DOMContentLoaded', () => {
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] !== 0) return false; } } } return true; }
     function leereVolleLinien() { let vR = [], vS = []; for(let y=0; y<HOEHE; y++) { if(spielbrett[y].every(zelle => zelle !== 0)) vR.push(y); } for(let x=0; x<BREITE; x++) { let spalteVoll = true; for(let y=0; y<HOEHE; y++) { if(spielbrett[y][x] === 0) { spalteVoll = false; break; } } if(spalteVoll) vS.push(x); } if (vR.length > 0 || vS.length > 0) { vR.forEach(y => spielbrett[y].fill(0)); vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0)); const linien = vR.length + vS.length; punkte += linien * 10 * linien; punkteElement.textContent = punkte; } zeichneSpielfeld(); }
-    function zeichneSpielfeld() { spielbrett.forEach((reihe, y) => { reihe.forEach((inhalt, x) => { const zelle = spielbrettElement.children[y * BREITE + x]; zelle.className = 'zelle'; zelle.style.backgroundColor = ''; if (inhalt === 'blocker') { zelle.classList.add('belegt', 'blocker'); } else if (inhalt !== 0) { zelle.classList.add('belegt'); zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed; } }); }); }
-    function zeichneVorschau(figur, startX, startY) { if (!figur) return; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zelle = spielbrettElement.children[brettY * BREITE + brettX]; const zustandDarunter = spielbrett[brettY][brettX]; zelle.classList.add('vorschau'); if (zustandDarunter === 0) { const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbTheme.preview; } else { const farbThemeDarunter = spielConfig.colorThemes[zustandDarunter] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbThemeDarunter.preview; } } } }); }); }
+    
+    function zeichneSpielfeld() { 
+        spielbrett.forEach((reihe, y) => { 
+            reihe.forEach((inhalt, x) => { 
+                const zelle = spielbrettElement.children[y * BREITE + x]; 
+                zelle.className = 'zelle'; // Setzt die Klassen zurück
+                zelle.style.backgroundColor = ''; 
+                if (inhalt === 'blocker') { 
+                    zelle.classList.add('belegt', 'blocker'); 
+                } else if (inhalt !== 0) { 
+                    zelle.classList.add('belegt'); 
+                    zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed; 
+                } 
+            }); 
+        }); 
+    }
+
+    function zeichneVorschau(figur, startX, startY) { 
+        if (!figur) return; 
+
+        if (kannPlatzieren(figur, startX, startY)) {
+            // Temporäres Spielbrett für die Vorschau erstellen
+            const tempSpielbrett = spielbrett.map(row => [...row]);
+            figur.form.forEach((reihe, y) => {
+                reihe.forEach((block, x) => {
+                    if (block === 1) {
+                        const bY = startY + y;
+                        const bX = startX + x;
+                        if (bY < HOEHE && bX < BREITE) tempSpielbrett[bY][bX] = 1; // Markiere als temporär belegt
+                    }
+                });
+            });
+            zeichneLinienVorschau(tempSpielbrett);
+        }
+        
+        figur.form.forEach((reihe, y) => { 
+            reihe.forEach((block, x) => { 
+                if (block === 1) { 
+                    const brettY = startY + y; 
+                    const brettX = startX + x; 
+                    if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { 
+                        const zelle = spielbrettElement.children[brettY * BREITE + brettX]; 
+                        const zustandDarunter = spielbrett[brettY][brettX]; 
+                        zelle.classList.add('vorschau'); 
+                        if (zustandDarunter === 0) { 
+                            const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; 
+                            zelle.style.backgroundColor = farbTheme.preview; 
+                        } else { 
+                             zelle.style.backgroundColor = 'rgba(255, 0, 0, 0.5)'; // Rot für ungültige Position
+                        } 
+                    } 
+                } 
+            }); 
+        }); 
+    }
+
+    function zeichneLinienVorschau(tempSpielbrett) {
+        let vR = [], vS = []; 
+        for(let y=0; y<HOEHE; y++) { 
+            if(tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y); 
+        } 
+        for(let x=0; x<BREITE; x++) { 
+            let spalteVoll = true; 
+            for(let y=0; y<HOEHE; y++) { 
+                if(tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } 
+            } 
+            if(spalteVoll) vS.push(x); 
+        }
+        
+        vR.forEach(y => {
+            for (let x = 0; x < BREITE; x++) {
+                spielbrettElement.children[y * BREITE + x].classList.add('linie-vorschau');
+            }
+        });
+        vS.forEach(x => {
+            for (let y = 0; y < HOEHE; y++) {
+                spielbrettElement.children[y * BREITE + x].classList.add('linie-vorschau');
+            }
+        });
+    }
+
     function zeichneFigurInSlot(index) { const slot = figurenSlots[index]; slot.innerHTML = ''; const figur = figurenInSlots[index]; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => { reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); }); }); slot.appendChild(container); } }
     function zeichneJokerLeiste() { 
         jokerBoxen.forEach((box, index) => { 
