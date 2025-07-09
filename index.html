@@ -17,7 +17,10 @@
         </div>
 
         <div class="spiel-wrapper">
-            <h1>ZenPuzzle</h1>
+            <div class="block-title">
+                <span class="block-char c-z">Z</span><span class="block-char c-e">E</span><span class="block-char c-n">N</span>
+                <span class="block-char c-p">P</span><span class="block-char c-u">U</span><span class="block-char c-z2">Z</span><span class="block-char c-z3">Z</span><span class="block-char c-l">L</span><span class="block-char c-e2">E</span>
+            </div>
             <div id="spielbrett" class="grid-container"></div>
             <div class="auswahl-container">
                 <div id="figuren-auswahl">
@@ -29,7 +32,7 @@
 
         <div class="rechts-container">
             <div class="spiel-info">
-                <div class="score-box">Punkte: <span id="punkte">0</span></div>
+                 <div class="score-box">Punkte: <span id="punkte">0</span></div>
                 <div class="score-box">Rekord: <span id="rekord-normal">0</span></div>
                 <div class="score-box">Rekord Schwer: <span id="rekord-schwer">0</span></div>
                 <div class="hard-mode-box">
@@ -46,9 +49,7 @@
             <div id="dreh-joker-leiste">
                 <div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div>
             </div>
-            <div id="info-container" class="seiten-box">
-                <h2>Info</h2>
-                <div id="info-toggle-icon" class="toggle-icon"></div>
+            <div id="info-container" class="seiten-box paypal-box">
                 <div id="info-inhalt">
                     <div class="spende-bereich">
                         <p>Gefällt dir das Spiel? Spendier mir einen Kaffee ☕!</p>
@@ -58,20 +59,14 @@
                         <br>
                         <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">Oder direkt via PayPal.me spenden</a>
                     </div>
-                    <div class="impressum">
-                        Michael Scholz<br>
-                        Kleeweg 8<br>
-                        22885 Barsbüttel<br>
-                        Germany<br>
-                        <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a><br>
-                        +49 174 482 5558<br>
-                        Version: <span id="version-impressum"></span><br>
-                        <span id="letzte-aenderung"></span>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <footer>
+        Michael Scholz | <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
+    </footer>
 
     <script src="script.js"></script>
 </body>

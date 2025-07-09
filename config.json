@@ -1,6 +1,6 @@
 {
-    "version": "V6.01",
-    "letzteAenderung": "Figur an Maus geklebt",
+    "version": "V6.02",
+    "letzteAenderung": "Optik",
     "gameSettings": {
         "timerDuration": 30,
         "timerPenaltyCount": 2,
