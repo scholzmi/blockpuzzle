@@ -5,7 +5,7 @@
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
 
 **Steuerung**
-* **Auswählen:** Klicke eine Figur in den unteren Slots an, um sie aufzunehmen.
+* **Auswählen:** Am Anfang hängt automatisch die erste Figur an der Maus. Mit dem **Mausrad** schaltet man die Figur um.
 * **Platzieren:** Klicke auf eine freie Stelle auf dem Spielfeld.
 * **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Joker.
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
