@@ -99,9 +99,7 @@ body.boss-key-aktiv::before {
     position: relative;
     box-sizing: border-box;
 }
-#anleitung-container {
-    margin-top: 130px; /* Anleitung nach unten verschieben */
-}
+
 .rechts-container {
     width: 280px;
     display: flex;
@@ -137,8 +135,7 @@ body.boss-key-aktiv::before {
 #anleitung-inhalt, #info-inhalt {
     transition: all 0.3s ease;
 }
-.seiten-box.versteckt #anleitung-inhalt,
-.seiten-box.versteckt #info-inhalt {
+.seiten-box.versteckt #anleitung-inhalt {
     display: none;
 }
 #anleitung-inhalt {
@@ -155,28 +152,47 @@ body.boss-key-aktiv::before {
     align-items: stretch;
     width: 100%;
     font-size: 1.1em;
-    padding: 10px;
+    padding: 15px;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
     box-sizing: border-box;
-    gap: 10px;
+    gap: 12px;
 }
-.score-box {
+.info-zeile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background-color: rgba(255, 255, 255, 0.5);
     padding: 8px;
     border-radius: 5px;
-    text-align: left;
 }
+.info-label {
+    font-weight: 500;
+}
+.info-wert {
+    font-weight: bold;
+}
+
 .hard-mode-box {
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-content: space-between;
-    padding: 5px 10px;
+    justify-content: flex-end; /* Switch und Label rechtsbündig */
 }
+
 #hard-mode-label {
     font-weight: bold;
+    width: 60px; /* Feste Breite für das Label */
+    text-align: left;
 }
+/* Setzt den Text basierend auf dem Status der Checkbox */
+#hard-mode-schalter:not(:checked) + .slider + #hard-mode-label::after {
+    content: "normal";
+}
+#hard-mode-schalter:checked + .slider + #hard-mode-label::after {
+    content: "schwer";
+}
+
 #timer-box {
     font-weight: bold;
     color: #EA4335;
@@ -385,7 +401,7 @@ footer {
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.8);
     box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
-    font-weight: 300; /* Leichtgewichtige Schrift */
+    font-weight: 300;
     font-size: 0.9em;
     z-index: 100;
 }

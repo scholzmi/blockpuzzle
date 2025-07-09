@@ -32,15 +32,18 @@
 
         <div class="rechts-container">
             <div class="spiel-info">
-                 <div class="score-box">Punkte: <span id="punkte">0</span></div>
-                <div class="score-box">Rekord: <span id="rekord-normal">0</span></div>
-                <div class="score-box">Rekord Schwer: <span id="rekord-schwer">0</span></div>
-                <div class="hard-mode-box">
-                    <label class="switch">
-                        <input type="checkbox" id="hard-mode-schalter">
-                        <span class="slider"></span>
-                    </label>
-                    <span id="hard-mode-label">Schwer</span>
+                 <div class="info-zeile"><span class="info-label">Punkte</span><span id="punkte" class="info-wert">0</span></div>
+                 <div class="info-zeile"><span class="info-label">Rekord normal</span><span id="rekord-normal" class="info-wert">0</span></div>
+                 <div class="info-zeile"><span class="info-label">Rekord schwer</span><span id="rekord-schwer" class="info-wert">0</span></div>
+                 <div class="info-zeile">
+                    <span class="info-label">Modus</span>
+                    <div class="hard-mode-box">
+                        <label class="switch">
+                            <input type="checkbox" id="hard-mode-schalter">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="hard-mode-label"></span>
+                    </div>
                 </div>
                 <div id="timer-box" class="timer-versteckt">
                     <span>⏳</span> <span id="timer">60</span>s
@@ -65,7 +68,7 @@
     </div>
 
     <footer>
-        Michael Scholz | <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
+        Michael Scholz | Kleeweg 8, 22885 Barsbüttel, Deutschland | <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
     </footer>
 
     <script src="script.js"></script>

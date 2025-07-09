@@ -71,9 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
 
-        // Zustand der Seitenboxen aus Cookies wiederherstellen
         if (getCookie('anleitungVersteckt') === 'true') anleitungContainer.classList.add('versteckt');
-        if (getCookie('infoVersteckt') === 'true') infoContainer.classList.add('versteckt');
         
         zeichneJokerLeiste();
         erstelleSpielfeld();
@@ -138,8 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.returnValue = '';
             }
         });
+        
+        figurenSlots.forEach((slot, index) => {
+            slot.addEventListener('click', () => figurSlotKlick(index));
+        });
 
-        spielbrettElement.addEventListener('mouseenter', spielbrettBetreten);
         spielbrettElement.addEventListener('click', klickAufBrett);
         spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
         spielbrettElement.addEventListener('mouseleave', spielbrettVerlassen);
@@ -166,12 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 setCookie('anleitungVersteckt', istVersteckt, 365);
             });
         }
-        if(infoToggleIcon) {
-            infoToggleIcon.addEventListener('click', () => {
-                const istVersteckt = infoContainer.classList.toggle('versteckt');
-                setCookie('infoVersteckt', istVersteckt, 365);
-            });
-        }
         if (refreshFigurenButton) {
             refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         }
@@ -180,10 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     // STEUERUNG & SPIEL-LOGIK
     // ===================================================================================
-
-    function spielbrettBetreten() {
-        if (!ausgewaehlteFigur) {
-            wechsleZuNaechsterFigur();
+    
+    function figurSlotKlick(index) {
+        if (figurenInSlots[index]) {
+            abbrechen(); // Bricht ab, falls schon eine Figur ausgewählt ist
+            aktiverSlotIndex = index;
+            ausgewaehlteFigur = figurenInSlots[index];
+            hatFigurGedreht = false;
+            zeichneSlotHighlights();
+            spielbrettElement.style.cursor = 'pointer';
         }
     }
 
@@ -191,26 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ausgewaehlteFigur) {
             zeichneSpielfeld();
         }
-    }
-
-    function wechsleZuNaechsterFigur() {
-        const naechsterIndex = figurenInSlots.findIndex((fig, i) => fig !== null && i >= aktiverSlotIndex + 1);
-
-        if (naechsterIndex !== -1) {
-            aktiverSlotIndex = naechsterIndex;
-            ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
-            hatFigurGedreht = false;
-            figurenSlots[aktiverSlotIndex].innerHTML = '';
-            spielbrettElement.style.cursor = 'none';
-        } else {
-            ausgewaehlteFigur = null;
-            aktiverSlotIndex = -1;
-            spielbrettElement.style.cursor = 'default';
-            if (figurenInSlots.every(f => f === null)) {
-                generiereNeueFiguren();
-            }
-        }
-        zeichneSlotHighlights();
     }
     
     function zeichneSlotHighlights() {
@@ -235,13 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
             zeichneJokerLeiste();
             penaltyAktiviert = false; 
         }
-
         generiereNeueFiguren();
     }
 
     function generiereNeueFiguren() {
         rundenZaehler++;
-        aktiverSlotIndex = -1; // Wichtig: Zurücksetzen
+        aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'default';
@@ -287,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
             zeichneJokerLeiste(); 
         }
         
-        zeichneFigurInSlot(aktiverSlotIndex);
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         zeichneSlotHighlights();
@@ -299,15 +277,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ersterZugGemacht) {
             ersterZugGemacht = true;
         }
+
+        const figurHoehe = figur.form.length;
+        const figurBreite = figur.form[0].length;
+        const offsetX = Math.floor(figurBreite / 2);
+        const offsetY = Math.floor(figurHoehe / 2);
+        const platziereX = startX - offsetX;
+        const platziereY = startY - offsetY;
+
+        if (!kannPlatzieren(figur, platziereX, platziereY)) return;
+
         figur.form.forEach((reihe, y) => {
             reihe.forEach((block, x) => {
-                if (block === 1) spielbrett[startY + y][startX + x] = figur.color;
+                if (block === 1) spielbrett[platziereY + y][platziereX + x] = figur.color;
             });
         });
+
         punkte += figur.form.flat().reduce((a, b) => a + b, 0);
         punkteElement.textContent = punkte;
         
-        figurenInSlots[aktiverSlotIndex] = null;
+        const alterSlotIndex = aktiverSlotIndex;
+        figurenInSlots[alterSlotIndex] = null;
+        zeichneFigurInSlot(alterSlotIndex);
+        
+        abbrechen(); // Setzt die Auswahl zurück
         
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
@@ -317,27 +310,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         leereVolleLinien();
-        wechsleZuNaechsterFigur();
 
-        if (istSpielVorbei()) {
+        if (figurenInSlots.every(f => f === null)) {
+            generiereNeueFiguren();
+        } else if (istSpielVorbei()) {
             setTimeout(pruefeUndSpeichereRekord, 100);
         }
     }
     
     function mausBewegungAufBrett(e) {
         if (!ausgewaehlteFigur) return;
-        const ziel = getZielKoordinaten(e);
-        letztesZiel = {x: ziel.x, y: ziel.y};
+        letztesZiel = getZielKoordinaten(e);
         zeichneSpielfeld();
-        zeichneVorschau(ausgewaehlteFigur, ziel.x, ziel.y);
+        zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
     }
     
     function klickAufBrett(e) {
         if (!ausgewaehlteFigur) return;
         const ziel = getZielKoordinaten(e);
-        if (kannPlatzieren(ausgewaehlteFigur, ziel.x, ziel.y)) {
-            platziereFigur(ausgewaehlteFigur, ziel.x, ziel.y);
-        }
+        platziereFigur(ausgewaehlteFigur, ziel.x, ziel.y);
     }
     
     function toggleBossKey() {
@@ -422,16 +413,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneVorschau(figur, startX, startY) { 
         if (!figur) return; 
 
-        // Zentriere die Figur unter der Maus
         const figurHoehe = figur.form.length;
         const figurBreite = figur.form[0].length;
-        constoffsetX = Math.floor(figurBreite / 2);
+        const offsetX = Math.floor(figurBreite / 2);
         const offsetY = Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX;
         const platziereY = startY - offsetY;
 
+        const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
 
-        if (kannPlatzieren(figur, platziereX, platziereY)) {
+        if (kannFigurPlatzieren) {
             const tempSpielbrett = spielbrett.map(row => [...row]);
             figur.form.forEach((reihe, y) => {
                 reihe.forEach((block, x) => {
@@ -452,12 +443,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const brettX = platziereX + x; 
                     if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { 
                         const zelle = spielbrettElement.children[brettY * BREITE + brettX]; 
-                        const zustandDarunter = spielbrett[brettY][brettX]; 
-                        if (zustandDarunter === 0) { 
+                        if (kannFigurPlatzieren) { 
                             const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; 
                             zelle.style.backgroundColor = farbTheme.preview; 
                         } else { 
-                             zelle.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                             zelle.style.backgroundColor = 'rgba(234, 67, 53, 0.5)';
                         } 
                     } 
                 } 
@@ -490,7 +480,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function zeichneFigurInSlot(index) { const slot = figurenSlots[index]; slot.innerHTML = ''; const figur = figurenInSlots[index]; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => { reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); }); }); slot.appendChild(container); } }
+    function zeichneFigurInSlot(index) { 
+        const slot = figurenSlots[index]; 
+        slot.innerHTML = ''; 
+        const figur = figurenInSlots[index]; 
+        if (figur) { 
+            const container = document.createElement('div'); 
+            container.classList.add('figur-container'); 
+            const form = figur.form; 
+            container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; 
+            container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; 
+            form.forEach(reihe => { 
+                reihe.forEach(block => { 
+                    const blockDiv = document.createElement('div'); 
+                    if (block === 1) { 
+                        blockDiv.classList.add('figur-block'); 
+                        blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; 
+                    } 
+                    container.appendChild(blockDiv); 
+                }); 
+            }); 
+            slot.appendChild(container); 
+        } 
+    }
     function zeichneJokerLeiste() { 
         jokerBoxen.forEach((box, index) => { 
             if (index < verbrauchteJoker) { 
