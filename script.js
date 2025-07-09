@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-    
+
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -41,23 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         }
-
         stopTimer();
         istHardMode = hardModeSchalter.checked;
-
         const [configGeladen] = await Promise.all([ladeKonfiguration(), ladeAnleitung()]);
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
-        
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
-        
         const rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
         const gespeicherterRekord = getCookie(rekordCookieName);
         rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0;
         rekordElement.textContent = rekord;
-        
         punkte = 0;
         punkteElement.textContent = punkte;
         rundenZaehler = 0;
@@ -65,17 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
         hatFigurGedreht = false;
         penaltyAktiviert = false;
         ersterZugGemacht = false;
-
         if(!neustartBestaetigen) {
             if(anleitungContainer) anleitungContainer.classList.remove('versteckt');
             if(infoContainer) infoContainer.classList.remove('versteckt');
         }
-        
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
-
         if (istHardMode) {
             timerBox.classList.remove('timer-versteckt');
             startTimer();
@@ -115,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             anleitungInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
         }
     }
-    
+
     // ===================================================================================
     // EVENT LISTENERS
     // ===================================================================================
@@ -303,8 +295,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
     
-    function stopTimer() { clearInterval(timerInterval); }
-    function resumeTimer() { if(timerInterval) return; timerInterval = setInterval(() => { verbleibendeZeit--; timerAnzeige.textContent = verbleibendeZeit; if (verbleibendeZeit <= 0) { platziereStrafstein(); verbleibendeZeit = TIMER_DAUER; } }, 1000); }
+    function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+    function resumeTimer() {
+        if(timerInterval || !istHardMode) return;
+        timerInterval = setInterval(() => {
+            verbleibendeZeit--;
+            timerAnzeige.textContent = verbleibendeZeit;
+            if (verbleibendeZeit <= 0) {
+                platziereStrafstein();
+                verbleibendeZeit = TIMER_DAUER;
+            }
+        }, 1000);
+    }
     
     function platziereStrafstein() {
         const leereZellen = [];
