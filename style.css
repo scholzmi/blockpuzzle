@@ -317,20 +317,27 @@ input:checked + .slider:before {
 
 .unten-steuerung {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+    justify-content: center;
+    align-items: stretch;
+    width: 364px;
     margin-top: 20px;
-    gap: 15px;
+    gap: 10px;
+}
+
+#refresh-figuren-button, .punkte-anzeige-unten {
+    flex: 1;
+    padding: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #refresh-figuren-button {
-    flex-grow: 1;
-    padding: 10px;
-    font-size: 1em;
-    font-weight: bold;
-    border-radius: 8px;
-    border: 2px solid #4285F4;
+    border-color: #4285F4;
     background-color: white;
     color: #4285F4;
     cursor: pointer;
@@ -350,12 +357,11 @@ input:checked + .slider:before {
     outline: none;
 }
 
-#punkte-anzeige-unten {
+.punkte-anzeige-unten {
     font-family: 'Arial Black', Gadget, sans-serif;
-    font-size: 1.8em;
-    padding: 5px 15px;
+    font-size: 1.6em;
     background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 8px;
+    border-color: rgba(0,0,0,0.2);
 }
 
 
