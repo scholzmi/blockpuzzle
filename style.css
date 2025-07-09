@@ -34,7 +34,6 @@ body, #spielbrett {
 /* Neuer Hauptcontainer für das Layout */
 .haupt-container {
     display: flex;
-    flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 30px;
@@ -45,39 +44,36 @@ body, #spielbrett {
 .spiel-wrapper, .seiten-box {
     transition: opacity 0.3s ease-in-out;
 }
-
-body.boss-key-aktiv .spiel-wrapper,
+body.boss-key-aktiv .spiel-wrapper, 
 body.boss-key-aktiv .seiten-box {
     opacity: 0;
     pointer-events: none;
 }
-
 body.boss-key-aktiv::before {
     opacity: 1;
 }
 
+/* Allgemeine Elemente */
 h1, h2 {
     color: #4285F4;
     text-align: center;
     margin: 0 0 15px 0;
 }
-
 .spiel-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* Styling für die Seitenboxen (Anleitung & Info) */
+/* Seitenboxen (Anleitung & Info) */
 .seiten-box {
     width: 280px;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: relative;
 }
-
 .toggle-icon {
     position: absolute;
     top: 20px;
@@ -88,28 +84,22 @@ h1, h2 {
     color: #888;
     font-family: monospace;
 }
-
 .toggle-icon:hover {
     color: #000;
 }
-
 .toggle-icon::before {
     content: '−';
 }
-
 .seiten-box.versteckt .toggle-icon::before {
     content: '+';
 }
-
 #anleitung-inhalt, #info-inhalt {
     transition: all 0.3s ease;
 }
-
 .seiten-box.versteckt #anleitung-inhalt,
 .seiten-box.versteckt #info-inhalt {
     display: none;
 }
-
 #anleitung-inhalt {
     font-size: 0.9em;
     line-height: 1.5;

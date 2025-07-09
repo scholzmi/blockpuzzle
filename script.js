@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         }
+
         stopTimer();
         istHardMode = hardModeSchalter.checked;
 
@@ -66,8 +67,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ersterZugGemacht = false;
 
         if(!neustartBestaetigen) {
-            if(anleitungContainer) anleitungContainer.classList.remove('versteckt');
-            if(infoContainer) infoContainer.classList.remove('versteckt');
+            // Zustand der Boxen aus Cookies wiederherstellen
+            if (getCookie('anleitungVersteckt') === 'true') {
+                anleitungContainer.classList.add('versteckt');
+            } else {
+                anleitungContainer.classList.remove('versteckt');
+            }
+            if (getCookie('infoVersteckt') === 'true') {
+                infoContainer.classList.add('versteckt');
+            } else {
+                infoContainer.classList.remove('versteckt');
+            }
         }
         
         zeichneJokerLeiste();
@@ -106,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function ladeAnleitung() {
-        const anleitungInhalt = document.getElementById('anleitung-inhalt');
         if(!anleitungInhalt) return;
         try {
             const antwort = await fetch('anleitung.txt?v=' + new Date().getTime());
@@ -153,12 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
         hardModeSchalter.addEventListener('change', () => spielStart(true));
         if(anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
-                if(anleitungContainer) anleitungContainer.classList.toggle('versteckt');
+                const isHidden = anleitungContainer.classList.toggle('versteckt');
+                setCookie('anleitungVersteckt', isHidden, 365);
             });
         }
         if(infoToggleIcon) {
             infoToggleIcon.addEventListener('click', () => {
-                if(infoContainer) infoContainer.classList.toggle('versteckt');
+                const isHidden = infoContainer.classList.toggle('versteckt');
+                setCookie('infoVersteckt', isHidden, 365);
             });
         }
     }
@@ -302,17 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-    function resumeTimer() {
-        if(timerInterval || !istHardMode) return;
-        timerInterval = setInterval(() => {
-            verbleibendeZeit--;
-            timerAnzeige.textContent = verbleibendeZeit;
-            if (verbleibendeZeit <= 0) {
-                platziereStrafstein();
-                verbleibendeZeit = TIMER_DAUER;
-            }
-        }, 1000);
-    }
+    function resumeTimer() { if(timerInterval || !istHardMode) return; timerInterval = setInterval(() => { verbleibendeZeit--; timerAnzeige.textContent = verbleibendeZeit; if (verbleibendeZeit <= 0) { platziereStrafstein(); verbleibendeZeit = TIMER_DAUER; } }, 1000); }
     
     function platziereStrafstein() {
         const leereZellen = [];
