@@ -1,10 +1,11 @@
 {
-    "version": "V6.10",
+    "version": "V6.11",
     "letzteAenderung": "Schnellere Steuerung",
     "gameSettings": {
         "timerDuration": 30,
         "timerPenaltyCount": 2,
-        "jokerPenaltyCount": 3
+        "jokerPenaltyCount": 3,
+        "refreshPenaltyPoints": 200
     },
     "probabilities": {
         "zonk": 0.03,

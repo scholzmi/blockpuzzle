@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const jokerBoxen = document.querySelectorAll('.joker-box');
     const anleitungContainer = document.getElementById('anleitung-container');
     const anleitungInhalt = document.getElementById('anleitung-inhalt');
-    const infoContainer = document.getElementById('info-container');
     const anleitungToggleIcon = document.getElementById('anleitung-toggle-icon');
     const hardModeSchalter = document.getElementById('hard-mode-schalter');
     const hardModeLabel = document.getElementById('hard-mode-label');
@@ -21,19 +20,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konstanten ===
     const BREITE = 9, HOEHE = 9, MAX_FIGUR_GROESSE = 5, ANZAHL_JOKER = 5;
-    let TIMER_DAUER; 
+    let TIMER_DAUER;
 
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, aktiverSlotIndex = -1, rundenZaehler = 0;
-    let letztesZiel = {x: -1, y: -1}, verbrauchteJoker = 0;
+    let letztesZiel = { x: -1, y: -1 }, verbrauchteJoker = 0;
     let hatFigurGedreht = false, penaltyAktiviert = false;
     let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-    
+
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -48,21 +47,21 @@ document.addEventListener('DOMContentLoaded', () => {
         stopTimer();
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
-        
+
         const configGeladen = await ladeKonfiguration();
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
         await ladeAnleitung();
-        
+
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
-        
+
         rekordNormal = parseInt(getCookie('rekordNormal') || '0', 10);
         rekordSchwer = parseInt(getCookie('rekordSchwer') || '0', 10);
         rekordNormalElement.textContent = rekordNormal;
         rekordSchwerElement.textContent = rekordSchwer;
-        
+
         punkte = 0;
         punkteElement.textContent = punkte;
         rundenZaehler = 0;
@@ -74,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ausgewaehlteFigur = null;
 
         if (getCookie('anleitungVersteckt') === 'true') anleitungContainer.classList.add('versteckt');
-        
+
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
@@ -86,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timerBox.classList.add('timer-versteckt');
         }
     }
-    
+
     function updateHardModeLabel() {
         hardModeLabel.textContent = hardModeSchalter.checked ? 'schwer' : 'normal';
     }
@@ -96,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
-            
+
             TIMER_DAUER = spielConfig.gameSettings?.timerDuration || 60;
 
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
@@ -109,19 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         } catch (error) {
             console.error('Fehler beim Laden der Konfiguration:', error);
-            if(versionElement) versionElement.textContent = "Config Error!";
+            if (versionElement) versionElement.textContent = "Config Error!";
             return false;
         }
     }
-    
+
     async function ladeAnleitung() {
-        if(!anleitungInhalt) return;
+        if (!anleitungInhalt) return;
         try {
             const antwort = await fetch('anleitung.txt?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error('Anleitung nicht gefunden');
             const text = await antwort.text();
             anleitungInhalt.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-        } catch(error) {
+        } catch (error) {
             anleitungInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
         }
     }
@@ -129,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     // EVENT LISTENERS
     // ===================================================================================
-    
+
     function eventListenerZuweisen() {
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
@@ -142,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.returnValue = '';
             }
         });
-        
+
         spielbrettElement.addEventListener('mouseenter', spielbrettBetreten);
         spielbrettElement.addEventListener('click', klickAufBrett);
         spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
@@ -160,11 +159,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                mausBewegungAufBrett(e); 
+                mausBewegungAufBrett(e);
             }
         });
         hardModeSchalter.addEventListener('change', () => spielStart(true));
-        if(anleitungToggleIcon) {
+        if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
                 const istVersteckt = anleitungContainer.classList.toggle('versteckt');
                 setCookie('anleitungVersteckt', istVersteckt, 365);
@@ -185,9 +184,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         mausBewegungAufBrett(e);
     }
+
+    function spielbrettVerlassen() {
+        if (ausgewaehlteFigur) {
+            zeichneSpielfeld();
+        }
+    }
     
     function wechsleZuNaechsterFigur() {
-        if (ausgewaehlteFigur) return; 
+        if (ausgewaehlteFigur) return;
 
         let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
 
@@ -197,20 +202,17 @@ document.addEventListener('DOMContentLoaded', () => {
             hatFigurGedreht = false;
             spielbrettElement.style.cursor = 'none';
         } else {
+            aktiverSlotIndex = -1;
+            ausgewaehlteFigur = null;
             spielbrettElement.style.cursor = 'default';
             if (figurenInSlots.every(f => f === null)) {
                 generiereNeueFiguren();
+                wechsleZuNaechsterFigur();
             }
         }
         zeichneSlotHighlights();
     }
 
-    function spielbrettVerlassen() {
-        if (ausgewaehlteFigur) {
-            zeichneSpielfeld();
-        }
-    }
-    
     function zeichneSlotHighlights() {
         figurenSlots.forEach((slot, index) => {
             if (index === aktiverSlotIndex) {
@@ -224,6 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function figurenNeuAuslosen() {
         if (verbrauchteJoker >= ANZAHL_JOKER) return;
         abbrechen();
+        
+        // Punkte abziehen
+        const penaltyPoints = spielConfig.gameSettings?.refreshPenaltyPoints || 0;
+        punkte = Math.max(0, punkte - penaltyPoints);
+        punkteElement.textContent = punkte;
+
+        // Joker verbrauchen
         verbrauchteJoker++;
         zeichneJokerLeiste();
 
@@ -231,18 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
             zeichneJokerLeiste();
-            penaltyAktiviert = false; 
+            penaltyAktiviert = false;
         }
         generiereNeueFiguren();
     }
 
     function generiereNeueFiguren() {
         rundenZaehler++;
-        aktiverSlotIndex = -1;
-        ausgewaehlteFigur = null;
-        zeichneSlotHighlights();
-        spielbrettElement.style.cursor = 'default';
-
         const probs = spielConfig.probabilities || {};
         const jokerProb = probs.joker || 0.20;
         const zonkProb = probs.zonk || 0.05;
@@ -274,16 +278,16 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(pruefeUndSpeichereRekord, 100);
         }
     }
-    
+
     function abbrechen() {
         if (!ausgewaehlteFigur) return;
-        
-        if (hatFigurGedreht) { 
-            verbrauchteJoker--; 
+
+        if (hatFigurGedreht) {
+            verbrauchteJoker--;
             penaltyAktiviert = false;
-            zeichneJokerLeiste(); 
+            zeichneJokerLeiste();
         }
-        
+
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         zeichneSlotHighlights();
@@ -313,14 +317,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         punkte += figur.form.flat().reduce((a, b) => a + b, 0);
         punkteElement.textContent = punkte;
-        
+
         const alterSlotIndex = aktiverSlotIndex;
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
-        
+
         ausgewaehlteFigur = null;
         aktiverSlotIndex = -1;
-        
+        hatFigurGedreht = false;
+
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
@@ -335,20 +340,20 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(pruefeUndSpeichereRekord, 100);
         }
     }
-    
+
     function mausBewegungAufBrett(e) {
-        if (!ausgewaehlteFigur) return;
+        if (!ausgewaehlteFigur || !e) return;
         letztesZiel = getZielKoordinaten(e);
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
     }
-    
+
     function klickAufBrett(e) {
         if (!ausgewaehlteFigur) return;
         const ziel = getZielKoordinaten(e);
         platziereFigur(ausgewaehlteFigur, ziel.x, ziel.y);
     }
-    
+
     function toggleBossKey() {
         document.body.classList.toggle('boss-key-aktiv');
         if (document.body.classList.contains('boss-key-aktiv')) {
@@ -364,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         verbleibendeZeit = TIMER_DAUER;
         timerAnzeige.textContent = verbleibendeZeit;
-        if(timerInterval) clearInterval(timerInterval);
+        if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
             timerAnzeige.textContent = verbleibendeZeit;
@@ -375,10 +380,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     }
-    
+
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
     function resumeTimer() {
-        if(timerInterval || !istHardMode) return;
+        if (timerInterval || !istHardMode) return;
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
             timerAnzeige.textContent = verbleibendeZeit;
@@ -389,47 +394,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     }
-    
+
     function platziereStrafsteine(anzahl) {
         const leereZellen = [];
         spielbrett.forEach((reihe, y) => {
             reihe.forEach((zelle, x) => {
-                if (zelle === 0) leereZellen.push({x, y});
+                if (zelle === 0) leereZellen.push({ x, y });
             });
         });
         leereZellen.sort(() => 0.5 - Math.random());
         const anzahlZuPlatzieren = Math.min(anzahl, leereZellen.length);
-        for(let i = 0; i < anzahlZuPlatzieren; i++) {
+        for (let i = 0; i < anzahlZuPlatzieren; i++) {
             const zelle = leereZellen[i];
             spielbrett[zelle.y][zelle.x] = 'blocker';
         }
         zeichneSpielfeld();
     }
-    
-    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if(maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
+
+    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if (maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] !== 0) return false; } } } return true; }
-    function leereVolleLinien() { let vR = [], vS = []; for(let y=0; y<HOEHE; y++) { if(spielbrett[y].every(zelle => zelle !== 0)) vR.push(y); } for(let x=0; x<BREITE; x++) { let spalteVoll = true; for(let y=0; y<HOEHE; y++) { if(spielbrett[y][x] === 0) { spalteVoll = false; break; } } if(spalteVoll) vS.push(x); } if (vR.length > 0 || vS.length > 0) { vR.forEach(y => spielbrett[y].fill(0)); vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0)); const linien = vR.length + vS.length; punkte += linien * 10 * linien; punkteElement.textContent = punkte; } zeichneSpielfeld(); }
-    
-    function zeichneSpielfeld() { 
-        spielbrett.forEach((reihe, y) => { 
-            reihe.forEach((inhalt, x) => { 
-                const zelle = spielbrettElement.children[y * BREITE + x]; 
+    function leereVolleLinien() { let vR = [], vS = []; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y].every(zelle => zelle !== 0)) vR.push(y); } for (let x = 0; x < BREITE; x++) { let spalteVoll = true; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y][x] === 0) { spalteVoll = false; break; } } if (spalteVoll) vS.push(x); } if (vR.length > 0 || vS.length > 0) { vR.forEach(y => spielbrett[y].fill(0)); vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0)); const linien = vR.length + vS.length; punkte += linien * 10 * linien; punkteElement.textContent = punkte; } zeichneSpielfeld(); }
+
+    function zeichneSpielfeld() {
+        spielbrett.forEach((reihe, y) => {
+            reihe.forEach((inhalt, x) => {
+                const zelle = spielbrettElement.children[y * BREITE + x];
                 zelle.className = 'zelle';
-                zelle.style.backgroundColor = ''; 
-                if (inhalt === 'blocker') { 
-                    zelle.classList.add('belegt', 'blocker'); 
-                } else if (inhalt !== 0) { 
-                    zelle.classList.add('belegt'); 
-                    zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed; 
-                } 
-            }); 
-        }); 
+                zelle.style.backgroundColor = '';
+                if (inhalt === 'blocker') {
+                    zelle.classList.add('belegt', 'blocker');
+                } else if (inhalt !== 0) {
+                    zelle.classList.add('belegt');
+                    zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed;
+                }
+            });
+        });
     }
 
-    function zeichneVorschau(figur, startX, startY) { 
-        if (!figur) return; 
+    function zeichneVorschau(figur, startX, startY) {
+        if (!figur) return;
 
         const figurHoehe = figur.form.length;
         const figurBreite = figur.form[0].length;
@@ -453,39 +458,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             zeichneLinienVorschau(tempSpielbrett);
         }
-        
-        figur.form.forEach((reihe, y) => { 
-            reihe.forEach((block, x) => { 
-                if (block === 1) { 
-                    const brettY = platziereY + y; 
-                    const brettX = platziereX + x; 
-                    if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { 
-                        const zelle = spielbrettElement.children[brettY * BREITE + brettX]; 
-                        if (kannFigurPlatzieren) { 
-                            const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; 
-                            zelle.style.backgroundColor = farbTheme.preview; 
-                        } else { 
-                             zelle.style.backgroundColor = 'rgba(234, 67, 53, 0.5)';
-                        } 
-                    } 
-                } 
-            }); 
-        }); 
+
+        figur.form.forEach((reihe, y) => {
+            reihe.forEach((block, x) => {
+                if (block === 1) {
+                    const brettY = platziereY + y;
+                    const brettX = platziereX + x;
+                    if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) {
+                        const zelle = spielbrettElement.children[brettY * BREITE + brettX];
+                        if (kannFigurPlatzieren) {
+                            const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default'];
+                            zelle.style.backgroundColor = farbTheme.preview;
+                        } else {
+                            zelle.style.backgroundColor = 'rgba(234, 67, 53, 0.5)';
+                        }
+                    }
+                }
+            });
+        });
     }
 
     function zeichneLinienVorschau(tempSpielbrett) {
-        let vR = [], vS = []; 
-        for(let y=0; y<HOEHE; y++) { 
-            if(tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y); 
-        } 
-        for(let x=0; x<BREITE; x++) { 
-            let spalteVoll = true; 
-            for(let y=0; y<HOEHE; y++) { 
-                if(tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } 
-            } 
-            if(spalteVoll) vS.push(x); 
+        let vR = [], vS = [];
+        for (let y = 0; y < HOEHE; y++) {
+            if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
         }
-        
+        for (let x = 0; x < BREITE; x++) {
+            let spalteVoll = true;
+            for (let y = 0; y < HOEHE; y++) {
+                if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; }
+            }
+            if (spalteVoll) vS.push(x);
+        }
+
         vR.forEach(y => {
             for (let x = 0; x < BREITE; x++) {
                 spielbrettElement.children[y * BREITE + x].classList.add('linie-vorschau');
@@ -498,42 +503,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function zeichneFigurInSlot(index) { 
-        const slot = figurenSlots[index]; 
-        slot.innerHTML = ''; 
-        const figur = figurenInSlots[index]; 
-        if (figur) { 
-            const container = document.createElement('div'); 
-            container.classList.add('figur-container'); 
-            const form = figur.form; 
-            container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; 
-            container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; 
-            form.forEach(reihe => { 
-                reihe.forEach(block => { 
-                    const blockDiv = document.createElement('div'); 
-                    if (block === 1) { 
-                        blockDiv.classList.add('figur-block'); 
-                        blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; 
-                    } 
-                    container.appendChild(blockDiv); 
-                }); 
-            }); 
-            slot.appendChild(container); 
-        } 
+    function zeichneFigurInSlot(index) {
+        const slot = figurenSlots[index];
+        slot.innerHTML = '';
+        const figur = figurenInSlots[index];
+        if (figur) {
+            const container = document.createElement('div');
+            container.classList.add('figur-container');
+            const form = figur.form;
+            container.style.gridTemplateRows = `repeat(${form.length}, 20px)`;
+            container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`;
+            form.forEach(reihe => {
+                reihe.forEach(block => {
+                    const blockDiv = document.createElement('div');
+                    if (block === 1) {
+                        blockDiv.classList.add('figur-block');
+                        blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed;
+                    }
+                    container.appendChild(blockDiv);
+                });
+            });
+            slot.appendChild(container);
+        }
     }
-    function zeichneJokerLeiste() { 
-        jokerBoxen.forEach((box, index) => { 
-            if (index < verbrauchteJoker) { 
-                box.classList.add('verbraucht'); 
-                box.classList.remove('voll'); 
-            } else { 
-                box.classList.add('voll'); 
-                box.classList.remove('verbraucht'); 
-            } 
-        }); 
+    function zeichneJokerLeiste() {
+        jokerBoxen.forEach((box, index) => {
+            if (index < verbrauchteJoker) {
+                box.classList.add('verbraucht');
+                box.classList.remove('voll');
+            } else {
+                box.classList.add('voll');
+                box.classList.remove('verbraucht');
+            }
+        });
         refreshFigurenButton.disabled = verbrauchteJoker >= ANZAHL_JOKER;
     }
-    
+
     function aktiviereJokerPenalty() {
         const anzahl = spielConfig.gameSettings?.jokerPenaltyCount || 5;
         platziereStrafsteine(anzahl);

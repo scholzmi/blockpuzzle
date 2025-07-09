@@ -10,7 +10,8 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Joker.
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
-* **Refresh-Button:** Drücke den Button, um die Figuren neu auszulosen. Das verbraucht einen Joker und 200 Punkte
+* **Refresh-Button:** Drücke den Button, um die Figuren neu auszulosen. Das verbraucht einen Joker und 200 Punkte.
+* **Vorsicht:** Drücke den Refresh Button rechtzeitig. Wenn Du eine Figur platzierst und die nächste Figur nicht mehr passt, dann endet das Spiel knallhart.
 
 **Spielmodi:**
 * **Normal:** Das klassische, entspannte Spiel.
