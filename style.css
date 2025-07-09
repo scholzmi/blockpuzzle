@@ -1,72 +1,248 @@
 /* Grundlegende Body-Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #3c4043; margin: 0; padding: 20px; height: 100vh;
-    box-sizing: border-box; display: flex; justify-content: center;
-    align-items: center; position: relative; overscroll-behavior: none;
+    color: #3c4043;
+    margin: 0;
+    padding: 20px;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; 
+    overscroll-behavior: none; /* Verhindert "pull-to-refresh" auf Mobilgeräten */
 }
+
+/* Hintergrundbild mit Transparenz */
 body::before {
-    content: ''; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: url('bg.jpg') center/cover no-repeat;
-    opacity: 0.3; z-index: -1; transition: opacity 0.3s ease-in-out;
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    z-index: -1;
+    transition: opacity 0.3s ease-in-out;
 }
-body, #spielbrett { user-select: none; }
 
-/* Layout & Boss Key */
-.haupt-container { display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; }
-.spiel-wrapper, .seiten-box { transition: opacity 0.3s ease-in-out; }
-body.boss-key-aktiv .spiel-wrapper, body.boss-key-aktiv .seiten-box { opacity: 0; pointer-events: none; }
-body.boss-key-aktiv::before { opacity: 1; }
+body, #spielbrett {
+    user-select: none; /* Verhindert Text-Markierung */
+}
 
-/* Allgemeine Elemente */
-h1, h2 { color: #4285F4; text-align: center; margin: 0 0 15px 0; }
-.spiel-wrapper { display: flex; flex-direction: column; align-items: center; }
+/* Neuer Hauptcontainer für das Layout */
+.haupt-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+}
 
-/* Seitenboxen (Anleitung & Info) */
+/* Wrapper für den Boss-Key */
+.spiel-wrapper, .seiten-box {
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.boss-key-aktiv .spiel-wrapper,
+body.boss-key-aktiv .seiten-box {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.boss-key-aktiv::before {
+    opacity: 1;
+}
+
+h1, h2 {
+    color: #4285F4;
+    text-align: center;
+    margin-top: 0;
+}
+
+.spiel-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Styling für die Seitenboxen (Anleitung & Info) */
 .seiten-box {
-    width: 280px; padding: 20px; background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: relative;
+    width: 280px;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.75);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
 }
-.toggle-icon {
-    position: absolute; top: 18px; right: 20px; cursor: pointer;
-    font-size: 24px; line-height: 1; color: #888;
-}
-.toggle-icon:hover { color: #000; }
-.toggle-icon::before { content: '▲'; }
-.seiten-box.versteckt .toggle-icon::before { content: '▼'; }
-#anleitung-inhalt, #info-inhalt { transition: all 0.3s ease; }
-.seiten-box.versteckt #anleitung-inhalt, .seiten-box.versteckt #info-inhalt { display: none; }
 
-/* Spiel-spezifische Elemente */
-.spiel-info { display: flex; justify-content: space-between; width: 364px; font-size: 1.2em; padding: 10px; background-color: rgba(255, 255, 255, 0.7); border-radius: 8px; box-sizing: border-box; }
-#dreh-joker-leiste { display: flex; justify-content: space-between; width: 364px; margin-top: 15px; }
-.joker-box { width: 65px; height: 65px; border-radius: 8px; transition: background-color 0.3s ease; border: 2px solid rgba(0,0,0,0.2); }
+.toggle-icon {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    color: #888;
+}
+
+.toggle-icon:hover {
+    color: #000;
+}
+
+.toggle-icon::before {
+    content: '▲';
+}
+
+.seiten-box.versteckt .toggle-icon::before {
+    content: '▼';
+}
+
+#anleitung-inhalt, #info-inhalt {
+    transition: all 0.3s ease;
+}
+
+.seiten-box.versteckt #anleitung-inhalt,
+.seiten-box.versteckt #info-inhalt {
+    display: none;
+}
+
+/* Info-Leiste (Punkte, Rekord) */
+.spiel-info {
+    display: flex;
+    justify-content: space-between;
+    width: 364px;
+    font-size: 1.2em;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+/* Leiste für die Dreh-Joker */
+#dreh-joker-leiste {
+    display: flex;
+    justify-content: space-between;
+    width: 364px;
+    margin-top: 15px;
+}
+
+.joker-box {
+    width: 65px;
+    height: 65px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    border: 2px solid rgba(0,0,0,0.2);
+}
+
 .joker-box.voll { background-color: #34A853; }
 .joker-box.verbraucht { background-color: rgba(52, 168, 83, 0.3); }
 
-#spielbrett { display: grid; grid-template-columns: repeat(9, 40px); grid-template-rows: repeat(9, 40px); border: 2px solid #E0E0E0; background-color: rgba(248, 249, 250, 0.8); margin-top: 15px; width: max-content; position: relative; }
-.zelle { width: 40px; height: 40px; border: 1px solid #E0E0E0; box-sizing: border-box; transition: background-color 0.1s; }
+/* Spielfeld-Styles */
+#spielbrett {
+    display: grid;
+    grid-template-columns: repeat(9, 40px);
+    grid-template-rows: repeat(9, 40px);
+    border: 2px solid #E0E0E0;
+    background-color: rgba(248, 249, 250, 0.8);
+    margin-top: 15px;
+    width: max-content;
+    position: relative;
+}
+
+.zelle {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #E0E0E0;
+    box-sizing: border-box;
+    transition: background-color 0.1s;
+}
+
 .belegt { border: 1px solid rgba(0, 0, 0, 0.2); }
 .blocker { background-color: #333 !important; border-color: #000 !important; }
 
-#figuren-auswahl { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; width: 364px; padding: 10px; box-sizing: border-box; }
-.figur-slot { width: 33.33%; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; border: 2px dashed #e0e0e0; border-radius: 8px; transition: background-color 0.2s; }
+/* Figuren-Auswahl */
+#figuren-auswahl {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    width: 364px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.figur-slot {
+    width: 33.33%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
 .figur-slot:hover { background-color: rgba(248, 249, 250, 0.8); }
 .figur-container { display: grid; cursor: pointer; }
 .figur-block { width: 20px; height: 20px; border: 1px solid #fff; box-sizing: border-box; border-radius: 2px; }
 
 /* Info-Box rechts */
-.spende-bereich { text-align: center; }
-.spende-bereich p { margin: 0 0 10px 0; font-size: 1em; }
-.qr-code { width: 100px; height: 100px; margin-bottom: 10px; }
-.paypal-link { color: #1a73e8; text-decoration: none; font-size: 0.9em; }
-.paypal-link:hover { text-decoration: underline; }
-.impressum { margin-top: 25px; font-size: 0.85em; color: #70757a; line-height: 1.6; text-align: center; }
+.spende-bereich { 
+    text-align: center; 
+}
 
-/* Mobile Ansicht */
+.spende-bereich p { 
+    margin: 0 0 10px 0; 
+    font-size: 1em; 
+}
+
+.qr-code { 
+    width: 100px; 
+    height: 100px; 
+    margin-bottom: 10px; 
+}
+
+.paypal-link { 
+    color: #1a73e8; 
+    text-decoration: none; 
+    font-size: 0.9em; 
+}
+
+.paypal-link:hover { 
+    text-decoration: underline; 
+}
+
+.impressum { 
+    margin-top: 25px; 
+    font-size: 0.85em; 
+    color: #70757a; 
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* Media Query für kleinere Bildschirme / mobile Ansicht */
 @media (max-width: 1024px) {
-    body { height: auto; padding: 10px; }
-    .haupt-container { flex-direction: column; }
-    .seiten-box { width: 100%; max-width: 364px; box-sizing: border-box; margin-bottom: 20px; }
-    #info-container { order: 3; }
+    body { 
+        height: auto; 
+        padding: 10px;
+    }
+    .haupt-container { 
+        flex-direction: column; 
+    }
+    .seiten-box { 
+        width: 100%; 
+        max-width: 364px; 
+        box-sizing: border-box;
+        margin-bottom: 20px;
+    }
+    #info-container { 
+        order: 3; 
+    }
 }
