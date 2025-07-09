@@ -29,14 +29,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     async function spielStart() {
-        const [configGeladen] = await Promise.all([ladeKonfiguration(), ladeAnleitung()]);
+        // Lädt Konfiguration und Anleitung gleichzeitig
+        const [configGeladen] = await Promise.all([
+            ladeKonfiguration(),
+            ladeAnleitung()
+        ]);
+
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
-        
-        if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
-        
+
+        if (document.body.classList.contains('boss-key-aktiv')) {
+            toggleBossKey();
+        }
+
         const gespeicherterRekord = getCookie("rekord");
         rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0;
         rekordElement.textContent = rekord;
@@ -56,17 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
     async function ladeKonfiguration() {
         try {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
-            if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
+            if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok: ${antwort.statusText}`);
             spielConfig = await antwort.json();
+            
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
-            const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
-            normaleFiguren = erstellePool(spielConfig?.figures?.normal);
-            zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
-            jokerFiguren = erstellePool(spielConfig?.figures?.joker);
-            if (normaleFiguren.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
+            
+            const erstelleFigurenPool = (pool) => 
+                Array.isArray(pool) ? pool.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
+
+            normaleFiguren = erstelleFigurenPool(spielConfig?.figures?.normal);
+            zonkFiguren = erstelleFigurenPool(spielConfig?.figures?.zonk);
+            jokerFiguren = erstelleFigurenPool(spielConfig?.figures?.joker);
+            
+            if (normaleFiguren.length === 0) throw new Error("Keine 'normalen' Figuren in config.json gefunden.");
             return true;
         } catch (error) {
-            console.error('Fehler beim Laden der Konfiguration:', error);
+            console.error('Fehler beim Laden der Konfigurationsdatei:', error);
             if(versionElement) versionElement.textContent = "Config Error!";
             return false;
         }
@@ -87,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // STEUERUNG
+    // EVENT HANDLER & STEUERUNG
     // ===================================================================================
     
     function figurSlotKlick(index) {
