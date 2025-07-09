@@ -1,6 +1,6 @@
 {
-    "version": "V6.04",
-    "letzteAenderung": "Optik",
+    "version": "V6.10",
+    "letzteAenderung": "Schnellere Steuerung",
     "gameSettings": {
         "timerDuration": 30,
         "timerPenaltyCount": 2,

@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         stopTimer();
         istHardMode = hardModeSchalter.checked;
-        updateHardModeLabel(); // Label aktualisieren
+        updateHardModeLabel();
         
         const configGeladen = await ladeKonfiguration();
         if (!configGeladen) {
@@ -143,10 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        figurenSlots.forEach((slot, index) => {
-            slot.addEventListener('click', () => figurSlotKlick(index));
-        });
-
+        spielbrettElement.addEventListener('mouseenter', spielbrettBetreten);
         spielbrettElement.addEventListener('click', klickAufBrett);
         spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
         spielbrettElement.addEventListener('mouseleave', spielbrettVerlassen);
@@ -181,20 +178,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     // STEUERUNG & SPIEL-LOGIK
     // ===================================================================================
-    
-    function figurSlotKlick(index) {
-        if (figurenInSlots[index]) {
-            if (aktiverSlotIndex === index) { // Klick auf bereits aktiven Slot
-                abbrechen();
-                return;
-            }
-            abbrechen(); 
-            aktiverSlotIndex = index;
-            ausgewaehlteFigur = figurenInSlots[index];
-            hatFigurGedreht = false;
-            zeichneSlotHighlights();
-            spielbrettElement.style.cursor = 'pointer';
+
+    function spielbrettBetreten(e) {
+        if (!ausgewaehlteFigur) {
+            wechsleZuNaechsterFigur();
         }
+        mausBewegungAufBrett(e);
+    }
+    
+    function wechsleZuNaechsterFigur() {
+        if (ausgewaehlteFigur) return; 
+
+        let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
+
+        if (naechsterIndex !== -1) {
+            aktiverSlotIndex = naechsterIndex;
+            ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
+            hatFigurGedreht = false;
+            spielbrettElement.style.cursor = 'none';
+        } else {
+            spielbrettElement.style.cursor = 'default';
+            if (figurenInSlots.every(f => f === null)) {
+                generiereNeueFiguren();
+            }
+        }
+        zeichneSlotHighlights();
     }
 
     function spielbrettVerlassen() {
@@ -310,7 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        abbrechen();
+        ausgewaehlteFigur = null;
+        aktiverSlotIndex = -1;
         
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
@@ -320,10 +329,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         leereVolleLinien();
+        wechsleZuNaechsterFigur();
 
-        if (figurenInSlots.every(f => f === null)) {
-            generiereNeueFiguren();
-        } else if (istSpielVorbei()) {
+        if (istSpielVorbei()) {
             setTimeout(pruefeUndSpeichereRekord, 100);
         }
     }
