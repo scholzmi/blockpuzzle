@@ -41,15 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         }
+
         stopTimer();
         istHardMode = hardModeSchalter.checked;
 
-        const configGeladen = await ladeKonfiguration();
+        const [configGeladen] = await Promise.all([ladeKonfiguration(), ladeAnleitung()]);
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
-        await ladeAnleitung();
         
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
         
@@ -161,11 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    
+
     // ===================================================================================
     // STEUERUNG & SPIEL-LOGIK
     // ===================================================================================
-    
+
     function generiereNeueFiguren() {
         rundenZaehler++;
         const probs = spielConfig.probabilities || {};
@@ -278,15 +278,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // ===================================================================================
+    // BOSS KEY & TIMER FUNKTIONEN (ANGEPASST)
+    // ===================================================================================
+    
     function toggleBossKey() {
         document.body.classList.toggle('boss-key-aktiv');
         if (document.body.classList.contains('boss-key-aktiv')) {
             document.title = "Photo Gallery";
-            if (istHardMode) stopTimer();
+            if (istHardMode) stopTimer(); // Timer pausieren
             if (ausgewaehlteFigur) abbrechen();
         } else {
             document.title = originalerTitel;
-            if (istHardMode) resumeTimer();
+            if (istHardMode) resumeTimer(); // Timer fortsetzen
         }
     }
 
@@ -294,6 +298,24 @@ document.addEventListener('DOMContentLoaded', () => {
         verbleibendeZeit = TIMER_DAUER;
         timerAnzeige.textContent = verbleibendeZeit;
         if(timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            verbleibendeZeit--;
+            timerAnzeige.textContent = verbleibendeZeit;
+            if (verbleibendeZeit <= 0) {
+                platziereStrafstein();
+                verbleibendeZeit = TIMER_DAUER; // Timer neu starten nach Ablauf
+            }
+        }, 1000);
+    }
+    
+    function stopTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    function resumeTimer() {
+        if(timerInterval) return; // Verhindert, dass der Timer doppelt läuft
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
             timerAnzeige.textContent = verbleibendeZeit;
@@ -303,9 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     }
-    
-    function stopTimer() { clearInterval(timerInterval); }
-    function resumeTimer() { startTimer(); }
     
     function platziereStrafstein() {
         const leereZellen = [];
@@ -320,6 +339,10 @@ document.addEventListener('DOMContentLoaded', () => {
             zeichneSpielfeld();
         }
     }
+    
+    // ===================================================================================
+    // HILFSFUNKTIONEN
+    // ===================================================================================
     
     function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if(maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
@@ -336,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { const rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal'; if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie(rekordCookieName, rekord, 365); alert(`Neuer Rekord im ${istHardMode ? 'schweren' : 'normalen'} Modus: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-    
+
     eventListenerZuweisen();
     spielStart();
 });
