@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let hatFigurGedreht = false, penaltyAktiviert = false;
     let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
+    let lastMausEvent = null; // Speichert das letzte Maus-Event für die Vorschau
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
@@ -71,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ersterZugGemacht = false;
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
+        lastMausEvent = null;
 
         if (getCookie('anleitungVersteckt') === 'true') anleitungContainer.classList.add('versteckt');
 
@@ -146,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spielbrettElement.addEventListener('click', klickAufBrett);
         spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
         spielbrettElement.addEventListener('mouseleave', spielbrettVerlassen);
+        spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll); // NEU
         spielbrettElement.addEventListener('contextmenu', e => {
             e.preventDefault();
             if (ausgewaehlteFigur) {
@@ -190,7 +193,30 @@ document.addEventListener('DOMContentLoaded', () => {
             zeichneSpielfeld();
         }
     }
-    
+
+    function wechsleFigurPerScroll(e) {
+        e.preventDefault();
+        if (!ausgewaehlteFigur) return;
+
+        const richtung = e.deltaY > 0 ? 1 : -1; // 1 für runter, -1 für hoch
+
+        const verfuegbareIndices = figurenInSlots
+            .map((fig, index) => fig ? index : -1)
+            .filter(index => index !== -1);
+
+        if (verfuegbareIndices.length <= 1) return;
+
+        const aktuellePosition = verfuegbareIndices.indexOf(aktiverSlotIndex);
+        const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
+        
+        aktiverSlotIndex = verfuegbareIndices[neuePosition];
+        ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
+        hatFigurGedreht = false; // Zurücksetzen, falls Joker verbraucht wurde
+
+        zeichneSlotHighlights();
+        mausBewegungAufBrett(lastMausEvent);
+    }
+
     function wechsleZuNaechsterFigur() {
         if (ausgewaehlteFigur) return;
 
@@ -227,12 +253,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (verbrauchteJoker >= ANZAHL_JOKER) return;
         abbrechen();
         
-        // Punkte abziehen
         const penaltyPoints = spielConfig.gameSettings?.refreshPenaltyPoints || 0;
         punkte = Math.max(0, punkte - penaltyPoints);
         punkteElement.textContent = punkte;
 
-        // Joker verbrauchen
         verbrauchteJoker++;
         zeichneJokerLeiste();
 
@@ -342,7 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function mausBewegungAufBrett(e) {
-        if (!ausgewaehlteFigur || !e) return;
+        if (!e) return;
+        lastMausEvent = e;
+        if (!ausgewaehlteFigur) return;
         letztesZiel = getZielKoordinaten(e);
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
