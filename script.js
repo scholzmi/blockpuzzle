@@ -124,6 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
+
+        // Warnung beim Neuladen der Seite
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
         figurenSlots.forEach((slot, index) => {
             slot.addEventListener('click', () => figurSlotKlick(index));
         });
@@ -227,10 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function platziereFigur(figur, startX, startY) {
         if (!ersterZugGemacht) {
-            anleitungContainer.classList.add('versteckt');
-            infoContainer.classList.add('versteckt');
-            setCookie('anleitungVersteckt', true, 365);
-            setCookie('infoVersteckt', true, 365);
             ersterZugGemacht = true;
         }
         figur.form.forEach((reihe, y) => {
