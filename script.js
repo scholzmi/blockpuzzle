@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const figurenSlots = document.querySelectorAll('.figur-slot');
     const jokerBoxen = document.querySelectorAll('.joker-box');
     const anleitungContainer = document.getElementById('anleitung-container');
+    const anleitungInhalt = document.getElementById('anleitung-inhalt'); // Hinzugefügt
     const infoContainer = document.getElementById('info-container');
     const anleitungToggleIcon = document.getElementById('anleitung-toggle-icon');
     const infoToggleIcon = document.getElementById('info-toggle-icon');
