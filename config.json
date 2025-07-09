@@ -1,6 +1,6 @@
 {
-    "version": "V2.53",
-    "letzteAenderung": "Farben und Schwierigkeit",
+    "version": "V3.00",
+    "letzteAenderung": "Stable",
     "probabilities": {
         "zonk": 0.03,
         "joker": 0.40,
