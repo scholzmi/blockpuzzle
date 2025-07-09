@@ -187,7 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneJokerLeiste();
 
         if (verbrauchteJoker >= ANZAHL_JOKER) {
-            penaltyAktiviert = true;
+            aktiviereJokerPenalty();
+            verbrauchteJoker = 0;
+            zeichneJokerLeiste();
+            penaltyAktiviert = false; 
         }
 
         generiereNeueFiguren();
@@ -241,12 +244,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function abbrechen() {
         if (ausgewaehlterSlotIndex === -1) return;
-        if (hatFigurGedreht) { verbrauchteJoker--; zeichneJokerLeiste(); }
+        if (hatFigurGedreht) { 
+            verbrauchteJoker--; 
+            penaltyAktiviert = false;
+            zeichneJokerLeiste(); 
+        }
         const index = ausgewaehlterSlotIndex;
         ausgewaehlteFigur = null;
         ausgewaehlterSlotIndex = -1;
         hatFigurGedreht = false;
-        penaltyAktiviert = false;
+        
         zeichneSpielfeld();
         zeichneFigurInSlot(index);
         spielbrettElement.style.cursor = 'default';
@@ -370,7 +377,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 box.classList.remove('verbraucht'); 
             } 
         }); 
-        // Den Refresh-Button deaktivieren, wenn keine Joker mehr übrig sind
         refreshFigurenButton.disabled = verbrauchteJoker >= ANZAHL_JOKER;
     }
     function aktiviereJokerPenalty() { const leereZellen = []; spielbrett.forEach((reihe, y) => { reihe.forEach((zelle, x) => { if (zelle === 0) leereZellen.push({x, y}); }); }); leereZellen.sort(() => 0.5 - Math.random()); const anzahlBlocker = Math.min(5, leereZellen.length); for(let i = 0; i < anzahlBlocker; i++) { const zelle = leereZellen[i]; spielbrett[zelle.y][zelle.x] = 'blocker'; } zeichneSpielfeld(); }
