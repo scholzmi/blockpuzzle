@@ -18,6 +18,16 @@
 
         <div class="spiel-wrapper">
             <h1>ZenPuzzle</h1>
+            <div id="spielbrett" class="grid-container"></div>
+            <div class="auswahl-container">
+                <div id="figuren-auswahl">
+                    <div class="figur-slot" data-slot-id="0"></div><div class="figur-slot" data-slot-id="1"></div><div class="figur-slot" data-slot-id="2"></div>
+                </div>
+                <button id="refresh-figuren-button" title="Neue Figuren (kostet 1 Joker)">🔄</button>
+            </div>
+        </div>
+
+        <div class="rechts-container">
             <div class="spiel-info">
                 <div class="score-box">Punkte: <span id="punkte">0</span></div>
                 <div class="score-box">Rekord: <span id="rekord-normal">0</span></div>
@@ -36,40 +46,31 @@
             <div id="dreh-joker-leiste">
                 <div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div>
             </div>
-            <div id="spielbrett" class="grid-container"></div>
-            <div class="auswahl-container">
-                <div id="figuren-auswahl">
-                    <div class="figur-slot" data-slot-id="0"></div><div class="figur-slot" data-slot-id="1"></div><div class="figur-slot" data-slot-id="2"></div>
-                </div>
-                <button id="refresh-figuren-button" title="Neue Figuren (kostet 1 Joker)">🔄</button>
-            </div>
-        </div>
-
-        <div id="info-container" class="seiten-box">
-            <h2>Info</h2>
-            <div id="info-toggle-icon" class="toggle-icon"></div>
-            <div id="info-inhalt">
-                <div class="spende-bereich">
-                    <p>Gefällt dir das Spiel? Spendier mir einen Kaffee ☕!</p>
-                    <a href="https://paypal.me/mischolz" target="_blank" title="Spenden via PayPal.me">
-                        <img src="qrcode.png" alt="PayPal Spenden QR-Code" class="qr-code">
-                    </a>
-                    <br>
-                    <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">Oder direkt via PayPal.me spenden</a>
-                </div>
-                <div class="impressum">
-                    Michael Scholz<br>
-                    Kleeweg 8<br>
-                    22885 Barsbüttel<br>
-                    Germany<br>
-                    <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a><br>
-                    +49 174 482 5558<br>
-                    Version: <span id="version-impressum"></span><br>
-                    <span id="letzte-aenderung"></span>
+            <div id="info-container" class="seiten-box">
+                <h2>Info</h2>
+                <div id="info-toggle-icon" class="toggle-icon"></div>
+                <div id="info-inhalt">
+                    <div class="spende-bereich">
+                        <p>Gefällt dir das Spiel? Spendier mir einen Kaffee ☕!</p>
+                        <a href="https://paypal.me/mischolz" target="_blank" title="Spenden via PayPal.me">
+                            <img src="qrcode.png" alt="PayPal Spenden QR-Code" class="qr-code">
+                        </a>
+                        <br>
+                        <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">Oder direkt via PayPal.me spenden</a>
+                    </div>
+                    <div class="impressum">
+                        Michael Scholz<br>
+                        Kleeweg 8<br>
+                        22885 Barsbüttel<br>
+                        Germany<br>
+                        <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a><br>
+                        +49 174 482 5558<br>
+                        Version: <span id="version-impressum"></span><br>
+                        <span id="letzte-aenderung"></span>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script src="script.js"></script>

@@ -34,18 +34,19 @@ body, #spielbrett {
 /* Neuer Hauptcontainer für das Layout */
 .haupt-container {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Wichtig für die Top-Ausrichtung */
     justify-content: center;
     gap: 30px;
     width: 100%;
 }
 
 /* Wrapper für den Boss-Key */
-.spiel-wrapper, .seiten-box {
+.spiel-wrapper, .seiten-box, .rechts-container {
     transition: opacity 0.3s ease-in-out;
 }
 body.boss-key-aktiv .spiel-wrapper,
-body.boss-key-aktiv .seiten-box {
+body.boss-key-aktiv .seiten-box,
+body.boss-key-aktiv .rechts-container {
     opacity: 0;
     pointer-events: none;
 }
@@ -65,7 +66,7 @@ h1, h2 {
     align-items: center;
 }
 
-/* Seitenboxen (Anleitung & Info) */
+/* Linke und Rechte Spalte */
 .seiten-box {
     width: 280px;
     padding: 20px;
@@ -73,7 +74,16 @@ h1, h2 {
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: relative;
+    box-sizing: border-box;
 }
+
+.rechts-container {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
 .toggle-icon {
     position: absolute;
     top: 20px;
@@ -110,31 +120,28 @@ h1, h2 {
 /* Spiel-spezifische Elemente */
 .spiel-info {
     display: flex;
-    flex-wrap: wrap; /* Erlaubt Umbruch bei Bedarf */
-    justify-content: space-between;
-    align-items: center;
-    width: 400px; /* Breite angepasst */
+    flex-direction: column; /* Vertikale Anordnung */
+    align-items: stretch; /* Volle Breite für Kinder */
+    width: 100%;
     font-size: 1.1em;
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
     box-sizing: border-box;
-    gap: 10px; /* Abstand zwischen den Elementen */
+    gap: 10px;
 }
 .score-box {
     background-color: rgba(255, 255, 255, 0.5);
-    padding: 5px 10px;
+    padding: 8px;
     border-radius: 5px;
-    text-align: center;
-    flex-grow: 1; /* Gleichmäßig wachsen lassen */
+    text-align: left;
 }
 .hard-mode-box {
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-content: center;
+    justify-content: space-between;
     padding: 5px 10px;
-    flex-grow: 1;
 }
 #hard-mode-label {
     font-weight: bold;
@@ -143,9 +150,8 @@ h1, h2 {
     font-weight: bold;
     color: #EA4335;
     background-color: rgba(255, 255, 255, 0.5);
-    padding: 5px 10px;
+    padding: 8px;
     border-radius: 5px;
-    flex-grow: 1;
     text-align: center;
 }
 .timer-versteckt {
@@ -193,13 +199,13 @@ input:checked + .slider:before {
 
 #dreh-joker-leiste {
     display: flex;
-    justify-content: space-between;
-    width: 364px;
-    margin-top: 15px;
+    justify-content: space-around;
+    width: 100%;
+    gap: 5px;
 }
 .joker-box {
-    width: 65px;
-    height: 65px;
+    width: 45px;
+    height: 45px;
     border-radius: 8px;
     transition: background-color 0.3s ease;
     border: 2px solid rgba(0,0,0,0.2);
@@ -281,7 +287,6 @@ input:checked + .slider:before {
 
 .figur-container {
     display: grid;
-    /* Kein cursor: pointer mehr, da nicht mehr klickbar */
 }
 .figur-block {
     width: 20px;
@@ -318,6 +323,9 @@ input:checked + .slider:before {
 
 
 /* Info-Box rechts */
+#info-container {
+    margin-top: 0; /* Kein extra Abstand, da im flex-container */
+}
 .spende-bereich {
     text-align: center;
 }
@@ -353,29 +361,28 @@ input:checked + .slider:before {
 }
 
 /* Mobile Ansicht */
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
     body {
         height: auto;
         padding: 10px;
+        align-items: flex-start;
     }
     .haupt-container {
         flex-direction: column;
+        align-items: center;
     }
-    .seiten-box {
-        width: 100%;
-        max-width: 364px;
-        box-sizing: border-box;
-        margin-bottom: 20px;
-    }
-    #info-container {
-        order: 3;
-    }
-    .spiel-info {
-        width: 100%;
-        max-width: 400px;
-    }
-    .auswahl-container {
+    .seiten-box, .rechts-container {
         width: 100%;
         max-width: 420px;
+        box-sizing: border-box;
+    }
+    .rechts-container {
+        order: 3; /* Info-Bereich nach unten */
+    }
+    #anleitung-container {
+        order: 2; /* Anleitung dazwischen */
+    }
+    .spiel-wrapper {
+        order: 1; /* Spiel nach ganz oben */
     }
 }
