@@ -110,28 +110,31 @@ h1, h2 {
 /* Spiel-spezifische Elemente */
 .spiel-info {
     display: flex;
+    flex-wrap: wrap; /* Erlaubt Umbruch bei Bedarf */
     justify-content: space-between;
     align-items: center;
-    width: 364px;
+    width: 400px; /* Breite angepasst */
     font-size: 1.1em;
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
     box-sizing: border-box;
+    gap: 10px; /* Abstand zwischen den Elementen */
 }
 .score-box {
-    flex: 1;
-    text-align: left;
-}
-.score-box:last-of-type {
-    text-align: right;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-align: center;
+    flex-grow: 1; /* Gleichmäßig wachsen lassen */
 }
 .hard-mode-box {
     display: flex;
     align-items: center;
     gap: 8px;
     justify-content: center;
-    flex: 1.5;
+    padding: 5px 10px;
+    flex-grow: 1;
 }
 #hard-mode-label {
     font-weight: bold;
@@ -139,7 +142,10 @@ h1, h2 {
 #timer-box {
     font-weight: bold;
     color: #EA4335;
-    flex: 1;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    flex-grow: 1;
     text-align: center;
 }
 .timer-versteckt {
@@ -317,5 +323,9 @@ input:checked + .slider:before {
     }
     #info-container {
         order: 3;
+    }
+    .spiel-info {
+        width: 100%;
+        max-width: 400px;
     }
 }
