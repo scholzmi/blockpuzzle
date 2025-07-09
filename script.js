@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const punkteElement = document.getElementById('punkte');
     const rekordElement = document.getElementById('rekord');
     const versionElement = document.getElementById('version-impressum');
+    const aenderungsElement = document.getElementById('letzte-aenderung');
     const figurenSlots = document.querySelectorAll('.figur-slot');
     const jokerBoxen = document.querySelectorAll('.joker-box');
     const anleitungContainer = document.getElementById('anleitung-container');
@@ -35,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
-        
         const gespeicherterRekord = getCookie("rekord");
         rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0;
         rekordElement.textContent = rekord;
@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         verbrauchteJoker = 0;
         hatFigurGedreht = false;
         penaltyAktiviert = false;
-        
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
@@ -58,6 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
+            if (aenderungsElement && spielConfig.letzteAenderung) {
+                aenderungsElement.textContent = spielConfig.letzteAenderung;
+            }
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             normaleFiguren = erstellePool(spielConfig?.figures?.normal);
             zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
@@ -86,8 +88,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // EVENT HANDLER & STEUERUNG
+    // STEUERUNG UND LOGIK
     // ===================================================================================
+
+    function generiereNeueFiguren() {
+        rundenZaehler++;
+        const probs = spielConfig.probabilities || {};
+        const jokerProb = probs.joker || 0.20;
+        const zonkProb = probs.zonk || 0.05;
+        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
+        // KORREKTUR: Liest jetzt den minimalen Wert aus der Konfiguration
+        const minimumJokerProb = probs.jokerProbabilityMinimum || 0.03; 
+        
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
+        const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
+
+        for (let i = 0; i < 3; i++) {
+            let zufallsFigur = null;
+            const zufallsZahl = Math.random();
+            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
+                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
+            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
+                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
+            } else if (normaleFiguren.length > 0) {
+                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
+            }
+            if (zufallsFigur) {
+                let form = zufallsFigur.form;
+                const anzahlRotationen = Math.floor(Math.random() * 4);
+                for (let r = 0; r < anzahlRotationen; r++) { form = dreheFigur90Grad(form); }
+                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, id: i };
+                zeichneFigurInSlot(i);
+            } else {
+                figurenInSlots[i] = null;
+            }
+        }
+        if (istSpielVorbei()) {
+            setTimeout(pruefeUndSpeichereRekord, 100);
+        }
+    }
     
     function figurSlotKlick(index) {
         if (ausgewaehlterSlotIndex === index) { abbrechen(); return; }
@@ -173,42 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // SPIEL LOGIK & HILFSFUNKTIONEN
+    // HILFSFUNKTIONEN
     // ===================================================================================
-
-    function generiereNeueFiguren() {
-        rundenZaehler++;
-        const probs = spielConfig.probabilities || {};
-        const jokerProb = probs.joker || 0;
-        const zonkProb = probs.zonk || 0;
-        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
-        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
-        const aktuelleJokerProb = Math.max(0.03, jokerProb - jokerReduktion);
-        for (let i = 0; i < 3; i++) {
-            let zufallsFigur = null;
-            const zufallsZahl = Math.random();
-            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
-                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
-            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
-                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
-            } else if (normaleFiguren.length > 0) {
-                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
-            }
-            if (zufallsFigur) {
-                let form = zufallsFigur.form;
-                const anzahlRotationen = Math.floor(Math.random() * 4);
-                for (let r = 0; r < anzahlRotationen; r++) { form = dreheFigur90Grad(form); }
-                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, id: i };
-                zeichneFigurInSlot(i);
-            } else {
-                figurenInSlots[i] = null;
-            }
-        }
-        if (istSpielVorbei()) {
-            setTimeout(pruefeUndSpeichereRekord, 100);
-        }
-    }
     
+    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if(maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] !== 0) return false; } } } return true; }
@@ -223,13 +230,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie("rekord", rekord, 365); alert(`Neuer Rekord: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if(maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     
-    // ===================================================================================
-    // EVENT LISTENERS
-    // ===================================================================================
-    
-    function eventListenerZuweisen() {
+    // === EVENT LISTENERS ===
+    (function eventListenerZuweisen() {
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
@@ -267,9 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(infoContainer) infoContainer.classList.toggle('versteckt');
             });
         }
-    }
+    })();
 
     // === Spiel starten ===
-    eventListenerZuweisen();
     spielStart();
 });
