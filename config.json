@@ -1,5 +1,5 @@
 {
-    "version": "V7.03",
+    "version": "V7.04",
     "letzteAenderung": "nicht verzagen, gemini fragen",
     "gameSettings": {
         "normal": {
@@ -48,12 +48,12 @@
             { "name": "Diagonale-3", "shape": [1, 7, 13], "color": "yellow", "symmetrisch": false }
         ],
         "zonk": [
-            { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "red", "symmetrisch": false },
+            { "name": "I-5", "shape": [1, 2, 3, 4, 5], "color": "purple", "symmetrisch": false },
             { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "color": "purple", "symmetrisch": true },
-            { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "color": "red", "symmetrisch": false },
+            { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "color": "purple", "symmetrisch": false },
             { "name": "X of death", "shape": [1, 5, 7, 9, 13, 17, 19, 21, 25], "color": "purple", "symmetrisch": true },
             { "name": "+ of death", "shape": [3, 8, 11, 12, 13, 14, 15, 18, 23], "color": "purple", "symmetrisch": true },
-            { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "red", "symmetrisch": false }
+            { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "color": "purple", "symmetrisch": false }
         ],
         "joker": [
             { "name": "Punkt", "shape": [1], "color": "green", "symmetrisch": true },

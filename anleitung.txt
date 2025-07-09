@@ -12,7 +12,7 @@ Manchmal nützen Sie Dir sogar.
 * **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Joker.
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
-* **Refresh-Button:** Drücke den Button, um die Figuren neu auszulosen. Das verbraucht einen Joker und 200 Punkte.
+* **Refresh-Button:** Drücke den Button, um die Figuren neu auszulosen. Das verbraucht 100 im normalen bzw. 200 Punkte im schweren Modus
 * **Vorsicht:** Drücke den Refresh Button rechtzeitig. Wenn Du eine Figur platzierst und die nächste Figur nicht mehr passt, dann endet das Spiel knallhart.
 
 **Spielmodi:**
@@ -20,7 +20,7 @@ Manchmal nützen Sie Dir sogar.
 * **Schwer:** Aktiviere den Schalter für schwerere Settings.
 
 **Joker:**
-Du hast 5 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 3 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
+Du hast 3 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 3 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
 
 **Zählweise**
 Punkte gibt es für das Ablegen der Figuren. Die Figuren sind im Hintergrund in drei Schwierigkeitsgrade eingeteilt.
