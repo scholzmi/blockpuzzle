@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-
+    
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -115,89 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
             anleitungInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
         }
     }
-    
-    // ===================================================================================
-    // EVENT LISTENERS
-    // ===================================================================================
-    
-    function eventListenerZuweisen() {
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') abbrechen();
-            else if (e.key.toLowerCase() === 'b') toggleBossKey();
-        });
-        figurenSlots.forEach((slot, index) => {
-            slot.addEventListener('click', () => figurSlotKlick(index));
-        });
-        spielbrettElement.addEventListener('click', klickAufBrett);
-        spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
-        spielbrettElement.addEventListener('mouseleave', () => { if (ausgewaehlteFigur) zeichneSpielfeld(); });
-        spielbrettElement.addEventListener('contextmenu', e => {
-            e.preventDefault();
-            if (ausgewaehlteFigur) {
-                if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
-                    if (verbrauchteJoker >= ANZAHL_JOKER) return;
-                    verbrauchteJoker++;
-                    hatFigurGedreht = true;
-                    zeichneJokerLeiste();
-                    if (verbrauchteJoker >= ANZAHL_JOKER) {
-                        penaltyAktiviert = true;
-                    }
-                }
-                ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                zeichneSpielfeld();
-                zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-            }
-        });
-        hardModeSchalter.addEventListener('change', () => spielStart(true));
-        if(anleitungToggleIcon) {
-            anleitungToggleIcon.addEventListener('click', () => {
-                if(anleitungContainer) anleitungContainer.classList.toggle('versteckt');
-            });
-        }
-        if(infoToggleIcon) {
-            infoToggleIcon.addEventListener('click', () => {
-                if(infoContainer) infoContainer.classList.toggle('versteckt');
-            });
-        }
-    }
 
     // ===================================================================================
-    // STEUERUNG & SPIEL-LOGIK
+    // STEUERUNG
     // ===================================================================================
-
-    function generiereNeueFiguren() {
-        rundenZaehler++;
-        const probs = spielConfig.probabilities || {};
-        const jokerProb = probs.joker || 0.20;
-        const zonkProb = probs.zonk || 0.05;
-        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
-        const minimumJokerProb = probs.jokerProbabilityMinimum || 0.03;
-        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
-        const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
-        for (let i = 0; i < 3; i++) {
-            let zufallsFigur = null;
-            const zufallsZahl = Math.random();
-            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
-                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
-            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
-                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
-            } else if (normaleFiguren.length > 0) {
-                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
-            }
-            if (zufallsFigur) {
-                let form = zufallsFigur.form;
-                const anzahlRotationen = Math.floor(Math.random() * 4);
-                for (let r = 0; r < anzahlRotationen; r++) { form = dreheFigur90Grad(form); }
-                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, id: i };
-                zeichneFigurInSlot(i);
-            } else {
-                figurenInSlots[i] = null;
-            }
-        }
-        if (istSpielVorbei()) {
-            setTimeout(pruefeUndSpeichereRekord, 100);
-        }
-    }
     
     function figurSlotKlick(index) {
         if (ausgewaehlterSlotIndex === index) { abbrechen(); return; }
@@ -289,34 +210,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function startTimer() {
-        verbleibendeZeit = TIMER_DAUER;
-        timerAnzeige.textContent = verbleibendeZeit;
-        if(timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            verbleibendeZeit--;
-            timerAnzeige.textContent = verbleibendeZeit;
-            if (verbleibendeZeit <= 0) {
-                platziereStrafstein();
-                verbleibendeZeit = TIMER_DAUER;
+    // ===================================================================================
+    // SPIEL LOGIK & HILFSFUNKTIONEN
+    // ===================================================================================
+
+    function generiereNeueFiguren() {
+        rundenZaehler++;
+        const probs = spielConfig.probabilities || {};
+        const jokerProb = probs.joker || 0.20;
+        const zonkProb = probs.zonk || 0.05;
+        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
+        const minimumJokerProb = probs.jokerProbabilityMinimum || 0.03;
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
+        const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
+        for (let i = 0; i < 3; i++) {
+            let zufallsFigur = null;
+            const zufallsZahl = Math.random();
+            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
+                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
+            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
+                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
+            } else if (normaleFiguren.length > 0) {
+                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
             }
-        }, 1000);
-    }
-    
-    function stopTimer() { clearInterval(timerInterval); }
-    function resumeTimer() { startTimer(); } // Für den Boss Key
-    
-    function platziereStrafstein() {
-        const leereZellen = [];
-        spielbrett.forEach((reihe, y) => {
-            reihe.forEach((zelle, x) => {
-                if (zelle === 0) leereZellen.push({x, y});
-            });
-        });
-        if (leereZellen.length > 0) {
-            const zufallsZelle = leereZellen[Math.floor(Math.random() * leereZellen.length)];
-            spielbrett[zufallsZelle.y][zufallsZelle.x] = 'blocker';
-            zeichneSpielfeld();
+            if (zufallsFigur) {
+                let form = zufallsFigur.form;
+                const anzahlRotationen = Math.floor(Math.random() * 4);
+                for (let r = 0; r < anzahlRotationen; r++) { form = dreheFigur90Grad(form); }
+                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, id: i };
+                zeichneFigurInSlot(i);
+            } else {
+                figurenInSlots[i] = null;
+            }
+        }
+        if (istSpielVorbei()) {
+            setTimeout(pruefeUndSpeichereRekord, 100);
         }
     }
     
@@ -335,7 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { const rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal'; if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie(rekordCookieName, rekord, 365); alert(`Neuer Rekord im ${istHardMode ? 'schweren' : 'normalen'} Modus: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-
+    function startTimer() { verbleibendeZeit = TIMER_DAUER; timerAnzeige.textContent = verbleibendeZeit; if(timerInterval) clearInterval(timerInterval); timerInterval = setInterval(() => { verbleibendeZeit--; timerAnzeige.textContent = verbleibendeZeit; if (verbleibendeZeit <= 0) { platziereStrafstein(); verbleibendeZeit = TIMER_DAUER; } }, 1000); }
+    function stopTimer() { clearInterval(timerInterval); }
+    function resumeTimer() { startTimer(); }
+    function platziereStrafstein() { const leereZellen = []; spielbrett.forEach((reihe, y) => { reihe.forEach((zelle, x) => { if (zelle === 0) leereZellen.push({x, y}); }); }); if (leereZellen.length > 0) { const zufallsZelle = leereZellen[Math.floor(Math.random() * leereZellen.length)]; spielbrett[zufallsZelle.y][zufallsZelle.x] = 'blocker'; zeichneSpielfeld(); } }
+    
     eventListenerZuweisen();
     spielStart();
 });
