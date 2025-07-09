@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-    
+
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -89,10 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
-            
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
-            
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             normaleFiguren = erstellePool(spielConfig?.figures?.normal);
             zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
@@ -107,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function ladeAnleitung() {
+        const anleitungInhalt = document.getElementById('anleitung-inhalt');
         if(!anleitungInhalt) return;
         try {
             const antwort = await fetch('anleitung.txt?v=' + new Date().getTime());
@@ -117,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             anleitungInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
         }
     }
-    
+
     // ===================================================================================
     // EVENT LISTENERS
     // ===================================================================================
@@ -306,7 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function stopTimer() { clearInterval(timerInterval); }
-    function resumeTimer() { if(timerInterval) return; timerInterval = setInterval(() => { verbleibendeZeit--; timerAnzeige.textContent = verbleibendeZeit; if (verbleibendeZeit <= 0) { platziereStrafstein(); verbleibendeZeit = TIMER_DAUER; } }, 1000); }
+    function resumeTimer() {
+        if(timerInterval) return;
+        timerInterval = setInterval(() => {
+            verbleibendeZeit--;
+            timerAnzeige.textContent = verbleibendeZeit;
+            if (verbleibendeZeit <= 0) {
+                platziereStrafstein();
+                verbleibendeZeit = TIMER_DAUER;
+            }
+        }, 1000);
+    }
     
     function platziereStrafstein() {
         const leereZellen = [];
