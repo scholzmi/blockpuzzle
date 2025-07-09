@@ -1,5 +1,5 @@
 {
-    "version": "V6.22",
+    "version": "V6.23",
     "letzteAenderung": "Punktsystem angepasst und Animation",
     "gameSettings": {
         "timerDuration": 30,
@@ -23,9 +23,7 @@
     },
     "figures": {
         "normal": [
-            { "name": "I-3", "shape": [1, 2, 3], "color": "blue", "symmetrisch": false },
             { "name": "I-4", "shape": [1, 2, 3, 4], "color": "blue", "symmetrisch": false },
-            { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "yellow", "symmetrisch": true },
             { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "color": "blue", "symmetrisch": false },
             { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "color": "yellow", "symmetrisch": true },
             { "name": "L-Klein", "shape": [1, 6, 11, 12], "color": "blue", "symmetrisch": false },
