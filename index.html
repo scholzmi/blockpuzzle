@@ -19,8 +19,18 @@
         <div class="spiel-wrapper">
             <h1>ZenPuzzle</h1>
             <div class="spiel-info">
-                <span>Punkte: <span id="punkte">0</span></span>
-                <span>Rekord: <span id="rekord">0</span></span>
+                <div class="score-box">Punkte: <span id="punkte">0</span></div>
+                <div class="score-box">Rekord: <span id="rekord">0</span></div>
+                <div class="hard-mode-box">
+                    <label class="switch">
+                        <input type="checkbox" id="hard-mode-schalter">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="hard-mode-label">Schwer</span>
+                </div>
+                <div id="timer-box" class="timer-versteckt">
+                    <span>⏳</span> <span id="timer">60</span>s
+                </div>
             </div>
             <div id="dreh-joker-leiste">
                 <div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div>

@@ -10,8 +10,10 @@ body {
     justify-content: center;
     align-items: center;
     position: relative; 
-    overscroll-behavior: none;
+    overscroll-behavior: none; /* Verhindert "pull-to-refresh" auf Mobilgeräten */
 }
+
+/* Hintergrundbild mit Transparenz */
 body::before {
     content: '';
     position: fixed;
@@ -24,11 +26,12 @@ body::before {
     z-index: -1;
     transition: opacity 0.3s ease-in-out;
 }
+
 body, #spielbrett {
-    user-select: none;
+    user-select: none; /* Verhindert Text-Markierung */
 }
 
-/* Layout & Boss Key */
+/* Neuer Hauptcontainer für das Layout */
 .haupt-container {
     display: flex;
     align-items: center;
@@ -36,6 +39,8 @@ body, #spielbrett {
     gap: 30px;
     width: 100%;
 }
+
+/* Wrapper für den Boss-Key */
 .spiel-wrapper, .seiten-box {
     transition: opacity 0.3s ease-in-out;
 }
@@ -83,10 +88,10 @@ h1, h2 {
     color: #000;
 }
 .toggle-icon::before {
-    content: '−'; /* Minus-Zeichen für Verbergen */
+    content: '−';
 }
 .seiten-box.versteckt .toggle-icon::before {
-    content: '+'; /* Plus-Zeichen für Anzeigen */
+    content: '+';
 }
 #anleitung-inhalt, #info-inhalt {
     transition: all 0.3s ease;
