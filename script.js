@@ -222,19 +222,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ausgewaehlteFigur) return;
 
         const richtung = e.deltaY > 0 ? 1 : -1;
-
         const verfuegbareIndices = figurenInSlots
             .map((fig, index) => fig ? index : -1)
             .filter(index => index !== -1);
 
         if (verfuegbareIndices.length <= 1) return;
 
+        // ** DER BUGFIX STARTET HIER **
+        if (hatFigurGedreht) {
+            verbrauchteJoker--;
+            zeichneJokerLeiste();
+        }
+        
         const aktuellePosition = verfuegbareIndices.indexOf(aktiverSlotIndex);
         const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
         
         aktiverSlotIndex = verfuegbareIndices[neuePosition];
         ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
-        hatFigurGedreht = false;
+        hatFigurGedreht = false; // Zurücksetzen für die neue Figur
 
         zeichneSlotHighlights();
         mausBewegungAufBrett(lastMausEvent);
@@ -514,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         zeichneSpielfeld();
-        return linien * 10 * linien; // Punkte zurückgeben
+        return linien * 10 * linien;
     }
 
     function zeichneSpielfeld() {
