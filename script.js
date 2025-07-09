@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-    
+
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -43,16 +43,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         stopTimer();
         istHardMode = hardModeSchalter.checked;
+
         const [configGeladen] = await Promise.all([ladeKonfiguration(), ladeAnleitung()]);
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
+        
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
+        
         const rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
         const gespeicherterRekord = getCookie(rekordCookieName);
         rekord = gespeicherterRekord ? parseInt(gespeicherterRekord, 10) || 0 : 0;
         rekordElement.textContent = rekord;
+        
         punkte = 0;
         punkteElement.textContent = punkte;
         rundenZaehler = 0;
@@ -60,14 +64,17 @@ document.addEventListener('DOMContentLoaded', () => {
         hatFigurGedreht = false;
         penaltyAktiviert = false;
         ersterZugGemacht = false;
+
         if(!neustartBestaetigen) {
             if(anleitungContainer) anleitungContainer.classList.remove('versteckt');
             if(infoContainer) infoContainer.classList.remove('versteckt');
         }
+        
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
+
         if (istHardMode) {
             timerBox.classList.remove('timer-versteckt');
             startTimer();
@@ -81,8 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
+            
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
+            
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             normaleFiguren = erstellePool(spielConfig?.figures?.normal);
             zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
@@ -97,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function ladeAnleitung() {
+        const anleitungInhalt = document.getElementById('anleitung-inhalt');
         if(!anleitungInhalt) return;
         try {
             const antwort = await fetch('anleitung.txt?v=' + new Date().getTime());
