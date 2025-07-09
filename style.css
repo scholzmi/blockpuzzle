@@ -78,7 +78,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 .impressum { margin-top: 25px; font-size: 0.85em; color: #70757a; line-height: 1.6; text-align: center; }
 #letzte-aenderung { display: block; margin-top: 8px; font-style: italic; color: #3c4043; }
 
-/* Mobile Ansicht */
 @media (max-width: 1024px) {
     body { height: auto; padding: 10px; }
     .haupt-container { flex-direction: column; }
