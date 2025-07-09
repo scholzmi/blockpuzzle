@@ -182,20 +182,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // STEUERUNG & SPIEL-LOGIK
     // ===================================================================================
 
-    function zeigePunkteAnimation(wert, x, y) {
+    function zeigePunkteAnimation(wert, startX, startY) {
         if (!punkteAnimationElement) return;
 
         punkteAnimationElement.classList.remove('animieren');
-        void punkteAnimationElement.offsetWidth; // Trigger Reflow
+        void punkteAnimationElement.offsetWidth;
 
         const text = wert > 0 ? `+${wert}` : wert;
         const farbe = wert > 0 ? '#34A853' : '#EA4335';
         
         punkteAnimationElement.textContent = text;
         punkteAnimationElement.style.color = farbe;
-        punkteAnimationElement.style.left = `${x}px`;
-        punkteAnimationElement.style.top = `${y}px`;
 
+        // Zufällige Position im oberen Drittel des Spielfelds
+        const brettRect = spielbrettElement.getBoundingClientRect();
+        const randX = brettRect.width * 0.2 + Math.random() * brettRect.width * 0.6;
+        const randY = brettRect.height * 0.1 + Math.random() * brettRect.height * 0.2;
+        
+        punkteAnimationElement.style.left = `${randX}px`;
+        punkteAnimationElement.style.top = `${randY}px`;
+        
         punkteAnimationElement.classList.add('animieren');
     }
 
@@ -273,10 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const penaltyPoints = spielConfig.gameSettings?.refreshPenaltyPoints || 0;
         punkte = Math.max(0, punkte - penaltyPoints);
-        punkteElement.textContent = punkte;
         
-        const rect = refreshFigurenButton.getBoundingClientRect();
-        zeigePunkteAnimation(`-${penaltyPoints}`, rect.left - 40, rect.top);
+        zeigePunkteAnimation(-penaltyPoints);
+
+        setTimeout(() => {
+            punkteElement.textContent = punkte;
+        }, 500);
 
         verbrauchteJoker++;
         zeichneJokerLeiste();
@@ -374,11 +382,13 @@ document.addEventListener('DOMContentLoaded', () => {
             punktMultiplier = 5;
         }
         const punkteGewinn = blockAnzahl * punktMultiplier;
-        punkte += punkteGewinn;
-        punkteElement.textContent = punkte;
+        
+        zeigePunkteAnimation(punkteGewinn);
 
-        const rect = spielbrettElement.getBoundingClientRect();
-        zeigePunkteAnimation(punkteGewinn, rect.left + (startX * 40), rect.top + (startY * 40));
+        setTimeout(() => {
+            punkte += punkteGewinn;
+            punkteElement.textContent = punkte;
+        }, 500);
 
         const alterSlotIndex = aktiverSlotIndex;
         figurenInSlots[alterSlotIndex] = null;
@@ -479,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
     function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= BREITE || bY < 0 || bY >= HOEHE || spielbrett[bY][bX] !== 0) return false; } } } return true; }
-    function leereVolleLinien() { let vR = [], vS = []; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y].every(zelle => zelle !== 0)) vR.push(y); } for (let x = 0; x < BREITE; x++) { let spalteVoll = true; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y][x] === 0) { spalteVoll = false; break; } } if (spalteVoll) vS.push(x); } if (vR.length > 0 || vS.length > 0) { const linien = vR.length + vS.length; const linienPunkte = linien * 10 * linien; punkte += linienPunkte; punkteElement.textContent = punkte; zeigePunkteAnimation(linienPunkte, lastMausEvent.clientX, lastMausEvent.clientY); vR.forEach(y => spielbrett[y].fill(0)); vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0)); } zeichneSpielfeld(); }
+    function leereVolleLinien() { let vR = [], vS = []; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y].every(zelle => zelle !== 0)) vR.push(y); } for (let x = 0; x < BREITE; x++) { let spalteVoll = true; for (let y = 0; y < HOEHE; y++) { if (spielbrett[y][x] === 0) { spalteVoll = false; break; } } if (spalteVoll) vS.push(x); } if (vR.length > 0 || vS.length > 0) { const linien = vR.length + vS.length; const linienPunkte = linien * 10 * linien; zeigePunkteAnimation(linienPunkte); setTimeout(() => { punkte += linienPunkte; punkteElement.textContent = punkte; }, 500); vR.forEach(y => spielbrett[y].fill(0)); vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0)); } zeichneSpielfeld(); }
 
     function zeichneSpielfeld() {
         spielbrett.forEach((reihe, y) => {
