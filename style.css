@@ -202,16 +202,6 @@ body.boss-key-aktiv::before {
 .info-wert {
     font-weight: bold;
 }
-.punkte-zeile {
-    background-color: transparent;
-    justify-content: center;
-    font-size: 1.8em;
-    padding-bottom: 15px;
-}
-#punkte {
-    font-family: 'Arial Black', Gadget, sans-serif;
-}
-
 
 .hard-mode-box {
     display: flex;
@@ -325,10 +315,18 @@ input:checked + .slider:before {
     background-color: rgba(52, 168, 83, 0.2) !important;
 }
 
-#refresh-figuren-button {
-    width: 50%;
-    padding: 10px;
+.unten-steuerung {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
     margin-top: 20px;
+    gap: 15px;
+}
+
+#refresh-figuren-button {
+    flex-grow: 1;
+    padding: 10px;
     font-size: 1em;
     font-weight: bold;
     border-radius: 8px;
@@ -352,12 +350,21 @@ input:checked + .slider:before {
     outline: none;
 }
 
+#punkte-anzeige-unten {
+    font-family: 'Arial Black', Gadget, sans-serif;
+    font-size: 1.8em;
+    padding: 5px 15px;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+}
+
+
 #figuren-auswahl {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
-    width: 364px;
+    width: 100%;
     margin-top: 15px;
     padding: 10px;
     box-sizing: border-box;

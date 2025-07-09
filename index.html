@@ -23,7 +23,12 @@
             </div>
             <div id="spielbrett" class="grid-container"></div>
             <div id="punkte-animation" class="punkte-animation"></div>
-            <button id="refresh-figuren-button" title="Neue Figuren (kostet 1 Joker)">Figuren tauschen</button>
+            
+            <div class="unten-steuerung">
+                <button id="refresh-figuren-button" title="Neue Figuren (kostet 1 Joker)">Figuren tauschen</button>
+                <div id="punkte-anzeige-unten" class="info-wert">0</div>
+            </div>
+
             <div id="figuren-auswahl">
                 <div class="figur-slot" data-slot-id="0"></div><div class="figur-slot" data-slot-id="1"></div><div class="figur-slot" data-slot-id="2"></div>
             </div>
@@ -31,7 +36,6 @@
 
         <div class="rechts-container">
             <div class="spiel-info">
-                 <div class="info-zeile punkte-zeile"><span id="punkte" class="info-wert">0</span></div>
                  <div class="info-zeile"><span class="info-label">Rekord normal</span><span id="rekord-normal" class="info-wert">0</span></div>
                  <div class="info-zeile"><span class="info-label">Rekord schwer</span><span id="rekord-schwer" class="info-wert">0</span></div>
                  <div class="info-zeile">
