@@ -20,14 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const originalerTitel = document.title;
 
     // === Konstanten ===
-    const BREITE = 9, HOEHE = 9, MAX_FIGUR_GROESSE = 5, ANZAHL_JOKER = 5, TIMER_DAUER = 60;
+    const BREITE = 9, HOEHE = 9, MAX_FIGUR_GROESSE = 5, ANZAHL_JOKER = 5;
+    let TIMER_DAUER; // Wird aus der Config geladen
 
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, ausgewaehlterSlotIndex = -1, rundenZaehler = 0;
     let letztesZiel = {x: -1, y: -1}, verbrauchteJoker = 0;
     let hatFigurGedreht = false, penaltyAktiviert = false;
-    let istHardMode = false, timerInterval = null, verbleibendeZeit = TIMER_DAUER;
+    let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
 
     // === Konfiguration ===
@@ -89,6 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
+            
+            // Lade Spieleinstellungen
+            TIMER_DAUER = spielConfig.gameSettings?.timerDuration || 60;
+
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
@@ -152,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                mausBewegungAufBrett(e); // Neu, um Vorschau direkt zu aktualisieren
+                mausBewegungAufBrett(e); 
             }
         });
         hardModeSchalter.addEventListener('change', () => spielStart(true));
@@ -325,7 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
             verbleibendeZeit--;
             timerAnzeige.textContent = verbleibendeZeit;
             if (verbleibendeZeit <= 0) {
-                platziereStrafstein();
+                const anzahl = spielConfig.gameSettings?.timerPenaltyCount || 1;
+                platziereStrafsteine(anzahl);
                 verbleibendeZeit = TIMER_DAUER;
             }
         }, 1000);
@@ -338,24 +344,27 @@ document.addEventListener('DOMContentLoaded', () => {
             verbleibendeZeit--;
             timerAnzeige.textContent = verbleibendeZeit;
             if (verbleibendeZeit <= 0) {
-                platziereStrafstein();
+                const anzahl = spielConfig.gameSettings?.timerPenaltyCount || 1;
+                platziereStrafsteine(anzahl);
                 verbleibendeZeit = TIMER_DAUER;
             }
         }, 1000);
     }
     
-    function platziereStrafstein() {
+    function platziereStrafsteine(anzahl) {
         const leereZellen = [];
         spielbrett.forEach((reihe, y) => {
             reihe.forEach((zelle, x) => {
                 if (zelle === 0) leereZellen.push({x, y});
             });
         });
-        if (leereZellen.length > 0) {
-            const zufallsZelle = leereZellen[Math.floor(Math.random() * leereZellen.length)];
-            spielbrett[zufallsZelle.y][zufallsZelle.x] = 'blocker';
-            zeichneSpielfeld();
+        leereZellen.sort(() => 0.5 - Math.random());
+        const anzahlZuPlatzieren = Math.min(anzahl, leereZellen.length);
+        for(let i = 0; i < anzahlZuPlatzieren; i++) {
+            const zelle = leereZellen[i];
+            spielbrett[zelle.y][zelle.x] = 'blocker';
         }
+        zeichneSpielfeld();
     }
     
     function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: MAX_FIGUR_GROESSE }, () => Array(MAX_FIGUR_GROESSE).fill(0)); let minRow = MAX_FIGUR_GROESSE, maxRow = -1, minCol = MAX_FIGUR_GROESSE, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / MAX_FIGUR_GROESSE); const col = (coord - 1) % MAX_FIGUR_GROESSE; if (row < MAX_FIGUR_GROESSE && col < MAX_FIGUR_GROESSE) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if(maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
@@ -368,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spielbrett.forEach((reihe, y) => { 
             reihe.forEach((inhalt, x) => { 
                 const zelle = spielbrettElement.children[y * BREITE + x]; 
-                zelle.className = 'zelle'; // Setzt die Klassen zurück
+                zelle.className = 'zelle';
                 zelle.style.backgroundColor = ''; 
                 if (inhalt === 'blocker') { 
                     zelle.classList.add('belegt', 'blocker'); 
@@ -384,14 +393,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!figur) return; 
 
         if (kannPlatzieren(figur, startX, startY)) {
-            // Temporäres Spielbrett für die Vorschau erstellen
             const tempSpielbrett = spielbrett.map(row => [...row]);
             figur.form.forEach((reihe, y) => {
                 reihe.forEach((block, x) => {
                     if (block === 1) {
                         const bY = startY + y;
                         const bX = startX + x;
-                        if (bY < HOEHE && bX < BREITE) tempSpielbrett[bY][bX] = 1; // Markiere als temporär belegt
+                        if (bY < HOEHE && bX < BREITE) tempSpielbrett[bY][bX] = 1;
                     }
                 });
             });
@@ -411,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; 
                             zelle.style.backgroundColor = farbTheme.preview; 
                         } else { 
-                             zelle.style.backgroundColor = 'rgba(255, 0, 0, 0.5)'; // Rot für ungültige Position
+                             zelle.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
                         } 
                     } 
                 } 
@@ -457,7 +465,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
         refreshFigurenButton.disabled = verbrauchteJoker >= ANZAHL_JOKER;
     }
-    function aktiviereJokerPenalty() { const leereZellen = []; spielbrett.forEach((reihe, y) => { reihe.forEach((zelle, x) => { if (zelle === 0) leereZellen.push({x, y}); }); }); leereZellen.sort(() => 0.5 - Math.random()); const anzahlBlocker = Math.min(5, leereZellen.length); for(let i = 0; i < anzahlBlocker; i++) { const zelle = leereZellen[i]; spielbrett[zelle.y][zelle.x] = 'blocker'; } zeichneSpielfeld(); }
+    
+    function aktiviereJokerPenalty() {
+        const anzahl = spielConfig.gameSettings?.jokerPenaltyCount || 5;
+        platziereStrafsteine(anzahl);
+    }
+
     function getZielKoordinaten(e) { const rect = spielbrettElement.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; const mausX = clientX - rect.left; const mausY = clientY - rect.top; return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) }; }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }

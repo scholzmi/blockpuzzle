@@ -1,6 +1,11 @@
 {
-    "version": "V5.20",
-    "letzteAenderung": "Andeuten welche Reihen eliminiert werden",
+    "version": "V5.30",
+    "letzteAenderung": "Timer und Strafsteine per Config steuerbar",
+    "gameSettings": {
+        "timerDuration": 30,
+        "timerPenaltyCount": 2,
+        "jokerPenaltyCount": 3
+    },
     "probabilities": {
         "zonk": 0.03,
         "joker": 0.40,
