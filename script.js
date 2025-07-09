@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const punkteElement = document.getElementById('punkte');
     const rekordElement = document.getElementById('rekord');
     const versionElement = document.getElementById('version-impressum');
-    const aenderungsElement = document.getElementById('letzte-aenderung');
     const figurenSlots = document.querySelectorAll('.figur-slot');
     const jokerBoxen = document.querySelectorAll('.joker-box');
     const anleitungContainer = document.getElementById('anleitung-container');
@@ -58,12 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
-            
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
-            if (aenderungsElement && spielConfig.letzteAenderung) {
-                aenderungsElement.textContent = spielConfig.letzteAenderung;
-            }
-            
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             normaleFiguren = erstellePool(spielConfig?.figures?.normal);
             zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
@@ -92,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // STEUERUNG
+    // EVENT HANDLER & STEUERUNG
     // ===================================================================================
     
     function figurSlotKlick(index) {
@@ -128,18 +122,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         punkte += figur.form.flat().reduce((a, b) => a + b, 0);
         punkteElement.textContent = punkte;
+        
         const alterSlotIndex = ausgewaehlterSlotIndex;
         figurenInSlots[alterSlotIndex] = null;
         ausgewaehlteFigur = null;
         ausgewaehlterSlotIndex = -1;
         hatFigurGedreht = false;
+
         leereVolleLinien();
+        
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
             zeichneJokerLeiste();
             penaltyAktiviert = false;
         }
+        
         spielbrettElement.style.cursor = 'default';
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
@@ -231,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // EVENT LISTENERS
     // ===================================================================================
     
-    (function eventListenerZuweisen() {
+    function eventListenerZuweisen() {
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
@@ -269,8 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(infoContainer) infoContainer.classList.toggle('versteckt');
             });
         }
-    })();
+    }
 
     // === Spiel starten ===
+    eventListenerZuweisen();
     spielStart();
 });
