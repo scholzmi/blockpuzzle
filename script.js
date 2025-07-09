@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-
+    
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(infoContainer) infoContainer.classList.add('versteckt');
             ersterZugGemacht = true;
         }
-
         figur.form.forEach((reihe, y) => {
             reihe.forEach((block, x) => {
                 if (block === 1) spielbrett[startY + y][startX + x] = figur.color;
@@ -230,21 +229,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         punkte += figur.form.flat().reduce((a, b) => a + b, 0);
         punkteElement.textContent = punkte;
-        
         const alterSlotIndex = ausgewaehlterSlotIndex;
         figurenInSlots[alterSlotIndex] = null;
         ausgewaehlteFigur = null;
         ausgewaehlterSlotIndex = -1;
         hatFigurGedreht = false;
         leereVolleLinien();
-        
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
             zeichneJokerLeiste();
             penaltyAktiviert = false;
         }
-        
         spielbrettElement.style.cursor = 'default';
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
