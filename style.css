@@ -201,8 +201,17 @@ body.boss-key-aktiv::before {
 }
 .info-wert {
     font-weight: bold;
+}
+.punkte-zeile {
+    background-color: transparent;
+    justify-content: center;
+    font-size: 1.8em;
+    padding-bottom: 15px; /* Mehr Abstand nach unten */
+}
+#punkte {
     font-family: 'Arial Black', Gadget, sans-serif;
 }
+
 
 .hard-mode-box {
     display: flex;
@@ -389,6 +398,9 @@ input:checked + .slider:before {
     background-color: #f0f0f0;
     color: #ccc;
     cursor: not-allowed;
+}
+#refresh-figuren-button:focus {
+    outline: none; /* Blauen Rahmen entfernen */
 }
 
 .spende-bereich {
