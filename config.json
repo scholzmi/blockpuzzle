@@ -1,6 +1,6 @@
 {
-    "version": "V6.13",
-    "letzteAenderung": "Schnellere Steuerung",
+    "version": "V6.14",
+    "letzteAenderung": "Punktsystem",
     "gameSettings": {
         "timerDuration": 30,
         "timerPenaltyCount": 2,

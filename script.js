@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let hatFigurGedreht = false, penaltyAktiviert = false;
     let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
-    let lastMausEvent = null; // Speichert das letzte Maus-Event für die Vorschau
+    let lastMausEvent = null;
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spielbrettElement.addEventListener('click', klickAufBrett);
         spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
         spielbrettElement.addEventListener('mouseleave', spielbrettVerlassen);
-        spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll); // NEU
+        spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll);
         spielbrettElement.addEventListener('contextmenu', e => {
             e.preventDefault();
             if (ausgewaehlteFigur) {
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         if (!ausgewaehlteFigur) return;
 
-        const richtung = e.deltaY > 0 ? 1 : -1; // 1 für runter, -1 für hoch
+        const richtung = e.deltaY > 0 ? 1 : -1;
 
         const verfuegbareIndices = figurenInSlots
             .map((fig, index) => fig ? index : -1)
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         aktiverSlotIndex = verfuegbareIndices[neuePosition];
         ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
-        hatFigurGedreht = false; // Zurücksetzen, falls Joker verbraucht wurde
+        hatFigurGedreht = false;
 
         zeichneSlotHighlights();
         mausBewegungAufBrett(lastMausEvent);
@@ -280,19 +280,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
         for (let i = 0; i < 3; i++) {
             let zufallsFigur = null;
+            let kategorie = 'normal'; // Standardkategorie
             const zufallsZahl = Math.random();
+
             if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
                 zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
+                kategorie = 'zonk';
             } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
                 zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
+                kategorie = 'joker';
             } else if (normaleFiguren.length > 0) {
                 zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
+                kategorie = 'normal';
             }
+
             if (zufallsFigur) {
                 let form = zufallsFigur.form;
                 const anzahlRotationen = Math.floor(Math.random() * 4);
                 for (let r = 0; r < anzahlRotationen; r++) { form = dreheFigur90Grad(form); }
-                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, id: i };
+                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, kategorie: kategorie, id: i };
                 zeichneFigurInSlot(i);
             } else {
                 figurenInSlots[i] = null;
@@ -338,8 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (block === 1) spielbrett[platziereY + y][platziereX + x] = figur.color;
             });
         });
-
-        punkte += figur.form.flat().reduce((a, b) => a + b, 0);
+        
+        // ** NEUES PUNKTE-SYSTEM **
+        const blockAnzahl = figur.form.flat().reduce((a, b) => a + b, 0);
+        let punktMultiplier = 1;
+        if (figur.kategorie === 'normal') {
+            punktMultiplier = 2;
+        } else if (figur.kategorie === 'zonk') {
+            punktMultiplier = 5;
+        } // Joker bleibt bei 1x
+        punkte += blockAnzahl * punktMultiplier;
         punkteElement.textContent = punkte;
 
         const alterSlotIndex = aktiverSlotIndex;

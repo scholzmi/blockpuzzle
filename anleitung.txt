@@ -19,3 +19,8 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 
 **Joker:**
 Du hast 5 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 3 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
+
+**Zählweise**
+Punkte gibt es für das Ablegen der Figuren. Die Figuren sind im Hintergrund in drei Schwierigkeitsgrade eingeteilt.
+Die Figuren aus der Joker Kategorie zählen ihren Punktwert. Die Figuren aus der normalen Kategorie zählen den doppelten Punktwert. Die Figuren aus der Zonk Kategorie (rot oder purpur) zählen ihren fünffachen Punktwert.
+Für das Benutzen des Refresh Buttons fallen 200 Punkte an.
