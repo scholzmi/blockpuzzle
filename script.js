@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konstanten ===
     const BREITE = 9, HOEHE = 9, MAX_FIGUR_GROESSE = 5, ANZAHL_JOKER = 5;
-    let TIMER_DAUER;
-
+    
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, aktiverSlotIndex = -1, rundenZaehler = 0;
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
 
     // === Konfiguration ===
-    let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
+    let spielConfig = {};
 
     // ===================================================================================
     // INITIALISIERUNG
@@ -81,12 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
-        if (istHardMode) {
-            timerBox.classList.remove('timer-versteckt');
-            startTimer();
-        } else {
-            timerBox.classList.add('timer-versteckt');
-        }
+        startTimer(); // Timer startet jetzt immer
     }
 
     function updateHardModeLabel() {
@@ -99,21 +93,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
 
-            TIMER_DAUER = spielConfig.gameSettings?.timerDuration || 60;
-
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
+            
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
-            normaleFiguren = erstellePool(spielConfig?.figures?.normal);
-            zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
-            jokerFiguren = erstellePool(spielConfig?.figures?.joker);
-            if (normaleFiguren.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
+            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
+            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
+            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker);
+
+            if (spielConfig.figures.normalPool.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
             return true;
         } catch (error) {
             console.error('Fehler beim Laden der Konfiguration:', error);
             if (versionElement) versionElement.textContent = "Config Error!";
             return false;
         }
+    }
+    
+    function getGameSetting(key) {
+        const modus = istHardMode ? 'hard' : 'normal';
+        return spielConfig.gameSettings[modus][key];
     }
 
     async function ladeAnleitung() {
@@ -228,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (verfuegbareIndices.length <= 1) return;
 
-        // ** DER BUGFIX STARTET HIER **
         if (hatFigurGedreht) {
             verbrauchteJoker--;
             zeichneJokerLeiste();
@@ -239,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         aktiverSlotIndex = verfuegbareIndices[neuePosition];
         ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
-        hatFigurGedreht = false; // Zurücksetzen für die neue Figur
+        hatFigurGedreht = false;
 
         zeichneSlotHighlights();
         mausBewegungAufBrett(lastMausEvent);
@@ -281,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (verbrauchteJoker >= ANZAHL_JOKER) return;
         abbrechen();
         
-        const penaltyPoints = spielConfig.gameSettings?.refreshPenaltyPoints || 0;
+        const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
         
         zeigePunkteAnimation(-penaltyPoints);
 
@@ -316,14 +314,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let kategorie = 'normal';
             const zufallsZahl = Math.random();
 
-            if (zonkFiguren.length > 0 && zufallsZahl < zonkProb) {
-                zufallsFigur = zonkFiguren[Math.floor(Math.random() * zonkFiguren.length)];
+            if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
+                zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
                 kategorie = 'zonk';
-            } else if (jokerFiguren.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
-                zufallsFigur = jokerFiguren[Math.floor(Math.random() * jokerFiguren.length)];
+            } else if (spielConfig.figures.jokerPool.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
+                zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
                 kategorie = 'joker';
-            } else if (normaleFiguren.length > 0) {
-                zufallsFigur = normaleFiguren[Math.floor(Math.random() * normaleFiguren.length)];
+            } else if (spielConfig.figures.normalPool.length > 0) {
+                zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
                 kategorie = 'normal';
             }
 
@@ -447,16 +445,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startTimer() {
-        verbleibendeZeit = TIMER_DAUER;
+        verbleibendeZeit = getGameSetting('timerDuration');
         timerAnzeige.textContent = verbleibendeZeit;
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
             timerAnzeige.textContent = verbleibendeZeit;
             if (verbleibendeZeit <= 0) {
-                const anzahl = spielConfig.gameSettings?.timerPenaltyCount || 1;
+                const anzahl = getGameSetting('timerPenaltyCount');
                 platziereStrafsteine(anzahl);
-                verbleibendeZeit = TIMER_DAUER;
+                verbleibendeZeit = getGameSetting('timerDuration');
             }
         }, 1000);
     }
@@ -464,15 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
     function resumeTimer() {
         if (timerInterval || !istHardMode) return;
-        timerInterval = setInterval(() => {
-            verbleibendeZeit--;
-            timerAnzeige.textContent = verbleibendeZeit;
-            if (verbleibendeZeit <= 0) {
-                const anzahl = spielConfig.gameSettings?.timerPenaltyCount || 1;
-                platziereStrafsteine(anzahl);
-                verbleibendeZeit = TIMER_DAUER;
-            }
-        }, 1000);
+        startTimer();
     }
 
     function platziereStrafsteine(anzahl) {
@@ -645,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function aktiviereJokerPenalty() {
-        const anzahl = spielConfig.gameSettings?.jokerPenaltyCount || 5;
+        const anzahl = getGameSetting('jokerPenaltyCount');
         platziereStrafsteine(anzahl);
     }
 

@@ -1,11 +1,19 @@
 {
-    "version": "V6.30",
-    "letzteAenderung": "Punktsystem angepasst und Animation",
+    "version": "V7.00",
+    "letzteAenderung": "Getrennte Settings für Spielmodi",
     "gameSettings": {
-        "timerDuration": 30,
-        "timerPenaltyCount": 2,
-        "jokerPenaltyCount": 3,
-        "refreshPenaltyPoints": 200
+        "normal": {
+            "timerDuration": 60,
+            "timerPenaltyCount": 1,
+            "jokerPenaltyCount": 3,
+            "refreshPenaltyPoints": 100
+        },
+        "hard": {
+            "timerDuration": 30,
+            "timerPenaltyCount": 2,
+            "jokerPenaltyCount": 5,
+            "refreshPenaltyPoints": 200
+        }
     },
     "probabilities": {
         "zonk": 0.03,

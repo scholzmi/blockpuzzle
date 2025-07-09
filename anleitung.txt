@@ -3,6 +3,8 @@
 
 **Ziel des Spiels:**
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
+Der Timer arbeitet ein bisschen gegen Dich und platziert nach Ablauf schwarze Spielsteine. Die können aber auch entfernt werden.
+Manchmal nützen Sie Dir sogar.
 
 **Steuerung**
 * **Auswählen:** Am Anfang hängt automatisch die erste Figur an der Maus. Mit dem **Mausrad** schaltet man die Figur um.
@@ -15,7 +17,7 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 
 **Spielmodi:**
 * **Normal:** Das klassische, entspannte Spiel.
-* **Schwer:** Aktiviere den Schalter für eine zusätzliche Herausforderung. Alle 30 Sekunden erscheinen zwei schwarze Blocker-Steine auf einem zufälligen freien Feld!
+* **Schwer:** Aktiviere den Schalter für schwerere Settings.
 
 **Joker:**
 Du hast 5 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 3 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
@@ -24,7 +26,7 @@ Du hast 5 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder auf
 Punkte gibt es für das Ablegen der Figuren. Die Figuren sind im Hintergrund in drei Schwierigkeitsgrade eingeteilt.
 Die Figuren aus der Joker Kategorie (grün) zählen ihren Punktwert, sind dafür leicht zu platzieren.
 Die Figuren aus der normalen Kategorie zählen den doppelten Punktwert. Die Figuren aus der Zonk Kategorie (rot oder purpur) zählen ihren fünffachen Punktwert.
-Für das Benutzen des Refresh Buttons fallen 200 Punkte an.
+Für das Benutzen des Refresh Buttons fallen 100 bzw. 200 Punkte im schweren Modus an.
 
 Das Punktesystem für das **Eliminieren von Reihen** ist so aufgebaut, dass es belohnt wird, mehrere Linien auf einmal zu entfernen.
 
