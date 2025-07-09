@@ -1,6 +1,6 @@
 {
-    "version": "V6.14",
-    "letzteAenderung": "Punktsystem",
+    "version": "V6.20",
+    "letzteAenderung": "Punktsystem angepasst und Animation",
     "gameSettings": {
         "timerDuration": 30,
         "timerPenaltyCount": 2,
