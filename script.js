@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const anleitungInhalt = document.getElementById('anleitung-inhalt');
     const infoContainer = document.getElementById('info-container');
     const anleitungToggleIcon = document.getElementById('anleitung-toggle-icon');
-    const infoToggleIcon = document.getElementById('info-toggle-icon');
     const hardModeSchalter = document.getElementById('hard-mode-schalter');
+    const hardModeLabel = document.getElementById('hard-mode-label');
     const timerBox = document.getElementById('timer-box');
     const timerAnzeige = document.getElementById('timer');
     const refreshFigurenButton = document.getElementById('refresh-figuren-button');
@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         stopTimer();
         istHardMode = hardModeSchalter.checked;
+        updateHardModeLabel(); // Label aktualisieren
+        
         const configGeladen = await ladeKonfiguration();
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
@@ -85,6 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    function updateHardModeLabel() {
+        hardModeLabel.textContent = hardModeSchalter.checked ? 'schwer' : 'normal';
+    }
+
     async function ladeKonfiguration() {
         try {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
@@ -178,7 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function figurSlotKlick(index) {
         if (figurenInSlots[index]) {
-            abbrechen(); // Bricht ab, falls schon eine Figur ausgewählt ist
+            if (aktiverSlotIndex === index) { // Klick auf bereits aktiven Slot
+                abbrechen();
+                return;
+            }
+            abbrechen(); 
             aktiverSlotIndex = index;
             ausgewaehlteFigur = figurenInSlots[index];
             hatFigurGedreht = false;
@@ -300,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        abbrechen(); // Setzt die Auswahl zurück
+        abbrechen();
         
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();

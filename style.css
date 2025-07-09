@@ -60,7 +60,7 @@ body.boss-key-aktiv::before {
     display: flex;
     justify-content: center;
     gap: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 .block-char {
@@ -112,7 +112,6 @@ body.boss-key-aktiv::before {
     padding: 0;
 }
 
-
 .toggle-icon {
     position: absolute;
     top: 20px;
@@ -132,17 +131,16 @@ body.boss-key-aktiv::before {
 .seiten-box.versteckt .toggle-icon::before {
     content: '+';
 }
-#anleitung-inhalt, #info-inhalt {
+
+#anleitung-inhalt {
     transition: all 0.3s ease;
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-height: 485px; /* Höhe angepasst */
+    overflow-y: auto;
 }
 .seiten-box.versteckt #anleitung-inhalt {
     display: none;
-}
-#anleitung-inhalt {
-    font-size: 0.9em;
-    line-height: 1.5;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 /* Spiel-spezifische Elemente */
@@ -177,20 +175,11 @@ body.boss-key-aktiv::before {
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-content: flex-end; /* Switch und Label rechtsbündig */
+    justify-content: flex-end;
 }
-
 #hard-mode-label {
-    font-weight: bold;
-    width: 60px; /* Feste Breite für das Label */
+    width: 60px;
     text-align: left;
-}
-/* Setzt den Text basierend auf dem Status der Checkbox */
-#hard-mode-schalter:not(:checked) + .slider + #hard-mode-label::after {
-    content: "normal";
-}
-#hard-mode-schalter:checked + .slider + #hard-mode-label::after {
-    content: "schwer";
 }
 
 #timer-box {
