@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-
+    
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -232,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(infoContainer) infoContainer.classList.add('versteckt');
             ersterZugGemacht = true;
         }
+
         figur.form.forEach((reihe, y) => {
             reihe.forEach((block, x) => {
                 if (block === 1) spielbrett[startY + y][startX + x] = figur.color;
@@ -239,18 +240,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         punkte += figur.form.flat().reduce((a, b) => a + b, 0);
         punkteElement.textContent = punkte;
+        
         const alterSlotIndex = ausgewaehlterSlotIndex;
         figurenInSlots[alterSlotIndex] = null;
         ausgewaehlteFigur = null;
         ausgewaehlterSlotIndex = -1;
         hatFigurGedreht = false;
         leereVolleLinien();
+        
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
             zeichneJokerLeiste();
             penaltyAktiviert = false;
         }
+        
         spielbrettElement.style.cursor = 'default';
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
@@ -333,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { const rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal'; if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie(rekordCookieName, rekord, 365); alert(`Neuer Rekord im ${istHardMode ? 'schweren' : 'normalen'} Modus: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-    
+
     eventListenerZuweisen();
     spielStart();
 });
