@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-    
+
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -66,10 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
         penaltyAktiviert = false;
         ersterZugGemacht = false;
 
-        if(anleitungContainer && infoContainer) {
-            anleitungContainer.classList.remove('versteckt');
-            infoContainer.classList.remove('versteckt');
-        }
+        if(anleitungContainer) anleitungContainer.classList.remove('versteckt');
+        if(infoContainer) infoContainer.classList.remove('versteckt');
         
         zeichneJokerLeiste();
         erstelleSpielfeld();
@@ -305,21 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
     
-    function stopTimer() {
-        clearInterval(timerInterval);
-    }
-
-    function resumeTimer() {
-        if(timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            verbleibendeZeit--;
-            timerAnzeige.textContent = verbleibendeZeit;
-            if (verbleibendeZeit <= 0) {
-                platziereStrafstein();
-                verbleibendeZeit = TIMER_DAUER;
-            }
-        }, 1000);
-    }
+    function stopTimer() { clearInterval(timerInterval); }
+    function resumeTimer() { startTimer(); } // Für den Boss Key
     
     function platziereStrafstein() {
         const leereZellen = [];
@@ -350,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     function pruefeUndSpeichereRekord() { const rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal'; if (punkte > rekord) { rekord = punkte; rekordElement.textContent = rekord; setCookie(rekordCookieName, rekord, 365); alert(`Neuer Rekord im ${istHardMode ? 'schweren' : 'normalen'} Modus: ${rekord} Punkte!`); } else { alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`); } spielStart(); }
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
-    
+
     eventListenerZuweisen();
     spielStart();
 });
