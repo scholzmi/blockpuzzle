@@ -87,7 +87,7 @@ body.boss-key-aktiv::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative; /* Wichtig für die Positionierung der Animation */
+    position: relative;
 }
 
 /* Punkte-Animation */
@@ -168,7 +168,7 @@ body.boss-key-aktiv::before {
     transition: all 0.3s ease;
     font-size: 0.9em;
     line-height: 1.5;
-    max-height: 485px; /* Höhe angepasst */
+    max-height: 485px;
     overflow-y: auto;
 }
 .seiten-box.versteckt #anleitung-inhalt {
@@ -206,7 +206,7 @@ body.boss-key-aktiv::before {
     background-color: transparent;
     justify-content: center;
     font-size: 1.8em;
-    padding-bottom: 15px; /* Mehr Abstand nach unten */
+    padding-bottom: 15px;
 }
 #punkte {
     font-family: 'Arial Black', Gadget, sans-serif;
@@ -325,14 +325,31 @@ input:checked + .slider:before {
     background-color: rgba(52, 168, 83, 0.2) !important;
 }
 
-
-.auswahl-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+#refresh-figuren-button {
+    width: 50%;
+    padding: 10px;
     margin-top: 20px;
-    width: 420px;
-    justify-content: center;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 2px solid #4285F4;
+    background-color: white;
+    color: #4285F4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+#refresh-figuren-button:hover {
+    background-color: #4285F4;
+    color: white;
+}
+#refresh-figuren-button:disabled {
+    border-color: #ccc;
+    background-color: #f0f0f0;
+    color: #ccc;
+    cursor: not-allowed;
+}
+#refresh-figuren-button:focus {
+    outline: none;
 }
 
 #figuren-auswahl {
@@ -341,6 +358,7 @@ input:checked + .slider:before {
     align-items: center;
     gap: 10px;
     width: 364px;
+    margin-top: 15px;
     padding: 10px;
     box-sizing: border-box;
 }
@@ -373,34 +391,6 @@ input:checked + .slider:before {
     border: 1px solid #fff;
     box-sizing: border-box;
     border-radius: 2px;
-}
-
-#refresh-figuren-button {
-    width: 44px;
-    height: 44px;
-    font-size: 24px;
-    border-radius: 50%;
-    border: 2px solid #4285F4;
-    background-color: white;
-    color: #4285F4;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-#refresh-figuren-button:hover {
-    background-color: #4285F4;
-    color: white;
-}
-#refresh-figuren-button:disabled {
-    border-color: #ccc;
-    background-color: #f0f0f0;
-    color: #ccc;
-    cursor: not-allowed;
-}
-#refresh-figuren-button:focus {
-    outline: none; /* Blauen Rahmen entfernen */
 }
 
 .spende-bereich {
