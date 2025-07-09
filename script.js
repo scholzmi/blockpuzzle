@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-
+    
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -41,15 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         }
-
         stopTimer();
         istHardMode = hardModeSchalter.checked;
-
-        const [configGeladen] = await Promise.all([ladeKonfiguration(), ladeAnleitung()]);
+        const configGeladen = await ladeKonfiguration();
         if (!configGeladen) {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
+        await ladeAnleitung();
         
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
         
@@ -65,26 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
         hatFigurGedreht = false;
         penaltyAktiviert = false;
         ersterZugGemacht = false;
-
         if(!neustartBestaetigen) {
-            // Zustand der Boxen aus Cookies wiederherstellen
-            if (getCookie('anleitungVersteckt') === 'true') {
-                anleitungContainer.classList.add('versteckt');
-            } else {
-                anleitungContainer.classList.remove('versteckt');
-            }
-            if (getCookie('infoVersteckt') === 'true') {
-                infoContainer.classList.add('versteckt');
-            } else {
-                infoContainer.classList.remove('versteckt');
-            }
+            if(anleitungContainer) anleitungContainer.classList.remove('versteckt');
+            if(infoContainer) infoContainer.classList.remove('versteckt');
         }
-        
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
-
         if (istHardMode) {
             timerBox.classList.remove('timer-versteckt');
             startTimer();
@@ -98,10 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
-            
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
-            
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             normaleFiguren = erstellePool(spielConfig?.figures?.normal);
             zonkFiguren = erstellePool(spielConfig?.figures?.zonk);
@@ -162,14 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
         hardModeSchalter.addEventListener('change', () => spielStart(true));
         if(anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
-                const isHidden = anleitungContainer.classList.toggle('versteckt');
-                setCookie('anleitungVersteckt', isHidden, 365);
+                if(anleitungContainer) anleitungContainer.classList.toggle('versteckt');
             });
         }
         if(infoToggleIcon) {
             infoToggleIcon.addEventListener('click', () => {
-                const isHidden = infoContainer.classList.toggle('versteckt');
-                setCookie('infoVersteckt', isHidden, 365);
+                if(infoContainer) infoContainer.classList.toggle('versteckt');
             });
         }
     }
@@ -313,7 +296,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-    function resumeTimer() { if(timerInterval || !istHardMode) return; timerInterval = setInterval(() => { verbleibendeZeit--; timerAnzeige.textContent = verbleibendeZeit; if (verbleibendeZeit <= 0) { platziereStrafstein(); verbleibendeZeit = TIMER_DAUER; } }, 1000); }
+    function resumeTimer() {
+        if(timerInterval || !istHardMode) return;
+        timerInterval = setInterval(() => {
+            verbleibendeZeit--;
+            timerAnzeige.textContent = verbleibendeZeit;
+            if (verbleibendeZeit <= 0) {
+                platziereStrafstein();
+                verbleibendeZeit = TIMER_DAUER;
+            }
+        }, 1000);
+    }
     
     function platziereStrafstein() {
         const leereZellen = [];

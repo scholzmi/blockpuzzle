@@ -18,26 +18,20 @@
 
         <div class="spiel-wrapper">
             <h1>ZenPuzzle</h1>
-            <div class="spiel-info-wrapper">
-                <div class="spiel-info-zeile">
-                    <div class="score-box">Punkte: <span id="punkte">0</span></div>
-                    <div class="score-box rekord-box">Normal: <span id="rekord-normal">0</span></div>
-                    <div class="score-box rekord-box">Schwer: <span id="rekord-schwer">0</span></div>
+            <div class="spiel-info">
+                <div class="score-box">Punkte: <span id="punkte">0</span></div>
+                <div class="score-box">Rekord: <span id="rekord">0</span></div>
+                <div class="hard-mode-box">
+                    <label class="switch">
+                        <input type="checkbox" id="hard-mode-schalter">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="hard-mode-label">Schwer</span>
                 </div>
-                <div class="spiel-info-zeile">
-                    <div class="hard-mode-container">
-                        <label class="switch">
-                            <input type="checkbox" id="hard-mode-schalter">
-                            <span class="slider"></span>
-                        </label>
-                        <span id="hard-mode-label">Schwerer Modus</span>
-                    </div>
-                    <div id="timer-box" class="timer-versteckt">
-                        <span>⏳</span> <span id="timer">60</span>s
-                    </div>
+                <div id="timer-box" class="timer-versteckt">
+                    <span>⏳</span> <span id="timer">60</span>s
                 </div>
             </div>
-
             <div id="dreh-joker-leiste">
                 <div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div><div class="joker-box"></div>
             </div>
@@ -71,7 +65,9 @@
                 </div>
             </div>
         </div>
+
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
