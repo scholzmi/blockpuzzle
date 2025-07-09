@@ -1,6 +1,6 @@
 {
-    "version": "V5.30",
-    "letzteAenderung": "Timer und Strafsteine per Config steuerbar",
+    "version": "V6.00",
+    "letzteAenderung": "Figur an Maus geklebt",
     "gameSettings": {
         "timerDuration": 30,
         "timerPenaltyCount": 2,

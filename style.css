@@ -267,14 +267,21 @@ input:checked + .slider:before {
     align-items: center;
     border: 2px dashed #e0e0e0;
     border-radius: 8px;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
 }
 .figur-slot:hover {
     background-color: rgba(248, 249, 250, 0.8);
 }
+
+.aktiver-slot {
+    border-color: #FBBC04;
+    border-style: solid;
+    transform: scale(1.05);
+}
+
 .figur-container {
     display: grid;
-    cursor: pointer;
+    /* Kein cursor: pointer mehr, da nicht mehr klickbar */
 }
 .figur-block {
     width: 20px;
