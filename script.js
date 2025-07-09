@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Konfiguration ===
     let spielConfig = {}, normaleFiguren = [], zonkFiguren = [], jokerFiguren = [];
-
+    
     // ===================================================================================
     // INITIALISIERUNG
     // ===================================================================================
@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function ladeAnleitung() {
-        const anleitungInhalt = document.getElementById('anleitung-inhalt');
         if(!anleitungInhalt) return;
         try {
             const antwort = await fetch('anleitung.txt?v=' + new Date().getTime());
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             anleitungInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
         }
     }
-
+    
     // ===================================================================================
     // EVENT LISTENERS
     // ===================================================================================
@@ -305,17 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function stopTimer() { clearInterval(timerInterval); }
-    function resumeTimer() {
-        if(timerInterval) return;
-        timerInterval = setInterval(() => {
-            verbleibendeZeit--;
-            timerAnzeige.textContent = verbleibendeZeit;
-            if (verbleibendeZeit <= 0) {
-                platziereStrafstein();
-                verbleibendeZeit = TIMER_DAUER;
-            }
-        }, 1000);
-    }
+    function resumeTimer() { if(timerInterval) return; timerInterval = setInterval(() => { verbleibendeZeit--; timerAnzeige.textContent = verbleibendeZeit; if (verbleibendeZeit <= 0) { platziereStrafstein(); verbleibendeZeit = TIMER_DAUER; } }, 1000); }
     
     function platziereStrafstein() {
         const leereZellen = [];
