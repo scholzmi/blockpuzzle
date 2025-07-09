@@ -7,13 +7,14 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 **Steuerung**
 * **Auswählen:** Klicke eine Figur in den unteren Slots an, um sie aufzunehmen.
 * **Platzieren:** Klicke auf eine freie Stelle auf dem Spielfeld.
-* **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Dreh-Joker.
+* **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Joker.
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
+* **Refresh-Button:** Drücke den Button, um die Figuren neu auszulosen. Das verbraucht einen Joker.
 
 **Spielmodi:**
 * **Normal:** Das klassische, entspannte Spiel.
 * **Schwer:** Aktiviere den Schalter für eine zusätzliche Herausforderung. Alle 60 Sekunden erscheint ein schwarzer Blocker-Stein auf einem zufälligen freien Feld! Für diesen Modus gibt es eine separate Rekordliste.
 
-**Dreh-Joker:**
-Du hast 5 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 5 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
+**Joker:**
+Du hast 5 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 5 schwarze Blocker-Steine als kleine Strafe auf dem Feld!

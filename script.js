@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hardModeSchalter = document.getElementById('hard-mode-schalter');
     const timerBox = document.getElementById('timer-box');
     const timerAnzeige = document.getElementById('timer');
+    const refreshFigurenButton = document.getElementById('refresh-figuren-button');
     const originalerTitel = document.title;
 
     // === Konstanten ===
@@ -125,10 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
 
-        // Warnung beim Neuladen der Seite
         window.addEventListener('beforeunload', (e) => {
-            e.preventDefault();
-            e.returnValue = '';
+            if (punkte > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
         });
 
         figurenSlots.forEach((slot, index) => {
@@ -167,11 +169,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 setCookie('infoVersteckt', istVersteckt, 365);
             });
         }
+        if (refreshFigurenButton) {
+            refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
+        }
     }
 
     // ===================================================================================
     // STEUERUNG & SPIEL-LOGIK
     // ===================================================================================
+
+    function figurenNeuAuslosen() {
+        if (verbrauchteJoker >= ANZAHL_JOKER) return;
+
+        if (ausgewaehlteFigur) abbrechen();
+
+        verbrauchteJoker++;
+        zeichneJokerLeiste();
+
+        if (verbrauchteJoker >= ANZAHL_JOKER) {
+            penaltyAktiviert = true;
+        }
+
+        generiereNeueFiguren();
+    }
 
     function generiereNeueFiguren() {
         rundenZaehler++;
@@ -340,7 +360,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneSpielfeld() { spielbrett.forEach((reihe, y) => { reihe.forEach((inhalt, x) => { const zelle = spielbrettElement.children[y * BREITE + x]; zelle.className = 'zelle'; zelle.style.backgroundColor = ''; if (inhalt === 'blocker') { zelle.classList.add('belegt', 'blocker'); } else if (inhalt !== 0) { zelle.classList.add('belegt'); zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed; } }); }); }
     function zeichneVorschau(figur, startX, startY) { if (!figur) return; figur.form.forEach((reihe, y) => { reihe.forEach((block, x) => { if (block === 1) { const brettY = startY + y; const brettX = startX + x; if (brettY < HOEHE && brettX < BREITE && brettY >= 0 && brettX >= 0) { const zelle = spielbrettElement.children[brettY * BREITE + brettX]; const zustandDarunter = spielbrett[brettY][brettX]; zelle.classList.add('vorschau'); if (zustandDarunter === 0) { const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbTheme.preview; } else { const farbThemeDarunter = spielConfig.colorThemes[zustandDarunter] || spielConfig.colorThemes['default']; zelle.style.backgroundColor = farbThemeDarunter.preview; } } } }); }); }
     function zeichneFigurInSlot(index) { const slot = figurenSlots[index]; slot.innerHTML = ''; const figur = figurenInSlots[index]; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => { reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); }); }); slot.appendChild(container); } }
-    function zeichneJokerLeiste() { jokerBoxen.forEach((box, index) => { if (index < verbrauchteJoker) { box.classList.add('verbraucht'); box.classList.remove('voll'); } else { box.classList.add('voll'); box.classList.remove('verbraucht'); } }); }
+    function zeichneJokerLeiste() { 
+        jokerBoxen.forEach((box, index) => { 
+            if (index < verbrauchteJoker) { 
+                box.classList.add('verbraucht'); 
+                box.classList.remove('voll'); 
+            } else { 
+                box.classList.add('voll'); 
+                box.classList.remove('verbraucht'); 
+            } 
+        }); 
+        // Den Refresh-Button deaktivieren, wenn keine Joker mehr übrig sind
+        refreshFigurenButton.disabled = verbrauchteJoker >= ANZAHL_JOKER;
+    }
     function aktiviereJokerPenalty() { const leereZellen = []; spielbrett.forEach((reihe, y) => { reihe.forEach((zelle, x) => { if (zelle === 0) leereZellen.push({x, y}); }); }); leereZellen.sort(() => 0.5 - Math.random()); const anzahlBlocker = Math.min(5, leereZellen.length); for(let i = 0; i < anzahlBlocker; i++) { const zelle = leereZellen[i]; spielbrett[zelle.y][zelle.x] = 'blocker'; } zeichneSpielfeld(); }
     function getZielKoordinaten(e) { const rect = spielbrettElement.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; const mausX = clientX - rect.left; const mausY = clientY - rect.top; return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) }; }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
