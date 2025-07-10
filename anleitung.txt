@@ -24,7 +24,7 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Figur auswählen:** **Tippe** auf eine der drei Figuren unten im Auswahlbereich.
 * **Figur bewegen:** Berühre das Spielfeld und **ziehe** die Figur an die gewünschte Position. Dein Finger kann dabei versetzt zur Figur sein, um die Sicht freizuhalten.
 * **Drehen:** Ein schneller **Doppel-Tipp** irgendwo auf dem Spielfeld dreht die Figur.
-* **Platzieren:** Um die Figur abzulegen, **halte den Finger für einen kurzen Moment ruhig** an der Zielposition. Ein kurzes Summen bestätigt das Ablegen.
+* **Platzieren:** Um die Figur abzulegen, **hebe den Finger und berühre wieder den Screen und halte den Finger für einen kurzen Moment ruhig** an der Zielposition. Ein kurzes Summen bestätigt das Ablegen.
 
 ---
 
