@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rotateButton.classList.remove('versteckt');
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
-            figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigurMobile(index)));
+            figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigur(index)));
             rotateButton.addEventListener('click', dreheFigurMobile);
             spielbrettElement.addEventListener('touchstart', handleBoardMove);
             spielbrettElement.addEventListener('touchmove', handleBoardMove);
@@ -212,11 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-    }
-
-    function waehleFigurMobile(slotIndex) {
-        if (aktiverSlotIndex === slotIndex) abbrechen();
-        else waehleFigur(slotIndex);
     }
     
     function dreheAktiveFigur() {
@@ -362,14 +357,13 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        // Zustand nach dem Platzieren korrekt zurücksetzen
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false;
         if (isTouchDevice) rotateButton.classList.add('versteckt');
         zeichneSlotHighlights();
-        spielbrettElement.style.cursor = 'default';
         zeichneSpielfeld();
+        spielbrettElement.style.cursor = 'default';
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
@@ -465,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
