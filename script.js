@@ -76,8 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Stellt den Zustand der Anleitung wieder her oder klappt sie beim ersten Mal zu
         if (getCookie('anleitungZugeklappt') !== 'false') {
             anleitungContainer.classList.add('zugeklappt');
+            anleitungContainer.style.opacity = '0.5';
         } else {
             anleitungContainer.classList.remove('zugeklappt');
+            anleitungContainer.style.opacity = '1';
         }
 
         erstelleJokerLeiste();
@@ -190,7 +192,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
-                const istJetztZugeklappt = anleitungContainer.classList.toggle('zugeklappt');
+                anleitungContainer.classList.toggle('zugeklappt');
+                const istJetztZugeklappt = anleitungContainer.classList.contains('zugeklappt');
+                
+                if (istJetztZugeklappt) {
+                    anleitungContainer.style.opacity = '0.5';
+                } else {
+                    anleitungContainer.style.opacity = '1';
+                }
+                
                 setCookie('anleitungZugeklappt', istJetztZugeklappt, 365);
             });
         }
