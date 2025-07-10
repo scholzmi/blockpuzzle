@@ -1,45 +1,27 @@
 **Spielanleitung ZenPuzzle**
-**Nur für Browser am PC"
+**Nur für Browser am PC**
 
 **Ziel des Spiels:**
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
-Der Timer arbeitet ein bisschen gegen Dich und platziert nach Ablauf schwarze Spielsteine. Die können aber auch entfernt werden.
-Manchmal nützen Sie Dir sogar.
 
 **Steuerung**
-* **Auswählen:** Am Anfang hängt automatisch die erste Figur an der Maus. Mit dem **Mausrad** schaltet man die Figur um.
+* **Figur wechseln:** Bewege die Maus über das Spielfeld und nutze das **Mausrad**, um eine der verfügbaren Figuren auszuwählen.
 * **Platzieren:** Klicke auf eine freie Stelle auf dem Spielfeld.
-* **Drehen:** Wenn du eine Figur aufgenommen hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Joker.
+* **Drehen:** Wenn du eine Figur ausgewählt hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Dreh-Joker.
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
-* **Refresh-Button:** Drücke den Button, um die Figuren neu auszulosen. Das verbraucht 100 im normalen bzw. 200 Punkte im schweren Modus
-* **Vorsicht:** Drücke den Refresh Button rechtzeitig. Wenn Du eine Figur platzierst und die nächste Figur nicht mehr passt, dann endet das Spiel knallhart.
+
+**Punkte**
+* **Figuren:** Joker-Figuren zählen ihren einfachen, normale Figuren ihren doppelten und Zonk-Figuren ihren fünffachen Blockwert.
+* **Reihen:** Das Abräumen von Linien wird stark belohnt! Die Formel lautet: **(Anzahl Linien)³ * 10**
+    * **1 Reihe:** 10 Punkte
+    * **2 Reihen:** 80 Punkte
+    * **3 Reihen:** 270 Punkte
 
 **Spielmodi:**
-* **Normal:** Das klassische, entspannte Spiel.
-* **Schwer:** Aktiviere den Schalter für schwerere Settings.
+* **Normal:** Das klassische, entspannte Spiel mit Timer.
+* **Schwer:** Aktiviere den Schalter für eine zusätzliche Herausforderung mit kürzerem Timer und mehr Strafsteinen!
+* **Unsichtbare Pause:** Der Timer läuft erst, wenn du die erste Figur eines Zuges platziert hast.
 
-**Joker:**
-Du hast 3 Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen 3 schwarze Blocker-Steine als kleine Strafe auf dem Feld!
-
-**Zählweise**
-Punkte gibt es für das Ablegen der Figuren. Die Figuren sind im Hintergrund in drei Schwierigkeitsgrade eingeteilt.
-Die Figuren aus der Joker Kategorie (grün) zählen ihren Punktwert, sind dafür leicht zu platzieren.
-Die Figuren aus der normalen Kategorie zählen den doppelten Punktwert. Die Figuren aus der Zonk Kategorie (rot oder purpur) zählen ihren fünffachen Punktwert.
-Für das Benutzen des Refresh Buttons fallen 100 bzw. 200 Punkte im schweren Modus an.
-
-Das Punktesystem für das **Eliminieren von Reihen** ist so aufgebaut, dass es belohnt wird, mehrere Linien auf einmal zu entfernen.
-
-Die Formel dafür lautet: (Anzahl der Linien)² * 10
-
-Das bedeutet:
-
-1 Reihe gibt: 1 * 1 * 10 = 10 Punkte
-
-2 Reihen geben: 2 * 2 * 10 = 40 Punkte
-
-3 Reihen geben: 3 * 3 * 10 = 90 Punkte
-
-4 Reihen geben: 4 * 4 * 10 = 160 Punkte
-
-Wenn du also eine Reihe und eine Spalte gleichzeitig leerst (insgesamt 2 Linien), erhältst du 40 Punkte.
+**Dreh-Joker:**
+Du hast 5 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld! Das Tauschen der Figuren kostet ebenfalls einen Joker und Punkte.

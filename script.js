@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         zeichneSpielfeld();
-        return linien * 10 * linien;
+        return Math.pow(linien, 3) * 10;
     }
 
     function zeichneSpielfeld() {
