@@ -121,7 +121,7 @@ body.boss-key-aktiv::before {
 
 
 /* Linke und Rechte Spalte */
-.links-container, .rechts-container {
+.rechts-container {
     width: 280px;
     display: flex;
     flex-direction: column;
@@ -192,7 +192,7 @@ body.boss-key-aktiv::before {
     width: 100%;
     font-size: 1.1em;
     padding: 15px;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.5);
     border-radius: 8px;
     box-sizing: border-box;
     gap: 12px;
@@ -551,9 +551,6 @@ footer a:hover {
     .haupt-container {
         flex-direction: column;
         align-items: center;
-    }
-    .links-container {
-        display: none;
     }
     .seiten-box, .rechts-container {
         width: 100%;
