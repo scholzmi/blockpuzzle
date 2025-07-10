@@ -9,6 +9,7 @@
 </head>
 <body>
     <div class="haupt-container">
+        
         <div class="spiel-wrapper">
             <div class="block-title">
                 <span class="block-char c-z">Z</span><span class="block-char c-e">E</span><span class="block-char c-n">N</span>
@@ -58,11 +59,6 @@
                     <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">Oder direkt via PayPal.me spenden</a>
                 </div>
             </div>
-            <div id="anleitung-container" class="seiten-box">
-                <h2 id="anleitung-titel">Anleitung</h2>
-                <div id="anleitung-toggle-icon" class="toggle-icon"></div>
-                <div id="anleitung-inhalt"></div>
-            </div>
         </div>
     </div>
 
@@ -88,8 +84,18 @@
         </div>
     </div>
 
+    <div id="anleitung-modal-container" class="modal-container versteckt">
+        <div class="modal-box">
+            <h2>Spielanleitung</h2>
+            <div id="anleitung-modal-inhalt"></div>
+            <div class="modal-buttons">
+                <button id="anleitung-schliessen-btn">Schließen</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
-        Michael Scholz | Kleeweg 8, 22885 Barsbüttel, Deutschland | +49 174 482 5558 | <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
+        Michael Scholz | Kleeweg 8, 22885 Barsbüttel, Deutschland | +49 174 482 5558 | <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a> | <a href="#" id="anleitung-link">Anleitung</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
     </footer>
 
     <script src="script.js"></script>

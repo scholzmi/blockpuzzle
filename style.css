@@ -137,9 +137,6 @@ body.boss-key-aktiv::before {
     box-sizing: border-box;
     transition: opacity 0.3s ease-in-out;
 }
-#anleitung-container.versteckt {
-    opacity: 0.5;
-}
 
 
 .paypal-box {
@@ -152,36 +149,13 @@ body.boss-key-aktiv::before {
     opacity: 1;
 }
 
-
-.toggle-icon {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1;
-    color: #888;
-    font-family: monospace;
-}
-.toggle-icon:hover {
-    color: #000;
-}
-.toggle-icon::before {
-    content: '−';
-}
-.seiten-box.versteckt .toggle-icon::before {
-    content: '+';
-}
-
-#anleitung-inhalt {
-    transition: all 0.3s ease;
+#anleitung-modal-inhalt {
+    text-align: left;
+    margin-bottom: 20px;
     font-size: 0.9em;
     line-height: 1.5;
-    max-height: 150px;
+    max-height: 60vh;
     overflow-y: auto;
-}
-.seiten-box.versteckt #anleitung-inhalt {
-    display: none;
 }
 
 /* Spiel-spezifische Elemente */
@@ -509,11 +483,13 @@ footer a:hover {
 }
 .modal-buttons {
     display: flex;
+    justify-content: center;
     gap: 15px;
     margin-top: 30px;
 }
 .modal-buttons button {
     flex: 1;
+    max-width: 200px;
     padding: 12px 20px;
     font-size: 1em;
     font-weight: bold;
@@ -531,12 +507,12 @@ footer a:hover {
     background-color: white;
     color: #34A853;
 }
-#neustart-schwer-btn, #confirm-nein-btn {
+#neustart-schwer-btn, #confirm-nein-btn, #anleitung-schliessen-btn {
     border-color: #EA4335;
     background-color: #EA4335;
     color: white;
 }
-#neustart-schwer-btn:hover, #confirm-nein-btn:hover {
+#neustart-schwer-btn:hover, #confirm-nein-btn:hover, #anleitung-schliessen-btn:hover {
     background-color: white;
     color: #EA4335;
 }
