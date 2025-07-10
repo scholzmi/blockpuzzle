@@ -315,7 +315,7 @@ input:checked + .slider:before {
     gap: 10px;
 }
 
-#refresh-figuren-button, .punkte-anzeige-unten {
+#refresh-figuren-button, #rotate-button, .punkte-anzeige-unten {
     flex: 1;
     padding: 10px;
     font-size: 1.1em;
@@ -327,14 +327,14 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-#refresh-figuren-button {
+#refresh-figuren-button, #rotate-button {
     border-color: #4285F4;
     background-color: white;
     color: #4285F4;
     cursor: pointer;
     transition: all 0.2s ease;
 }
-#refresh-figuren-button:hover {
+#refresh-figuren-button:hover, #rotate-button:hover {
     background-color: #4285F4;
     color: white;
 }
@@ -344,7 +344,7 @@ input:checked + .slider:before {
     color: #ccc;
     cursor: not-allowed;
 }
-#refresh-figuren-button:focus {
+#refresh-figuren-button:focus, #rotate-button:focus {
     outline: none;
 }
 
@@ -412,7 +412,6 @@ input:checked + .slider:before {
     width: 110px;
     height: 110px;
     margin-bottom: 10px;
-    opacity: 1;
 }
 .paypal-link {
     color: #1a73e8;

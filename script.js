@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hardModeLabel = document.getElementById('hard-mode-label');
     const timerBar = document.getElementById('timer-bar');
     const refreshFigurenButton = document.getElementById('refresh-figuren-button');
+    const rotateButton = document.getElementById('rotate-button');
     const punkteAnimationElement = document.getElementById('punkte-animation');
     const gameOverContainer = document.getElementById('game-over-container');
     const gameOverTitel = document.getElementById('game-over-titel');
@@ -21,8 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmContainer = document.getElementById('confirm-container');
     const confirmJaBtn = document.getElementById('confirm-ja-btn');
     const confirmNeinBtn = document.getElementById('confirm-nein-btn');
-    
-    // Elemente für das Anleitungs-Modal
     const anleitungModalContainer = document.getElementById('anleitung-modal-container');
     const anleitungModalInhalt = document.getElementById('anleitung-modal-inhalt');
     const anleitungLink = document.getElementById('anleitung-link');
@@ -37,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ersterZugGemacht = false;
     let lastMausEvent = null;
     let anzahlJoker;
+    const isTouchDevice = 'ontouchstart' in window;
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -59,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
 
-        // Lädt die Rekorde aus den Cookies und zeigt sie an
         rekordNormal = parseInt(getCookie('rekordNormal') || '0', 10);
         rekordSchwer = parseInt(getCookie('rekordSchwer') || '0', 10);
         rekordNormalElement.textContent = rekordNormal;
@@ -136,33 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     function eventListenerZuweisen() {
+        // Allgemeine Listener, die immer gelten
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
-
-        spielbrettElement.addEventListener('mouseenter', spielbrettBetreten);
-        spielbrettElement.addEventListener('click', klickAufBrett);
-        spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
-        spielbrettElement.addEventListener('mouseleave', spielbrettVerlassen);
-        spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll);
-        spielbrettElement.addEventListener('contextmenu', e => {
-            e.preventDefault();
-            if (ausgewaehlteFigur) {
-                if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
-                    if (verbrauchteJoker >= anzahlJoker) return;
-                    verbrauchteJoker++;
-                    hatFigurGedreht = true;
-                    zeichneJokerLeiste();
-                    if (verbrauchteJoker >= anzahlJoker) {
-                        penaltyAktiviert = true;
-                    }
-                }
-                ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
-                mausBewegungAufBrett(e);
-            }
-        });
-        
         hardModeSchalter.addEventListener('change', () => {
             if (punkte > 0) {
                 confirmContainer.classList.add('sichtbar');
@@ -171,35 +148,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 spielStart();
             }
         });
-        
         confirmJaBtn.addEventListener('click', () => {
             confirmContainer.classList.add('versteckt');
             confirmContainer.classList.remove('sichtbar');
             spielStart();
         });
-
         confirmNeinBtn.addEventListener('click', () => {
             hardModeSchalter.checked = !hardModeSchalter.checked;
             confirmContainer.classList.add('versteckt');
             confirmContainer.classList.remove('sichtbar');
         });
-
-        if (anleitungLink) {
-            anleitungLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                anleitungModalContainer.classList.add('sichtbar');
-                anleitungModalContainer.classList.remove('versteckt');
-            });
-        }
-        if (anleitungSchliessenBtn) {
-            anleitungSchliessenBtn.addEventListener('click', () => {
-                anleitungModalContainer.classList.add('versteckt');
-                anleitungModalContainer.classList.remove('sichtbar');
-            });
-        }
-        if (refreshFigurenButton) {
-            refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
-        }
+        anleitungLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            anleitungModalContainer.classList.add('sichtbar');
+            anleitungModalContainer.classList.remove('versteckt');
+        });
+        anleitungSchliessenBtn.addEventListener('click', () => {
+            anleitungModalContainer.classList.add('versteckt');
+            anleitungModalContainer.classList.remove('sichtbar');
+        });
+        refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         neustartNormalBtn.addEventListener('click', () => {
             hardModeSchalter.checked = false;
             gameOverContainer.classList.add('versteckt');
@@ -212,136 +180,157 @@ document.addEventListener('DOMContentLoaded', () => {
             gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
+
+        if (isTouchDevice) {
+            // === TOUCH STEUERUNG ===
+            figurenSlots.forEach((slot, index) => {
+                slot.addEventListener('click', () => waehleFigurMobile(index));
+            });
+            rotateButton.addEventListener('click', dreheFigurMobile);
+            spielbrettElement.addEventListener('click', handleBoardClick);
+            spielbrettElement.addEventListener('touchmove', handleBoardMove);
+            spielbrettElement.addEventListener('touchstart', (e) => {
+                if(ausgewaehlteFigur) handleBoardMove(e);
+            });
+        } else {
+            // === MAUS STEUERUNG (PC) ===
+            spielbrettElement.addEventListener('mouseenter', handleBoardEnter);
+            spielbrettElement.addEventListener('click', handleBoardClick);
+            spielbrettElement.addEventListener('mousemove', handleBoardMove);
+            spielbrettElement.addEventListener('mouseleave', handleBoardLeave);
+            spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll);
+            spielbrettElement.addEventListener('contextmenu', dreheFigurPC);
+        }
     }
 
     // ===================================================================================
     // STEUERUNG & SPIEL-LOGIK
     // ===================================================================================
+    
+    function waehleFigur(slotIndex) {
+        if (slotIndex < 0 || slotIndex > 2 || !figurenInSlots[slotIndex]) {
+            abbrechen();
+            return;
+        }
+
+        aktiverSlotIndex = slotIndex;
+        ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
+        hatFigurGedreht = false;
+        
+        zeichneSlotHighlights();
+        spielbrettElement.style.cursor = 'none';
+
+        if(isTouchDevice) {
+            rotateButton.classList.remove('versteckt');
+        }
+    }
+
+    function waehleFigurMobile(slotIndex) {
+        if (aktiverSlotIndex === slotIndex) {
+            abbrechen(); // Erneuter Tap auf aktiven Slot bricht ab
+        } else {
+            waehleFigur(slotIndex);
+        }
+    }
+    
+    function dreheAktiveFigur() {
+        if (!ausgewaehlteFigur) return;
+        
+        if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
+            if (verbrauchteJoker >= anzahlJoker) return;
+            verbrauchteJoker++;
+            hatFigurGedreht = true;
+            zeichneJokerLeiste();
+            if (verbrauchteJoker >= anzahlJoker) {
+                penaltyAktiviert = true;
+            }
+        }
+        ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
+    }
+
+    function dreheFigurPC(e) {
+        e.preventDefault();
+        dreheAktiveFigur();
+        handleBoardMove(e);
+    }
+    
+    function dreheFigurMobile() {
+        dreheAktiveFigur();
+        zeichneSpielfeld(); // Neu zeichnen, um die Vorschau zu aktualisieren
+        zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
+    }
 
     function zeigePunkteAnimation(wert) {
         if (!punkteAnimationElement || wert === 0) return;
-
         punkteAnimationElement.classList.remove('animieren');
         void punkteAnimationElement.offsetWidth;
-
         const text = wert > 0 ? `+${wert}` : wert;
         const farbe = wert > 0 ? '#34A853' : '#EA4335';
-        
         punkteAnimationElement.textContent = text;
         punkteAnimationElement.style.color = farbe;
-
         const brettRect = spielbrettElement.getBoundingClientRect();
         const randX = brettRect.width * 0.2 + Math.random() * brettRect.width * 0.6;
         const randY = brettRect.height * 0.1 + Math.random() * brettRect.height * 0.2;
-        
         punkteAnimationElement.style.left = `${randX}px`;
         punkteAnimationElement.style.top = `${randY}px`;
-        
         punkteAnimationElement.classList.add('animieren');
     }
 
-    function spielbrettBetreten(e) {
+    function handleBoardEnter(e) {
         if (!ausgewaehlteFigur) {
-            wechsleZuNaechsterFigur();
+            waehleFigur(0);
         }
-        mausBewegungAufBrett(e);
+        handleBoardMove(e);
     }
-
-    function spielbrettVerlassen() {
-        if (ausgewaehlteFigur) {
-            zeichneSpielfeld();
-        }
+    
+    function handleBoardLeave() {
+        if (ausgewaehlteFigur) zeichneSpielfeld();
     }
 
     function wechsleFigurPerScroll(e) {
         e.preventDefault();
         if (!ausgewaehlteFigur) return;
-
         const richtung = e.deltaY > 0 ? 1 : -1;
         const verfuegbareIndices = figurenInSlots
             .map((fig, index) => fig ? index : -1)
             .filter(index => index !== -1);
-
         if (verfuegbareIndices.length <= 1) return;
-
-        if (hatFigurGedreht) {
-            verbrauchteJoker--;
-            zeichneJokerLeiste();
-        }
-        
+        if (hatFigurGedreht) verbrauchteJoker--;
         const aktuellePosition = verfuegbareIndices.indexOf(aktiverSlotIndex);
         const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
-        
-        aktiverSlotIndex = verfuegbareIndices[neuePosition];
-        ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
-        hatFigurGedreht = false;
-
-        zeichneSlotHighlights();
-        mausBewegungAufBrett(lastMausEvent);
-    }
-
-    function wechsleZuNaechsterFigur() {
-        if (ausgewaehlteFigur) return;
-
-        let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
-
-        if (naechsterIndex !== -1) {
-            aktiverSlotIndex = naechsterIndex;
-            ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
-            hatFigurGedreht = false;
-            spielbrettElement.style.cursor = 'none';
-        } else {
-            aktiverSlotIndex = -1;
-            ausgewaehlteFigur = null;
-            spielbrettElement.style.cursor = 'default';
-            if (figurenInSlots.every(f => f === null)) {
-                generiereNeueFiguren();
-                wechsleZuNaechsterFigur();
-            }
-        }
-        zeichneSlotHighlights();
+        waehleFigur(verfuegbareIndices[neuePosition]);
+        handleBoardMove(lastMausEvent);
     }
 
     function zeichneSlotHighlights() {
         figurenSlots.forEach((slot, index) => {
-            if (index === aktiverSlotIndex) {
-                slot.classList.add('aktiver-slot');
-            } else {
-                slot.classList.remove('aktiver-slot');
-            }
+            slot.classList.toggle('aktiver-slot', index === aktiverSlotIndex);
         });
     }
 
     function figurenNeuAuslosen() {
         abbrechen();
         const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
-        
         zeigePunkteAnimation(-penaltyPoints);
-
         setTimeout(() => {
             punkte = Math.max(0, punkte - penaltyPoints);
             punkteElement.textContent = punkte;
         }, 500);
-
         generiereNeueFiguren();
     }
 
     function generiereNeueFiguren() {
         rundenZaehler++;
-        
         const jokerProb = getGameSetting('jokerProbability');
         const zonkProb = getGameSetting('zonkProbability');
         const reductionInterval = getGameSetting('jokerProbabilityReductionInterval');
         const minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
-
         const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
         const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
-        
         for (let i = 0; i < 3; i++) {
             let zufallsFigur = null;
             let kategorie = 'normal';
             const zufallsZahl = Math.random();
-
             if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
                 zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
                 kategorie = 'zonk';
@@ -350,9 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 kategorie = 'joker';
             } else if (spielConfig.figures.normalPool.length > 0) {
                 zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
-                kategorie = 'normal';
             }
-
             if (zufallsFigur) {
                 let form = zufallsFigur.form;
                 const anzahlRotationen = Math.floor(Math.random() * 4);
@@ -370,18 +357,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function abbrechen() {
         if (!ausgewaehlteFigur) return;
-
         if (hatFigurGedreht) {
             verbrauchteJoker--;
             penaltyAktiviert = false;
             zeichneJokerLeiste();
         }
-
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
+        if(isTouchDevice) rotateButton.classList.add('versteckt');
     }
 
     function platziereFigur(figur, startX, startY) {
@@ -391,73 +377,53 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (!timerInterval) {
             startTimer();
         }
-
         const figurHoehe = figur.form.length;
         const figurBreite = figur.form[0].length;
         const offsetX = Math.floor(figurBreite / 2);
         const offsetY = Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX;
         const platziereY = startY - offsetY;
-
         if (!kannPlatzieren(figur, platziereX, platziereY)) return;
-
         figur.form.forEach((reihe, y) => {
             reihe.forEach((block, x) => {
                 if (block === 1) spielbrett[platziereY + y][platziereX + x] = figur.color;
             });
         });
-
         const blockAnzahl = figur.form.flat().reduce((a, b) => a + b, 0);
         let punktMultiplier = 1;
-        if (figur.kategorie === 'normal') {
-            punktMultiplier = 2;
-        } else if (figur.kategorie === 'zonk') {
-            punktMultiplier = 5;
-        }
+        if (figur.kategorie === 'normal') punktMultiplier = 2;
+        else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
-        
         const alterSlotIndex = aktiverSlotIndex;
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
-
-        ausgewaehlteFigur = null;
-        aktiverSlotIndex = -1;
-        hatFigurGedreht = false;
-
+        abbrechen();
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
             zeichneJokerLeiste();
             penaltyAktiviert = false;
         }
-
         const linienPunkte = leereVolleLinien();
         const gesamtPunkteGewinn = figurenPunkte + linienPunkte;
-
         zeigePunkteAnimation(gesamtPunkteGewinn);
-
         setTimeout(() => {
             punkte += gesamtPunkteGewinn;
             punkteElement.textContent = punkte;
         }, 500);
-
-        wechsleZuNaechsterFigur();
-
-        if (istSpielVorbei()) {
-            setTimeout(pruefeUndSpeichereRekord, 100);
-        }
+        if (figurenInSlots.every(f => f === null)) generiereNeueFiguren();
+        if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
     }
 
-    function mausBewegungAufBrett(e) {
-        if (!e) return;
+    function handleBoardMove(e) {
+        if (!e || !ausgewaehlteFigur) return;
         lastMausEvent = e;
-        if (!ausgewaehlteFigur) return;
         letztesZiel = getZielKoordinaten(e);
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
     }
 
-    function klickAufBrett(e) {
+    function handleBoardClick(e) {
         if (!ausgewaehlteFigur) return;
         const ziel = getZielKoordinaten(e);
         platziereFigur(ausgewaehlteFigur, ziel.x, ziel.y);
@@ -476,14 +442,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         const timerDuration = getGameSetting('timerDuration');
         verbleibendeZeit = timerDuration;
-        
         if (timerInterval) clearInterval(timerInterval);
-        
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
             const progress = (verbleibendeZeit / timerDuration);
             timerBar.style.setProperty('--timer-progress', `${progress}`);
-
             if (verbleibendeZeit <= 0) {
                 const anzahl = getGameSetting('timerPenaltyCount');
                 platziereStrafsteine(anzahl);
@@ -499,18 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resumeTimer() {
-        if (ersterZugGemacht && !timerInterval) {
-            startTimer();
-        }
+        if (ersterZugGemacht && !timerInterval) startTimer();
     }
 
     function platziereStrafsteine(anzahl) {
         const leereZellen = [];
-        spielbrett.forEach((reihe, y) => {
-            reihe.forEach((zelle, x) => {
-                if (zelle === 0) leereZellen.push({ x, y });
-            });
-        });
+        spielbrett.forEach((reihe, y) => reihe.forEach((zelle, x) => { if (zelle === 0) leereZellen.push({ x, y }); }));
         leereZellen.sort(() => 0.5 - Math.random());
         const anzahlZuPlatzieren = Math.min(anzahl, leereZellen.length);
         for (let i = 0; i < anzahlZuPlatzieren; i++) {
@@ -522,31 +479,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0)); let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / 5); const col = (coord - 1) % 5; if (row < 5 && col < 5) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if (maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
     function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
-    function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
+    function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) if (kannPlatzieren(tempFigur, x, y)) return false; aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= 9 || bY < 0 || bY >= 9 || spielbrett[bY][bX] !== 0) return false; } } } return true; }
     
     function leereVolleLinien() {
         let vR = [], vS = [];
-        for (let y = 0; y < 9; y++) {
-            if (spielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        }
+        for (let y = 0; y < 9; y++) if (spielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
         for (let x = 0; x < 9; x++) {
             let spalteVoll = true;
-            for (let y = 0; y < 9; y++) {
-                if (spielbrett[y][x] === 0) {
-                    spalteVoll = false;
-                    break;
-                }
-            }
+            for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; }
             if (spalteVoll) vS.push(x);
         }
-        
         const linien = vR.length + vS.length;
         if (linien > 0) {
             vR.forEach(y => spielbrett[y].fill(0));
             vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0));
         }
-        
         zeichneSpielfeld();
         return Math.pow(linien, 3) * 10;
     }
@@ -557,9 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const zelle = spielbrettElement.children[y * 9 + x];
                 zelle.className = 'zelle';
                 zelle.style.backgroundColor = '';
-                if (inhalt === 'blocker') {
-                    zelle.classList.add('belegt', 'blocker');
-                } else if (inhalt !== 0) {
+                if (inhalt === 'blocker') zelle.classList.add('belegt', 'blocker');
+                else if (inhalt !== 0) {
                     zelle.classList.add('belegt');
                     zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed;
                 }
@@ -569,72 +516,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function zeichneVorschau(figur, startX, startY) {
         if (!figur) return;
-
-        const figurHoehe = figur.form.length;
-        const figurBreite = figur.form[0].length;
-        const offsetX = Math.floor(figurBreite / 2);
-        const offsetY = Math.floor(figurHoehe / 2);
-        const platziereX = startX - offsetX;
-        const platziereY = startY - offsetY;
-
+        const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
+        const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
+        const platziereX = startX - offsetX, platziereY = startY - offsetY;
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
-
         if (kannFigurPlatzieren) {
             const tempSpielbrett = spielbrett.map(row => [...row]);
-            figur.form.forEach((reihe, y) => {
-                reihe.forEach((block, x) => {
-                    if (block === 1) {
-                        const bY = platziereY + y;
-                        const bX = platziereX + x;
-                        if (bY < 9 && bX < 9) tempSpielbrett[bY][bX] = 1;
-                    }
-                });
-            });
+            figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
+                if (block === 1) { const bY = platziereY + y, bX = platziereX + x; if (bY < 9 && bX < 9) tempSpielbrett[bY][bX] = 1; }
+            }));
             zeichneLinienVorschau(tempSpielbrett);
         }
-
-        figur.form.forEach((reihe, y) => {
-            reihe.forEach((block, x) => {
-                if (block === 1) {
-                    const brettY = platziereY + y;
-                    const brettX = platziereX + x;
-                    if (brettY < 9 && brettX < 9 && brettY >= 0 && brettX >= 0) {
-                        const zelle = spielbrettElement.children[brettY * 9 + brettX];
-                        if (kannFigurPlatzieren) {
-                            const farbTheme = spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default'];
-                            zelle.style.backgroundColor = farbTheme.preview;
-                        } else {
-                            zelle.style.backgroundColor = 'rgba(234, 67, 53, 0.5)';
-                        }
-                    }
+        figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
+            if (block === 1) {
+                const brettY = platziereY + y, brettX = platziereX + x;
+                if (brettY < 9 && brettX < 9 && brettY >= 0 && brettX >= 0) {
+                    const zelle = spielbrettElement.children[brettY * 9 + brettX];
+                    zelle.style.backgroundColor = kannFigurPlatzieren ? (spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']).preview : 'rgba(234, 67, 53, 0.5)';
                 }
-            });
-        });
+            }
+        }));
     }
 
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
-        for (let y = 0; y < 9; y++) {
-            if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        }
+        for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
         for (let x = 0; x < 9; x++) {
             let spalteVoll = true;
-            for (let y = 0; y < 9; y++) {
-                if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; }
-            }
+            for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; }
             if (spalteVoll) vS.push(x);
         }
-
-        vR.forEach(y => {
-            for (let x = 0; x < 9; x++) {
-                spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau');
-            }
-        });
-        vS.forEach(x => {
-            for (let y = 0; y < 9; y++) {
-                spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau');
-            }
-        });
+        vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
+        vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
 
     function erstelleJokerLeiste() {
@@ -649,43 +562,34 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneJokerLeiste() {
         const jokerBoxen = jokerBoxenContainer.children;
         for (let i = 0; i < jokerBoxen.length; i++) {
-            if (i < verbrauchteJoker) {
-                jokerBoxen[i].classList.add('verbraucht');
-                jokerBoxen[i].classList.remove('voll');
-            } else {
-                jokerBoxen[i].classList.add('voll');
-                jokerBoxen[i].classList.remove('verbraucht');
-            }
+            jokerBoxen[i].classList.toggle('verbraucht', i < verbrauchteJoker);
+            jokerBoxen[i].classList.toggle('voll', i >= verbrauchteJoker);
         }
     }
 
     function zeichneFigurInSlot(index) {
-        const slot = figurenSlots[index];
+        const slot = figurenSlots[index], figur = figurenInSlots[index];
         slot.innerHTML = '';
-        const figur = figurenInSlots[index];
         if (figur) {
             const container = document.createElement('div');
             container.classList.add('figur-container');
             const form = figur.form;
             container.style.gridTemplateRows = `repeat(${form.length}, 20px)`;
             container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`;
-            form.forEach(reihe => {
-                reihe.forEach(block => {
-                    const blockDiv = document.createElement('div');
-                    if (block === 1) {
-                        blockDiv.classList.add('figur-block');
-                        blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed;
-                    }
-                    container.appendChild(blockDiv);
-                });
-            });
+            form.forEach(reihe => reihe.forEach(block => {
+                const blockDiv = document.createElement('div');
+                if (block === 1) {
+                    blockDiv.classList.add('figur-block');
+                    blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed;
+                }
+                container.appendChild(blockDiv);
+            }));
             slot.appendChild(container);
         }
     }
     
     function aktiviereJokerPenalty() {
-        const anzahl = getGameSetting('jokerPenaltyCount');
-        platziereStrafsteine(anzahl);
+        platziereStrafsteine(getGameSetting('jokerPenaltyCount'));
     }
 
     function getZielKoordinaten(e) { const rect = spielbrettElement.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; const mausX = clientX - rect.left; const mausY = clientY - rect.top; return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) }; }
@@ -696,15 +600,14 @@ document.addEventListener('DOMContentLoaded', () => {
         stopTimer();
         let rekord = istHardMode ? rekordSchwer : rekordNormal;
         let rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
-        
         if (punkte > rekord) {
             rekord = punkte;
-            if(istHardMode) {
+            if (istHardMode) {
                 rekordSchwerElement.textContent = rekord;
-                rekordSchwer = rekord; // Aktualisiert die lokale Variable
+                rekordSchwer = rekord;
             } else {
                 rekordNormalElement.textContent = rekord;
-                rekordNormal = rekord; // Aktualisiert die lokale Variable
+                rekordNormal = rekord;
             }
             setCookie(rekordCookieName, rekord, 365);
             gameOverTitel.textContent = 'Neuer Rekord!';

@@ -1,6 +1,6 @@
 {
-    "version": "V7.55",
-    "letzteAenderung": "bugfix rekord speicherung im cookie",
+    "version": "V8.00",
+    "letzteAenderung": "Einführung Touch Steuerung für Handy",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,
