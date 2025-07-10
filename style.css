@@ -262,7 +262,7 @@ input:checked + .slider:before {
     width: 100%;
     max-width: 200px;
     gap: 5px;
-    margin-bottom: 15px; 
+    margin-bottom: 15px;
 }
 .joker-box {
     width: 45px;
