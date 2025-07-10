@@ -41,9 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile Steuerung Zustand
     let longPressTimer = null;
     let touchStartX, touchStartY, touchOffsetX, touchOffsetY;
-    let longPressDuration = 400; // Standardwert
-    let touchMoveTolerance = 15; // Standardwert
+    const longPressDuration = 400; 
+    const touchMoveTolerance = 15;
     let lastTap = 0;
+
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -89,6 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSpielfeld();
         generiereNeueFiguren();
         
+        wechsleZuNaechsterFigur();
+
         timerBar.style.setProperty('--timer-progress', '1');
     }
 
@@ -103,13 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
             spielConfig = await antwort.json();
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
-            
-            // Lade Touch-Einstellungen aus der Config
-            if (spielConfig.touchSettings) {
-                longPressDuration = spielConfig.touchSettings.longPressDuration || 400;
-                touchMoveTolerance = spielConfig.touchSettings.touchMoveTolerance || 15;
-            }
-
             anzahlJoker = getGameSetting('numberOfJokers');
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
@@ -436,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (istSpielVorbei()) {
             setTimeout(pruefeUndSpeichereRekord, 100);
-        } else if (!isTouchDevice) {
+        } else {
             wechsleZuNaechsterFigur();
         }
     }
@@ -527,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
