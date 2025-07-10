@@ -88,7 +88,6 @@ body.boss-key-aktiv::before {
     flex-direction: column;
     align-items: center;
     position: relative;
-    touch-action: none; /* Verhindert Scrollen auf dem gesamten Spielbereich */
 }
 
 /* Punkte-Animation */
@@ -157,22 +156,6 @@ body.boss-key-aktiv::before {
     line-height: 1.5;
     max-height: 60vh;
     overflow-y: auto;
-}
-
-.spende-bereich-modal {
-    text-align: center;
-    margin-top: 25px;
-    padding: 15px;
-    background-color: rgba(240, 240, 240, 0.8);
-    border-radius: 8px;
-}
-.spende-bereich-modal p {
-    margin: 0 0 10px 0;
-    font-size: 1em;
-}
-.spende-bereich-modal .qr-code {
-    width: 100px;
-    height: 100px;
 }
 
 /* Spiel-spezifische Elemente */
@@ -262,7 +245,7 @@ input:checked + .slider:before {
     width: 100%;
     max-width: 200px;
     gap: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 15px; /* Abstand zum Spielfeld */
 }
 .joker-box {
     width: 45px;
@@ -286,6 +269,7 @@ input:checked + .slider:before {
     background-color: rgba(248, 249, 250, 0.8);
     width: max-content;
     position: relative;
+    touch-action: none; /* Verhindert Scrollen beim Verschieben */
 }
 .zelle {
     width: 40px;
@@ -395,13 +379,13 @@ input:checked + .slider:before {
     border-radius: 8px;
     transition: all 0.2s;
 }
-.figur-slot:hover:not(:empty) {
+.figur-slot:hover {
     background-color: rgba(248, 249, 250, 0.8);
 }
 
 .aktiver-slot {
-    border-color: #FBBC04 !important;
-    border-style: solid !important;
+    border-color: #FBBC04;
+    border-style: solid;
     transform: scale(1.05);
 }
 
