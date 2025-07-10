@@ -1,5 +1,8 @@
 **Spielanleitung ZenPuzzle**
 
+**In der mobile Version muss man ganz unten anfassen, um auf der WebApp nach unten zu scrollen,
+um zB Rekord anzuschauen**
+
 **Ziel des Spiels:**
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
 
@@ -43,5 +46,5 @@ Du hast 3 Dreh-Joker (grüne Boxen). Jede erstmalige Drehung einer Figur verbrau
 
 ---
 
-**Figuren neu auslosen**
+**Figuren neu auslosen:**
 Das Tauschen der Figuren kostet je nach Spielmodus eine Anzahl von bereits erspielten Punkten.
