@@ -121,8 +121,14 @@ body.boss-key-aktiv::before {
 
 
 /* Linke und Rechte Spalte */
-.seiten-box {
+.links-container, .rechts-container {
     width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.seiten-box {
+    width: 100%;
     padding: 20px;
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 8px;
@@ -131,17 +137,11 @@ body.boss-key-aktiv::before {
     box-sizing: border-box;
     transition: opacity 0.3s ease-in-out;
 }
-.seiten-box.versteckt {
+#anleitung-container.versteckt {
     opacity: 0.5;
 }
 
 
-.rechts-container {
-    width: 280px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
 .paypal-box {
     background-color: transparent;
     box-shadow: none;
@@ -177,7 +177,7 @@ body.boss-key-aktiv::before {
     transition: all 0.3s ease;
     font-size: 0.9em;
     line-height: 1.5;
-    max-height: 485px;
+    max-height: 150px;
     overflow-y: auto;
 }
 .seiten-box.versteckt #anleitung-inhalt {
@@ -483,9 +483,11 @@ footer a:hover {
     z-index: 200;
     opacity: 0;
     transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 #game-over-container.sichtbar {
     opacity: 1;
+    pointer-events: all;
 }
 .versteckt {
     display: none !important;
@@ -551,9 +553,8 @@ footer a:hover {
         flex-direction: column;
         align-items: center;
     }
-    #anleitung-container {
-        margin-top: 0;
-        order: 2;
+    .links-container {
+        display: none;
     }
     .seiten-box, .rechts-container {
         width: 100%;

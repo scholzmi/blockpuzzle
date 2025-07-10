@@ -1,9 +1,9 @@
 {
-    "version": "V7.32",
+    "version": "V7.34",
     "letzteAenderung": "Wahrscheinlichkeiten pro Modus steuerbar",
     "gameSettings": {
         "normal": {
-            "timerDuration": 300,
+            "timerDuration": 180,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
             "refreshPenaltyPoints": 100,
@@ -11,18 +11,18 @@
             "zonkProbability": 0.03,
             "jokerProbability": 0.40,
             "jokerProbabilityReductionInterval": 10,
-            "jokerProbabilityMinimum": 0.05
+            "jokerProbabilityMinimum": 0.08
         },
         "hard": {
             "timerDuration": 30,
             "timerPenaltyCount": 2,
             "jokerPenaltyCount": 5,
-            "refreshPenaltyPoints": 200,
+            "refreshPenaltyPoints": 150,
             "numberOfJokers": 3,
-            "zonkProbability": 0.08,
+            "zonkProbability": 0.06,
             "jokerProbability": 0.30,
             "jokerProbabilityReductionInterval": 8,
-            "jokerProbabilityMinimum": 0.02
+            "jokerProbabilityMinimum": 0.03
         }
     },
     "colorThemes": {
