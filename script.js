@@ -446,11 +446,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleBoardMove(e, mitOffset = false) {
         if (!ausgewaehlteFigur) return;
         lastMausEvent = e;
-        if (mitOffset) {
-            letztesZiel = getZielKoordinatenMitOffset(e);
-        } else {
-            letztesZiel = getZielKoordinaten(e);
-        }
+    
+        // 1. Ursprüngliche Koordinaten ermitteln
+        let { x, y } = mitOffset ? getZielKoordinatenMitOffset(e) : getZielKoordinaten(e);
+    
+        // 2. Figurendimensionen und Offset holen
+        const figurHoehe = ausgewaehlteFigur.form.length;
+        const figurBreite = ausgewaehlteFigur.form[0].length;
+        const offsetX = Math.floor(figurBreite / 2);
+        const offsetY = Math.floor(figurHoehe / 2);
+    
+        // 3. Zielkoordinaten einschränken (clamping)
+        // Stellt sicher, dass die Figur links und oben nicht aus dem Brett ragt
+        x = Math.max(offsetX, x);
+        y = Math.max(offsetY, y);
+    
+        // Stellt sicher, dass die Figur rechts und unten nicht aus dem Brett ragt
+        x = Math.min(9 - figurBreite + offsetX, x);
+        y = Math.min(9 - figurHoehe + offsetY, y);
+    
+        // 4. Aktualisierte Zielposition speichern
+        letztesZiel = { x, y };
+    
+        // 5. Spielfeld und Vorschau neu zeichnen
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
     }
