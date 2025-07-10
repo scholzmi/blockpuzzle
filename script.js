@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleBoardMove(e);
     }
 
-    function handleTouchEnd(e) {
+    function handleTouchEnd() {
         clearTimeout(longPressTimer);
     }
 
@@ -336,9 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
-        if (isTouchDevice) {
-            rotateButton.classList.add('versteckt');
-        }
+        if (isTouchDevice) rotateButton.classList.add('versteckt');
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
@@ -369,21 +367,18 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
         
-        const alterSlotIndex = aktiverSlotIndex; // Wichtig: Index merken VOR dem Zurücksetzen
-        
-        // Zustand komplett zurücksetzen
+        const alterSlotIndex = aktiverSlotIndex; // Wichtig: Index vor dem Zurücksetzen merken
+
+        // Zustand zurücksetzen
+        figurenInSlots[alterSlotIndex] = null;
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false;
 
-        figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'default';
-
-        if (isTouchDevice) {
-            rotateButton.classList.add('versteckt');
-        }
+        if(isTouchDevice) rotateButton.classList.add('versteckt');
 
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
@@ -399,9 +394,15 @@ document.addEventListener('DOMContentLoaded', () => {
             punkteElement.textContent = punkte;
         }, 500);
 
-        if (figurenInSlots.every(f => f === null)) generiereNeueFiguren();
-        if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
-        else if (!isTouchDevice) wechsleZuNaechsterFigur();
+        if (figurenInSlots.every(f => f === null)) {
+            generiereNeueFiguren();
+        }
+
+        if (istSpielVorbei()) {
+            setTimeout(pruefeUndSpeichereRekord, 100);
+        } else if (!isTouchDevice) {
+            wechsleZuNaechsterFigur();
+        }
     }
 
     function handleBoardMove(e) {
