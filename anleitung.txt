@@ -1,13 +1,32 @@
+Absolut! Eine gute Anleitung ist entscheidend, besonders mit den neuen Gesten. Ich habe den Text überarbeitet und die Touch-Steuerung klar und verständlich ergänzt.
+
+Hier ist die aktualisierte Version der `anleitung.txt`.
+
+---
+
 **Spielanleitung ZenPuzzle**
 
 **Ziel des Spiels:**
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
 
-**Steuerung**
+---
+
+**Steuerung (PC)**
 * **Figur wechseln:** Bewege die Maus über das Spielfeld und nutze das **Mausrad**, um eine der verfügbaren Figuren auszuwählen.
-* **Platzieren:** Klicke auf eine freie Stelle auf dem Spielfeld.
-* **Drehen:** Wenn du eine Figur ausgewählt hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Dreh-Joker.
+* **Platzieren:** **Klicke** auf eine freie Stelle auf dem Spielfeld.
+* **Drehen:** Wenn du eine Figur ausgewählt hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen.
+* **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
+
+---
+
+**Steuerung (Touchscreen)**
+* **Figur auswählen:** **Tippe** auf eine der drei Figuren unten im Auswahlbereich.
+* **Figur bewegen:** Berühre das Spielfeld und **ziehe** die Figur an die gewünschte Position. Dein Finger kann dabei versetzt zur Figur sein, um die Sicht freizuhalten.
+* **Drehen:** Ein schneller **Doppel-Tipp** irgendwo auf dem Spielfeld dreht die Figur.
+* **Platzieren:** Um die Figur abzulegen, **halte den Finger für einen kurzen Moment ruhig** an der Zielposition. Ein kurzes Summen bestätigt das Ablegen.
+
+---
 
 **Punkte**
 * **Figuren:** Joker-Figuren zählen ihren einfachen, normale Figuren ihren doppelten und Zonk-Figuren ihren fünffachen Blockwert.
@@ -16,13 +35,19 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
     * **2 Reihen:** 80 Punkte
     * **3 Reihen:** 270 Punkte
 
+---
+
 **Spielmodi:**
 * **Normal:** Das klassische, entspannte Spiel mit Timer.
 * **Schwer:** Aktiviere den Schalter für eine zusätzliche Herausforderung mit kürzerem Timer und mehr Strafsteinen!
 * **Unsichtbare Pause:** Der Timer läuft erst, wenn du die erste Figur eines Zuges platziert hast.
 
+---
+
 **Dreh-Joker:**
-Du hast 3 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld!
+Du hast 3 Dreh-Joker (grüne Boxen). Jede erstmalige Drehung einer Figur verbraucht einen Joker. Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld!
+
+---
 
 **Figuren neu auslosen**
 Das Tauschen der Figuren kostet je nach Spielmodus eine Anzahl von bereits erspielten Punkten.
