@@ -1,5 +1,5 @@
 {
-    "version": "V8.19",
+    "version": "V8.20",
     "letzteAenderung": "Einführung Touch Steuerung für Handy",
     "gameSettings": {
         "normal": {
@@ -63,7 +63,8 @@
             { "name": "Punkt", "shape": [1], "color": "green", "symmetrisch": true },
             { "name": "I-3", "shape": [1, 2, 3], "color": "green", "symmetrisch": false },
             { "name": "Block 2x2", "shape": [1, 2, 6, 7], "color": "green", "symmetrisch": true },
-            { "name": "Joker I-2", "shape": [1, 2], "color": "green", "symmetrisch": false }
+            { "name": "Joker I-2", "shape": [1, 2], "color": "green", "symmetrisch": false },
+            { "name": "Square 5x5", "shape": [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 25], "color": "purple", "symmetrisch": true}
         ]
     }
 }
