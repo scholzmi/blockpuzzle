@@ -243,7 +243,9 @@ input:checked + .slider:before {
     display: flex;
     justify-content: space-around;
     width: 100%;
+    max-width: 200px;
     gap: 5px;
+    margin-bottom: 15px; /* Abstand zum Spielfeld */
 }
 .joker-box {
     width: 45px;
@@ -267,6 +269,7 @@ input:checked + .slider:before {
     background-color: rgba(248, 249, 250, 0.8);
     width: max-content;
     position: relative;
+    touch-action: none; /* Verhindert Scrollen beim Verschieben */
 }
 .zelle {
     width: 40px;

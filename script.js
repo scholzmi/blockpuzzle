@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, aktiverSlotIndex = -1, rundenZaehler = 0;
-    let letztesZiel = { x: -1, y: -1 }, verbrauchteJoker = 0;
+    let letztesZiel = { x: 4, y: 4 }, verbrauchteJoker = 0; // Start in der Mitte für Touch
     let hatFigurGedreht = false, penaltyAktiviert = false;
     let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
@@ -183,10 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isTouchDevice) {
             // === TOUCH STEUERUNG ===
+            rotateButton.classList.remove('versteckt'); // Drehen-Button permanent einblenden
+            
             figurenSlots.forEach((slot, index) => {
                 slot.addEventListener('click', () => waehleFigurMobile(index));
             });
             rotateButton.addEventListener('click', dreheFigurMobile);
+
             spielbrettElement.addEventListener('click', handleBoardClick);
             spielbrettElement.addEventListener('touchmove', handleBoardMove);
             spielbrettElement.addEventListener('touchstart', (e) => {
@@ -219,10 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
-
-        if(isTouchDevice) {
-            rotateButton.classList.remove('versteckt');
-        }
+        
+        // Figur in der Mitte des Spielfelds als Vorschau anzeigen
+        zeichneSpielfeld();
+        zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
     }
 
     function waehleFigurMobile(slotIndex) {
@@ -367,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
-        if(isTouchDevice) rotateButton.classList.add('versteckt');
     }
 
     function platziereFigur(figur, startX, startY) {
@@ -416,6 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleBoardMove(e) {
+        if (isTouchDevice && ausgewaehlteFigur) {
+            e.preventDefault(); // Verhindert das Scrollen der Seite bei Touch
+        }
         if (!e || !ausgewaehlteFigur) return;
         lastMausEvent = e;
         letztesZiel = getZielKoordinaten(e);
