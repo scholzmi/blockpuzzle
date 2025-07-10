@@ -37,10 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
     let anzahlJoker;
     const isTouchDevice = 'ontouchstart' in window;
-    let longPressTimer = null;
-    let touchStartX, touchStartY;
-    const longPressDuration = 500;
-    const touchMoveTolerance = 10; // 10px Toleranz
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -175,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
             figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigurMobile(index)));
             rotateButton.addEventListener('click', dreheFigurMobile);
-            spielbrettElement.addEventListener('touchstart', handleTouchStart);
-            spielbrettElement.addEventListener('touchmove', handleTouchMove);
-            spielbrettElement.addEventListener('touchend', handleTouchEnd);
+            spielbrettElement.addEventListener('touchstart', handleBoardMove);
+            spielbrettElement.addEventListener('touchmove', handleBoardMove);
+            spielbrettElement.addEventListener('click', handleBoardClick); 
         } else {
             spielbrettElement.addEventListener('mouseenter', handleBoardEnter);
             spielbrettElement.addEventListener('click', handleBoardClick);
@@ -186,37 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll);
             spielbrettElement.addEventListener('contextmenu', dreheFigurPC);
         }
-    }
-
-    // ===================================================================================
-    // TOUCH-SPEZIFISCHE HANDLER
-    // ===================================================================================
-
-    function handleTouchStart(e) {
-        if (!ausgewaehlteFigur) return;
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        clearTimeout(longPressTimer);
-        handleBoardMove(e);
-        longPressTimer = setTimeout(() => {
-            platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-        }, longPressDuration);
-    }
-    
-    function handleTouchMove(e) {
-        if (!ausgewaehlteFigur) return;
-        const touchX = e.touches[0].clientX;
-        const touchY = e.touches[0].clientY;
-        const diffX = Math.abs(touchX - touchStartX);
-        const diffY = Math.abs(touchY - touchStartY);
-        if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
-            clearTimeout(longPressTimer);
-        }
-        handleBoardMove(e);
-    }
-
-    function handleTouchEnd() {
-        clearTimeout(longPressTimer);
     }
 
     // ===================================================================================
@@ -327,7 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function abbrechen() {
-        clearTimeout(longPressTimer);
         if (!ausgewaehlteFigur) return;
         if (hatFigurGedreht) {
             verbrauchteJoker--;
@@ -367,32 +331,29 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
         
-        const alterSlotIndex = aktiverSlotIndex; // Wichtig: Index vor dem Zurücksetzen merken
-
-        // Zustand zurücksetzen
-        figurenInSlots[alterSlotIndex] = null;
-        aktiverSlotIndex = -1;
-        ausgewaehlteFigur = null;
-        hatFigurGedreht = false;
-
-        zeichneFigurInSlot(alterSlotIndex);
-        zeichneSlotHighlights();
-        spielbrettElement.style.cursor = 'default';
-        if(isTouchDevice) rotateButton.classList.add('versteckt');
-
+        const alterSlotIndex = aktiverSlotIndex;
+        
+        if (hatFigurGedreht && !figur.symmetrisch) {
+            penaltyAktiviert = verbrauchteJoker >= anzahlJoker;
+        }
+        
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
             zeichneJokerLeiste();
             penaltyAktiviert = false;
         }
+
         const linienPunkte = leereVolleLinien();
         const gesamtPunkteGewinn = figurenPunkte + linienPunkte;
         zeigePunkteAnimation(gesamtPunkteGewinn);
-        setTimeout(() => {
-            punkte += gesamtPunkteGewinn;
-            punkteElement.textContent = punkte;
-        }, 500);
+        
+        punkte += gesamtPunkteGewinn;
+        punkteElement.textContent = punkte;
+
+        figurenInSlots[alterSlotIndex] = null;
+        zeichneFigurInSlot(alterSlotIndex);
+        abbrechen();
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
@@ -415,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleBoardClick(e) {
-        if (!ausgewaehlteFigur || isTouchDevice) return;
+        if (!ausgewaehlteFigur) return;
         platziereFigur(ausgewaehlteFigur, getZielKoordinaten(e).x, getZielKoordinaten(e).y);
     }
     
@@ -488,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
