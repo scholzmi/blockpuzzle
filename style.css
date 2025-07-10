@@ -380,7 +380,7 @@ input:checked + .slider:before {
     transition: all 0.2s;
 }
 .figur-slot:hover {
-    background-color: rgba(248, 249, 250, 0.8);
+    background-color: transparent; /* Sichergestellt, dass kein Hintergrund bei Hover erscheint */
 }
 
 .aktiver-slot {
