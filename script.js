@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
     let anzahlJoker;
     const isTouchDevice = 'ontouchstart' in window;
+    let isDragging = false;
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -170,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
             figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigur(index)));
             rotateButton.addEventListener('click', dreheFigurMobile);
-            spielbrettElement.addEventListener('touchstart', handleBoardMove);
-            spielbrettElement.addEventListener('touchmove', handleBoardMove);
-            spielbrettElement.addEventListener('click', handleBoardClick); 
+            spielbrettElement.addEventListener('touchstart', handleTouchStart);
+            spielbrettElement.addEventListener('touchmove', handleTouchMove);
+            spielbrettElement.addEventListener('touchend', handleTouchEnd);
         } else {
             spielbrettElement.addEventListener('mouseenter', handleBoardEnter);
             spielbrettElement.addEventListener('click', handleBoardClick);
@@ -181,6 +182,30 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.addEventListener('wheel', wechsleFigurPerScroll);
             spielbrettElement.addEventListener('contextmenu', dreheFigurPC);
         }
+    }
+
+    // ===================================================================================
+    // TOUCH-SPEZIFISCHE HANDLER
+    // ===================================================================================
+
+    function handleTouchStart(e) {
+        if (!ausgewaehlteFigur) return;
+        isDragging = false;
+    }
+    
+    function handleTouchMove(e) {
+        if (!ausgewaehlteFigur) return;
+        e.preventDefault();
+        isDragging = true;
+        handleBoardMove(e);
+    }
+
+    function handleTouchEnd(e) {
+        if (!ausgewaehlteFigur) return;
+        if (!isDragging) {
+             handleBoardClick(e);
+        }
+        isDragging = false;
     }
 
     // ===================================================================================
@@ -356,13 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        aktiverSlotIndex = -1;
-        ausgewaehlteFigur = null;
-        hatFigurGedreht = false;
-        if (isTouchDevice) rotateButton.classList.add('versteckt');
-        zeichneSlotHighlights();
-        zeichneSpielfeld();
-        spielbrettElement.style.cursor = 'default';
+        abbrechen();
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
@@ -458,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
