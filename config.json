@@ -1,25 +1,29 @@
 {
-    "version": "V7.07",
-    "letzteAenderung": "nicht verzagen, gemini fragen",
+    "version": "V7.20",
+    "letzteAenderung": "Wahrscheinlichkeiten pro Modus steuerbar",
     "gameSettings": {
         "normal": {
             "timerDuration": 300,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
-            "refreshPenaltyPoints": 100
+            "refreshPenaltyPoints": 100,
+            "numberOfJokers": 3,
+            "zonkProbability": 0.03,
+            "jokerProbability": 0.40,
+            "jokerProbabilityReductionInterval": 10,
+            "jokerProbabilityMinimum": 0.05
         },
         "hard": {
             "timerDuration": 30,
             "timerPenaltyCount": 2,
             "jokerPenaltyCount": 5,
-            "refreshPenaltyPoints": 200
+            "refreshPenaltyPoints": 200,
+            "numberOfJokers": 3,
+            "zonkProbability": 0.08,
+            "jokerProbability": 0.30,
+            "jokerProbabilityReductionInterval": 8,
+            "jokerProbabilityMinimum": 0.02
         }
-    },
-    "probabilities": {
-        "zonk": 0.03,
-        "joker": 0.40,
-        "jokerProbabilityReductionInterval": 10,
-        "jokerProbabilityMinimum": 0.05
     },
     "colorThemes": {
         "default": { "placed": "#4285F4", "preview": "rgba(66, 133, 244, 0.5)" },

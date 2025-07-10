@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const versionElement = document.getElementById('version-impressum');
     const aenderungsElement = document.getElementById('letzte-aenderung');
     const figurenSlots = document.querySelectorAll('.figur-slot');
-    const jokerBoxen = document.querySelectorAll('.joker-box');
+    const jokerBoxenContainer = document.getElementById('dreh-joker-leiste');
     const anleitungContainer = document.getElementById('anleitung-container');
     const anleitungInhalt = document.getElementById('anleitung-inhalt');
     const anleitungToggleIcon = document.getElementById('anleitung-toggle-icon');
@@ -23,9 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const neustartSchwerBtn = document.getElementById('neustart-schwer-btn');
     const originalerTitel = document.title;
 
-    // === Konstanten ===
-    const BREITE = 9, HOEHE = 9, MAX_FIGUR_GROESSE = 5, ANZAHL_JOKER = 5;
-    
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, aktiverSlotIndex = -1, rundenZaehler = 0;
@@ -34,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
     let lastMausEvent = null;
+    let anzahlJoker;
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -43,8 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     async function spielStart(neustartBestaetigen = false) {
-        if (neustartBestaetigen) {
-            // Logik entfernt, da jetzt über Game-Over-Screen gesteuert
+        if (neustartBestaetigen && punkte > 0) {
+            if (!confirm("Modus wechseln? Das aktuelle Spiel wird beendet und ein neues gestartet.")) {
+                hardModeSchalter.checked = !hardModeSchalter.checked;
+                return;
+            }
         }
         stopTimer();
         istHardMode = hardModeSchalter.checked;
@@ -77,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (getCookie('anleitungVersteckt') === 'true') anleitungContainer.classList.add('versteckt');
 
+        erstelleJokerLeiste();
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
@@ -98,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
             
+            anzahlJoker = getGameSetting('numberOfJokers');
+
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
             spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
@@ -139,13 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
 
-        window.addEventListener('beforeunload', (e) => {
-            if (punkte > 0) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
-
         spielbrettElement.addEventListener('mouseenter', spielbrettBetreten);
         spielbrettElement.addEventListener('click', klickAufBrett);
         spielbrettElement.addEventListener('mousemove', mausBewegungAufBrett);
@@ -155,11 +152,11 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (ausgewaehlteFigur) {
                 if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
-                    if (verbrauchteJoker >= ANZAHL_JOKER) return;
+                    if (verbrauchteJoker >= anzahlJoker) return;
                     verbrauchteJoker++;
                     hatFigurGedreht = true;
                     zeichneJokerLeiste();
-                    if (verbrauchteJoker >= ANZAHL_JOKER) {
+                    if (verbrauchteJoker >= anzahlJoker) {
                         penaltyAktiviert = true;
                     }
                 }
@@ -167,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mausBewegungAufBrett(e);
             }
         });
-        hardModeSchalter.addEventListener('change', () => spielStart());
+        hardModeSchalter.addEventListener('change', () => spielStart(true));
         if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
                 const istVersteckt = anleitungContainer.classList.toggle('versteckt');
@@ -248,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
         
         aktiverSlotIndex = verfuegbareIndices[neuePosition];
-        ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
+        ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
 
         zeichneSlotHighlights();
@@ -262,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (naechsterIndex !== -1) {
             aktiverSlotIndex = naechsterIndex;
-            ausgewaehlteFigur = figurenInSlots[aktiverSlotIndex];
+            ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
             hatFigurGedreht = false;
             spielbrettElement.style.cursor = 'none';
         } else {
@@ -288,9 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function figurenNeuAuslosen() {
-        if (verbrauchteJoker >= ANZAHL_JOKER) return;
         abbrechen();
-        
         const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
         
         zeigePunkteAnimation(-penaltyPoints);
@@ -300,27 +295,20 @@ document.addEventListener('DOMContentLoaded', () => {
             punkteElement.textContent = punkte;
         }, 500);
 
-        verbrauchteJoker++;
-        zeichneJokerLeiste();
-
-        if (verbrauchteJoker >= ANZAHL_JOKER) {
-            aktiviereJokerPenalty();
-            verbrauchteJoker = 0;
-            zeichneJokerLeiste();
-            penaltyAktiviert = false;
-        }
         generiereNeueFiguren();
     }
 
     function generiereNeueFiguren() {
         rundenZaehler++;
-        const probs = spielConfig.probabilities || {};
-        const jokerProb = probs.joker || 0.20;
-        const zonkProb = probs.zonk || 0.05;
-        const reductionInterval = probs.jokerProbabilityReductionInterval || 5;
-        const minimumJokerProb = probs.jokerProbabilityMinimum || 0.03;
+        
+        const jokerProb = getGameSetting('jokerProbability');
+        const zonkProb = getGameSetting('zonkProbability');
+        const reductionInterval = getGameSetting('jokerProbabilityReductionInterval');
+        const minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
+
         const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
         const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
+        
         for (let i = 0; i < 3; i++) {
             let zufallsFigur = null;
             let kategorie = 'normal';
@@ -621,6 +609,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function erstelleJokerLeiste() {
+        jokerBoxenContainer.innerHTML = '';
+        for (let i = 0; i < anzahlJoker; i++) {
+            const jokerBox = document.createElement('div');
+            jokerBox.classList.add('joker-box');
+            jokerBoxenContainer.appendChild(jokerBox);
+        }
+    }
+
+    function zeichneJokerLeiste() {
+        const jokerBoxen = jokerBoxenContainer.children;
+        for (let i = 0; i < jokerBoxen.length; i++) {
+            if (i < verbrauchteJoker) {
+                jokerBoxen[i].classList.add('verbraucht');
+                jokerBoxen[i].classList.remove('voll');
+            } else {
+                jokerBoxen[i].classList.add('voll');
+                jokerBoxen[i].classList.remove('verbraucht');
+            }
+        }
+    }
+
     function zeichneFigurInSlot(index) {
         const slot = figurenSlots[index];
         slot.innerHTML = '';
@@ -644,19 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.appendChild(container);
         }
     }
-    function zeichneJokerLeiste() {
-        jokerBoxen.forEach((box, index) => {
-            if (index < verbrauchteJoker) {
-                box.classList.add('verbraucht');
-                box.classList.remove('voll');
-            } else {
-                box.classList.add('voll');
-                box.classList.remove('verbraucht');
-            }
-        });
-        refreshFigurenButton.disabled = verbrauchteJoker >= ANZAHL_JOKER;
-    }
-
+    
     function aktiviereJokerPenalty() {
         const anzahl = getGameSetting('jokerPenaltyCount');
         platziereStrafsteine(anzahl);
