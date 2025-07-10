@@ -262,7 +262,7 @@ input:checked + .slider:before {
     width: 100%;
     max-width: 200px;
     gap: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 15px; 
 }
 .joker-box {
     width: 45px;
@@ -292,7 +292,7 @@ input:checked + .slider:before {
     height: 40px;
     border: 1px solid #E0E0E0;
     box-sizing: border-box;
-    transition: background-color: 0.1s;
+    transition: background-color 0.1s;
 }
 .belegt {
     border: 1px solid rgba(0, 0, 0, 0.2);
@@ -400,7 +400,7 @@ input:checked + .slider:before {
 }
 
 .aktiver-slot {
-    border-color: #FBBC04 !important; /* Wichtiger, um das gestrichelte zu überschreiben */
+    border-color: #FBBC04 !important;
     border-style: solid !important;
     transform: scale(1.05);
 }

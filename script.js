@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile Steuerung Zustand
     let longPressTimer = null;
     let touchStartX, touchStartY, touchOffsetX, touchOffsetY;
-    let longPressDuration = 400; 
-    let touchMoveTolerance = 15;
+    const longPressDuration = 400; 
+    const touchMoveTolerance = 15;
     let lastTap = 0;
 
     // === Konfiguration ===
@@ -263,10 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     
     function waehleFigur(slotIndex) {
-        if (slotIndex < 0 || !figurenInSlots[slotIndex]) {
-            return; 
-        }
-
         if (aktiverSlotIndex === slotIndex) {
             abbrechen();
             return;
@@ -275,6 +271,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hatFigurGedreht) {
             verbrauchteJoker--;
             zeichneJokerLeiste();
+        }
+
+        if (slotIndex < 0 || slotIndex > 2 || !figurenInSlots[slotIndex]) {
+            abbrechen();
+            return;
         }
 
         aktiverSlotIndex = slotIndex;
@@ -370,9 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
-        else if (isTouchDevice) {
-            wechsleZuNaechsterFigur();
-        }
     }
 
     function abbrechen() {
@@ -433,14 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        // Zustand nach dem Platzieren korrekt zurücksetzen
-        aktiverSlotIndex = -1;
-        ausgewaehlteFigur = null;
-        hatFigurGedreht = false; 
-        if (isTouchDevice) rotateButton.style.display = 'none';
-        zeichneSlotHighlights();
-        zeichneSpielfeld();
-        spielbrettElement.style.cursor = 'default';
+        abbrechen();
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
