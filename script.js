@@ -8,9 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const aenderungsElement = document.getElementById('letzte-aenderung');
     const figurenSlots = document.querySelectorAll('.figur-slot');
     const jokerBoxenContainer = document.getElementById('dreh-joker-leiste');
-    const anleitungContainer = document.getElementById('anleitung-container');
-    const anleitungInhalt = document.getElementById('anleitung-inhalt');
-    const anleitungToggleIcon = document.getElementById('anleitung-toggle-icon');
     const hardModeSchalter = document.getElementById('hard-mode-schalter');
     const hardModeLabel = document.getElementById('hard-mode-label');
     const timerBar = document.getElementById('timer-bar');
@@ -24,7 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmContainer = document.getElementById('confirm-container');
     const confirmJaBtn = document.getElementById('confirm-ja-btn');
     const confirmNeinBtn = document.getElementById('confirm-nein-btn');
-    const originalerTitel = document.title;
+    
+    // Elemente für das neue Anleitungs-Modal
+    const anleitungModalContainer = document.getElementById('anleitung-modal-container');
+    const anleitungModalInhalt = document.getElementById('anleitung-modal-inhalt');
+    const anleitungLink = document.getElementById('anleitung-link');
+    const anleitungSchliessenBtn = document.getElementById('anleitung-schliessen-btn');
 
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
@@ -72,15 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         lastMausEvent = null;
-        
-        // Stellt den Zustand der Anleitung wieder her oder klappt sie beim ersten Mal zu
-        if (getCookie('anleitungZugeklappt') !== 'false') {
-            anleitungContainer.classList.add('zugeklappt');
-            anleitungContainer.style.opacity = '0.5';
-        } else {
-            anleitungContainer.classList.remove('zugeklappt');
-            anleitungContainer.style.opacity = '1';
-        }
 
         erstelleJokerLeiste();
         zeichneJokerLeiste();
@@ -126,14 +119,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function ladeAnleitung() {
-        if (!anleitungInhalt) return;
+        if (!anleitungModalInhalt) return;
         try {
             const antwort = await fetch('anleitung.txt?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error('Anleitung nicht gefunden');
             const text = await antwort.text();
-            anleitungInhalt.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            anleitungModalInhalt.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
         } catch (error) {
-            anleitungInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
+            anleitungModalInhalt.textContent = 'Anleitung konnte nicht geladen werden.';
         }
     }
 
@@ -190,20 +183,21 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmContainer.classList.remove('sichtbar');
         });
 
-        if (anleitungToggleIcon) {
-            anleitungToggleIcon.addEventListener('click', () => {
-                anleitungContainer.classList.toggle('zugeklappt');
-                const istJetztZugeklappt = anleitungContainer.classList.contains('zugeklappt');
-                
-                if (istJetztZugeklappt) {
-                    anleitungContainer.style.opacity = '0.5';
-                } else {
-                    anleitungContainer.style.opacity = '1';
-                }
-                
-                setCookie('anleitungZugeklappt', istJetztZugeklappt, 365);
+        // Event Listeners für das neue Modal
+        if (anleitungLink) {
+            anleitungLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                anleitungModalContainer.classList.add('sichtbar');
+                anleitungModalContainer.classList.remove('versteckt');
             });
         }
+        if (anleitungSchliessenBtn) {
+            anleitungSchliessenBtn.addEventListener('click', () => {
+                anleitungModalContainer.classList.add('versteckt');
+                anleitungModalContainer.classList.remove('sichtbar');
+            });
+        }
+
         if (refreshFigurenButton) {
             refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         }
