@@ -38,7 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let anzahlJoker;
     const isTouchDevice = 'ontouchstart' in window;
     let longPressTimer = null;
-    const longPressDuration = 500; // 500ms für langes Drücken
+    let touchStartX, touchStartY;
+    const longPressDuration = 500;
+    const touchMoveTolerance = 10; // 10px Toleranz
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -51,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stopTimer();
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
+        abbrechen();
 
         const configGeladen = await ladeKonfiguration();
         if (!configGeladen) {
@@ -73,8 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hatFigurGedreht = false;
         penaltyAktiviert = false;
         ersterZugGemacht = false;
-        aktiverSlotIndex = -1;
-        ausgewaehlteFigur = null;
         lastMausEvent = null;
 
         erstelleJokerLeiste();
@@ -95,17 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const antwort = await fetch('config.json?v=' + new Date().getTime());
             if (!antwort.ok) throw new Error(`Netzwerk-Antwort war nicht ok`);
             spielConfig = await antwort.json();
-
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
-            
             anzahlJoker = getGameSetting('numberOfJokers');
-
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
             spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
             spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker);
-
             if (spielConfig.figures.normalPool.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
             return true;
         } catch (error) {
@@ -137,69 +134,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     function eventListenerZuweisen() {
-        // Allgemeine Listener, die immer gelten
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
         hardModeSchalter.addEventListener('change', () => {
-            if (punkte > 0) {
-                confirmContainer.classList.add('sichtbar');
-                confirmContainer.classList.remove('versteckt');
-            } else {
-                spielStart();
-            }
+            if (punkte > 0) confirmContainer.classList.add('sichtbar'), confirmContainer.classList.remove('versteckt');
+            else spielStart();
         });
         confirmJaBtn.addEventListener('click', () => {
-            confirmContainer.classList.add('versteckt');
-            confirmContainer.classList.remove('sichtbar');
+            confirmContainer.classList.add('versteckt'), confirmContainer.classList.remove('sichtbar');
             spielStart();
         });
         confirmNeinBtn.addEventListener('click', () => {
             hardModeSchalter.checked = !hardModeSchalter.checked;
-            confirmContainer.classList.add('versteckt');
-            confirmContainer.classList.remove('sichtbar');
+            confirmContainer.classList.add('versteckt'), confirmContainer.classList.remove('sichtbar');
         });
         anleitungLink.addEventListener('click', (e) => {
             e.preventDefault();
-            anleitungModalContainer.classList.add('sichtbar');
-            anleitungModalContainer.classList.remove('versteckt');
+            anleitungModalContainer.classList.add('sichtbar'), anleitungModalContainer.classList.remove('versteckt');
         });
         anleitungSchliessenBtn.addEventListener('click', () => {
-            anleitungModalContainer.classList.add('versteckt');
-            anleitungModalContainer.classList.remove('sichtbar');
+            anleitungModalContainer.classList.add('versteckt'), anleitungModalContainer.classList.remove('sichtbar');
         });
         refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         neustartNormalBtn.addEventListener('click', () => {
             hardModeSchalter.checked = false;
-            gameOverContainer.classList.add('versteckt');
-            gameOverContainer.classList.remove('sichtbar');
+            gameOverContainer.classList.add('versteckt'), gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
         neustartSchwerBtn.addEventListener('click', () => {
             hardModeSchalter.checked = true;
-            gameOverContainer.classList.add('versteckt');
-            gameOverContainer.classList.remove('sichtbar');
+            gameOverContainer.classList.add('versteckt'), gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
 
         if (isTouchDevice) {
-            // === TOUCH STEUERUNG ===
-            rotateButton.classList.remove('versteckt'); // Drehen-Button permanent einblenden
+            rotateButton.classList.remove('versteckt');
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
-            
-            figurenSlots.forEach((slot, index) => {
-                slot.addEventListener('click', () => waehleFigurMobile(index));
-            });
+            figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigurMobile(index)));
             rotateButton.addEventListener('click', dreheFigurMobile);
-
             spielbrettElement.addEventListener('touchstart', handleTouchStart);
             spielbrettElement.addEventListener('touchmove', handleTouchMove);
             spielbrettElement.addEventListener('touchend', handleTouchEnd);
-
         } else {
-            // === MAUS STEUERUNG (PC) ===
             spielbrettElement.addEventListener('mouseenter', handleBoardEnter);
             spielbrettElement.addEventListener('click', handleBoardClick);
             spielbrettElement.addEventListener('mousemove', handleBoardMove);
@@ -215,22 +194,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleTouchStart(e) {
         if (!ausgewaehlteFigur) return;
-        
-        clearTimeout(longPressTimer); // Alten Timer löschen
-        handleBoardMove(e); // Position aktualisieren
-        
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        clearTimeout(longPressTimer);
+        handleBoardMove(e);
         longPressTimer = setTimeout(() => {
             platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
         }, longPressDuration);
     }
     
     function handleTouchMove(e) {
-        clearTimeout(longPressTimer); // Timer abbrechen, da bewegt wird
+        if (!ausgewaehlteFigur) return;
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const diffX = Math.abs(touchX - touchStartX);
+        const diffY = Math.abs(touchY - touchStartY);
+        if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
+            clearTimeout(longPressTimer);
+        }
         handleBoardMove(e);
     }
 
     function handleTouchEnd(e) {
-        clearTimeout(longPressTimer); // Timer abbrechen, da losgelassen
+        clearTimeout(longPressTimer);
     }
 
     // ===================================================================================
@@ -242,29 +228,22 @@ document.addEventListener('DOMContentLoaded', () => {
             abbrechen();
             return;
         }
-
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
-        
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
-        
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
     }
 
     function waehleFigurMobile(slotIndex) {
-        if (aktiverSlotIndex === slotIndex) {
-            abbrechen();
-        } else {
-            waehleFigur(slotIndex);
-        }
+        if (aktiverSlotIndex === slotIndex) abbrechen();
+        else waehleFigur(slotIndex);
     }
     
     function dreheAktiveFigur() {
         if (!ausgewaehlteFigur) return;
-        
         if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
             if (verbrauchteJoker >= anzahlJoker) return;
             verbrauchteJoker++;
@@ -275,43 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ausgewaehlteFigur.form = dreheFigur90Grad(ausgewaehlteFigur.form);
     }
 
-    function dreheFigurPC(e) {
-        e.preventDefault();
-        dreheAktiveFigur();
-        handleBoardMove(e);
-    }
+    function dreheFigurPC(e) { e.preventDefault(); dreheAktiveFigur(); handleBoardMove(e); }
+    function dreheFigurMobile() { dreheAktiveFigur(); zeichneSpielfeld(); zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y); }
+    function handleBoardEnter(e) { if (!ausgewaehlteFigur) wechsleZuNaechsterFigur(); handleBoardMove(e); }
+    function handleBoardLeave() { if (ausgewaehlteFigur) zeichneSpielfeld(); }
     
-    function dreheFigurMobile() {
-        dreheAktiveFigur();
-        zeichneSpielfeld();
-        zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-    }
-
-    function zeigePunkteAnimation(wert) {
-        if (!punkteAnimationElement || wert === 0) return;
-        punkteAnimationElement.classList.remove('animieren');
-        void punkteAnimationElement.offsetWidth;
-        const text = wert > 0 ? `+${wert}` : wert;
-        const farbe = wert > 0 ? '#34A853' : '#EA4335';
-        punkteAnimationElement.textContent = text;
-        punkteAnimationElement.style.color = farbe;
-        const brettRect = spielbrettElement.getBoundingClientRect();
-        const randX = brettRect.width * 0.2 + Math.random() * brettRect.width * 0.6;
-        const randY = brettRect.height * 0.1 + Math.random() * brettRect.height * 0.2;
-        punkteAnimationElement.style.left = `${randX}px`;
-        punkteAnimationElement.style.top = `${randY}px`;
-        punkteAnimationElement.classList.add('animieren');
-    }
-
-    function handleBoardEnter(e) {
-        if (!ausgewaehlteFigur) wechsleZuNaechsterFigur();
-        handleBoardMove(e);
-    }
-    
-    function handleBoardLeave() {
-        if (ausgewaehlteFigur) zeichneSpielfeld();
-    }
-
     function wechsleFigurPerScroll(e) {
         e.preventDefault();
         if (!ausgewaehlteFigur) return;
@@ -335,9 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function zeichneSlotHighlights() {
-        figurenSlots.forEach((slot, index) => {
-            slot.classList.toggle('aktiver-slot', index === aktiverSlotIndex);
-        });
+        figurenSlots.forEach((slot, index) => slot.classList.toggle('aktiver-slot', index === aktiverSlotIndex));
     }
 
     function figurenNeuAuslosen() {
@@ -382,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function abbrechen() {
+        clearTimeout(longPressTimer);
         if (!ausgewaehlteFigur) return;
         if (hatFigurGedreht) {
             verbrauchteJoker--;
@@ -396,21 +342,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function platziereFigur(figur, startX, startY) {
-        if (!figur) return; // Verhindert Fehler bei schnellem Touchen
+        if (!figur) return;
+        const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
+        const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
+        const platziereX = startX - offsetX, platziereY = startY - offsetY;
+        if (!kannPlatzieren(figur, platziereX, platziereY)) return;
         if (!ersterZugGemacht) {
             ersterZugGemacht = true;
             startTimer();
         } else if (!timerInterval) {
             startTimer();
         }
-        const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
-        const platziereX = startX - offsetX, platziereY = startY - offsetY;
-        if (!kannPlatzieren(figur, platziereX, platziereY)) return;
-
-        // Haptic Feedback
         if (navigator.vibrate) navigator.vibrate(50);
-
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
             if (block === 1) spielbrett[platziereY + y][platziereX + x] = figur.color;
         }));
@@ -419,10 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (figur.kategorie === 'normal') punktMultiplier = 2;
         else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
-        
         figurenInSlots[aktiverSlotIndex] = null;
         zeichneFigurInSlot(aktiverSlotIndex);
-        
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
@@ -436,9 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             punkte += gesamtPunkteGewinn;
             punkteElement.textContent = punkte;
         }, 500);
-
         abbrechen();
-
         if (figurenInSlots.every(f => f === null)) generiereNeueFiguren();
         if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
         else if (!isTouchDevice) wechsleZuNaechsterFigur();
@@ -455,74 +394,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleBoardClick(e) {
         if (!ausgewaehlteFigur || isTouchDevice) return;
-        const ziel = getZielKoordinaten(e);
-        platziereFigur(ausgewaehlteFigur, ziel.x, ziel.y);
+        platziereFigur(ausgewaehlteFigur, getZielKoordinaten(e).x, getZielKoordinaten(e).y);
     }
-
-    function toggleBossKey() {
-        document.body.classList.toggle('boss-key-aktiv');
-        if (document.body.classList.contains('boss-key-aktiv')) {
-            stopTimer();
-            abbrechen();
-        } else {
-            resumeTimer();
-        }
-    }
-
-    function startTimer() {
-        const timerDuration = getGameSetting('timerDuration');
-        verbleibendeZeit = timerDuration;
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            verbleibendeZeit--;
-            const progress = (verbleibendeZeit / timerDuration);
-            timerBar.style.setProperty('--timer-progress', `${progress}`);
-            if (verbleibendeZeit <= 0) {
-                platziereStrafsteine(getGameSetting('timerPenaltyCount'));
-                stopTimer();
-                timerBar.style.setProperty('--timer-progress', '1');
-            }
-        }, 1000);
-    }
-
-    function stopTimer() {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-
-    function resumeTimer() {
-        if (ersterZugGemacht && !timerInterval) startTimer();
-    }
-
+    
+    function toggleBossKey() { document.body.classList.toggle('boss-key-aktiv'); if (document.body.classList.contains('boss-key-aktiv')) { stopTimer(); abbrechen(); } else { resumeTimer(); } }
+    function startTimer() { const timerDuration = getGameSetting('timerDuration'); verbleibendeZeit = timerDuration; if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(() => { verbleibendeZeit--; const progress = (verbleibendeZeit / timerDuration); timerBar.style.setProperty('--timer-progress', `${progress}`); if (verbleibendeZeit <= 0) { platziereStrafsteine(getGameSetting('timerPenaltyCount')); stopTimer(); timerBar.style.setProperty('--timer-progress', '1'); } }, 1000); }
+    function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+    function resumeTimer() { if (ersterZugGemacht && !timerInterval) startTimer(); }
+    
     function platziereStrafsteine(anzahl) {
         const leereZellen = [];
         spielbrett.forEach((reihe, y) => reihe.forEach((zelle, x) => { if (zelle === 0) leereZellen.push({ x, y }); }));
         leereZellen.sort(() => 0.5 - Math.random());
         const anzahlZuPlatzieren = Math.min(anzahl, leereZellen.length);
-        for (let i = 0; i < anzahlZuPlatzieren; i++) {
-            spielbrett[leereZellen[i].y][leereZellen[i].x] = 'blocker';
-        }
+        for (let i = 0; i < anzahlZuPlatzieren; i++) spielbrett[leereZellen[i].y][leereZellen[i].x] = 'blocker';
         zeichneSpielfeld();
     }
-
-    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0)); let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / 5); const col = (coord - 1) % 5; if (row < 5 && col < 5) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if (maxRow === -1) return []; const croppedMatrix = []; for (let y = minRow; y <= maxRow; y++) { croppedMatrix.push(tempMatrix[y].slice(minCol, maxCol + 1)); } return croppedMatrix; }
-    function dreheFigur90Grad(matrix) { const transponiert = matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])); return transponiert.map(row => row.reverse()); }
-    function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm, color: figurSlot.color }; for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) if (kannPlatzieren(tempFigur, x, y)) return false; aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
+    
+    function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0)); let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / 5); const col = (coord - 1) % 5; if (row < 5 && col < 5) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if (maxRow === -1) return []; return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1)); }
+    function dreheFigur90Grad(matrix) { return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse()); }
+    function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm }; for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) if (kannPlatzieren(tempFigur, x, y)) return false; aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= 9 || bY < 0 || bY >= 9 || spielbrett[bY][bX] !== 0) return false; } } } return true; }
     
     function leereVolleLinien() {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (spielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) {
-            let spalteVoll = true;
-            for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; }
-            if (spalteVoll) vS.push(x);
-        }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         const linien = vR.length + vS.length;
-        if (linien > 0) {
-            vR.forEach(y => spielbrett[y].fill(0));
-            vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0));
-        }
+        if (linien > 0) { vR.forEach(y => spielbrett[y].fill(0)); vS.forEach(x => spielbrett.forEach(reihe => reihe[x] = 0)); }
         zeichneSpielfeld();
         return Math.pow(linien, 3) * 10;
     }
@@ -550,9 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
         if (kannFigurPlatzieren) {
             const tempSpielbrett = spielbrett.map(row => [...row]);
-            figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
-                if (block === 1) { const bY = platziereY + y, bX = platziereX + x; if (bY < 9 && bX < 9) tempSpielbrett[bY][bX] = 1; }
-            }));
+            figur.form.forEach((reihe, y) => reihe.forEach((block, x) => { if (block === 1) { const bY = platziereY + y, bX = platziereX + x; if (bY < 9 && bX < 9) tempSpielbrett[bY][bX] = 1; } }));
             zeichneLinienVorschau(tempSpielbrett);
         }
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
@@ -569,74 +466,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) {
-            let spalteVoll = true;
-            for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; }
-            if (spalteVoll) vS.push(x);
-        }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
 
-    function erstelleJokerLeiste() {
-        jokerBoxenContainer.innerHTML = '';
-        for (let i = 0; i < anzahlJoker; i++) {
-            const jokerBox = document.createElement('div');
-            jokerBox.classList.add('joker-box');
-            jokerBoxenContainer.appendChild(jokerBox);
-        }
-    }
-
-    function zeichneJokerLeiste() {
-        const jokerBoxen = jokerBoxenContainer.children;
-        for (let i = 0; i < jokerBoxen.length; i++) {
-            jokerBoxen[i].classList.toggle('verbraucht', i < verbrauchteJoker);
-            jokerBoxen[i].classList.toggle('voll', i >= verbrauchteJoker);
-        }
-    }
-
-    function zeichneFigurInSlot(index) {
-        const slot = figurenSlots[index], figur = figurenInSlots[index];
-        slot.innerHTML = '';
-        if (figur) {
-            const container = document.createElement('div');
-            container.classList.add('figur-container');
-            const form = figur.form;
-            container.style.gridTemplateRows = `repeat(${form.length}, 20px)`;
-            container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`;
-            form.forEach(reihe => reihe.forEach(block => {
-                const blockDiv = document.createElement('div');
-                if (block === 1) {
-                    blockDiv.classList.add('figur-block');
-                    blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed;
-                }
-                container.appendChild(blockDiv);
-            }));
-            slot.appendChild(container);
-        }
-    }
-    
-    function aktiviereJokerPenalty() {
-        platziereStrafsteine(getGameSetting('jokerPenaltyCount'));
-    }
-
+    function erstelleJokerLeiste() { jokerBoxenContainer.innerHTML = ''; for (let i = 0; i < anzahlJoker; i++) { const jokerBox = document.createElement('div'); jokerBox.classList.add('joker-box'); jokerBoxenContainer.appendChild(jokerBox); } }
+    function zeichneJokerLeiste() { const jokerBoxen = jokerBoxenContainer.children; for (let i = 0; i < jokerBoxen.length; i++) { jokerBoxen[i].classList.toggle('verbraucht', i < verbrauchteJoker); jokerBoxen[i].classList.toggle('voll', i >= verbrauchteJoker); } }
+    function zeichneFigurInSlot(index) { const slot = figurenSlots[index], figur = figurenInSlots[index]; slot.innerHTML = ''; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); })); slot.appendChild(container); } }
+    function aktiviereJokerPenalty() { platziereStrafsteine(getGameSetting('jokerPenaltyCount')); }
     function getZielKoordinaten(e) { const rect = spielbrettElement.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; const mausX = clientX - rect.left; const mausY = clientY - rect.top; return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) }; }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     
     function pruefeUndSpeichereRekord() {
         stopTimer();
-        let rekord = istHardMode ? rekordSchwer : rekordNormal;
-        let rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
+        let rekord = istHardMode ? rekordSchwer : rekordNormal, rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
         if (punkte > rekord) {
             rekord = punkte;
-            if (istHardMode) {
-                rekordSchwerElement.textContent = rekord;
-                rekordSchwer = rekord;
-            } else {
-                rekordNormalElement.textContent = rekord;
-                rekordNormal = rekord;
-            }
+            if (istHardMode) { rekordSchwerElement.textContent = rekord; rekordSchwer = rekord; }
+            else { rekordNormalElement.textContent = rekord; rekordNormal = rekord; }
             setCookie(rekordCookieName, rekord, 365);
             gameOverTitel.textContent = 'Neuer Rekord!';
             gameOverText.textContent = `Du hast ${rekord} Punkte erreicht!`;
@@ -644,8 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gameOverTitel.textContent = 'Spiel vorbei!';
             gameOverText.textContent = `Deine Punktzahl: ${punkte}`;
         }
-        gameOverContainer.classList.add('sichtbar');
-        gameOverContainer.classList.remove('versteckt');
+        gameOverContainer.classList.add('sichtbar'), gameOverContainer.classList.remove('versteckt');
     }
     
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: 9 }, () => Array(9).fill(0)); for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
