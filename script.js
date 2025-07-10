@@ -166,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (isTouchDevice) {
-            rotateButton.classList.remove('versteckt');
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
             figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigur(index)));
