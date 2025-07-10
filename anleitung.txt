@@ -1,7 +1,7 @@
 **Spielanleitung ZenPuzzle**
 
 **Vorab:** In der mobile Version muss man ganz unten anfassen, um auf der WebApp nach unten zu scrollen,
-um zB Rekord anzuschauen.
+um zB den Rekord anzuschauen.
 
 **Ziel des Spiels:**
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
