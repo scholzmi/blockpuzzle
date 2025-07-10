@@ -41,10 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile Steuerung Zustand
     let longPressTimer = null;
     let touchStartX, touchStartY, touchOffsetX, touchOffsetY;
-    const longPressDuration = 400; // ms
-    const touchMoveTolerance = 15; // px
+    const longPressDuration = 400; 
+    const touchMoveTolerance = 15; 
     let lastTap = 0;
-
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -204,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date().getTime();
         const timeSinceLastTap = now - lastTap;
 
-        if (timeSinceLastTap < 300 && timeSinceLastTap > 0) { // Doppel-Tipp erkannt
+        if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
             clearTimeout(longPressTimer);
             dreheAktiveFigur();
             zeichneSpielfeld();
@@ -215,16 +214,18 @@ document.addEventListener('DOMContentLoaded', () => {
         lastTap = now;
 
         const rect = spielbrettElement.getBoundingClientRect();
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
         
         const zellenGroesse = 40;
-        let figurMittelpunktX = (letztesZiel.x * zellenGroesse) + (zellenGroesse / 2);
-        let figurMittelpunktY = (letztesZiel.y * zellenGroesse) + (zellenGroesse / 2);
+        const figurMittelpunktX = (letztesZiel.x * zellenGroesse) + (zellenGroesse / 2);
+        const figurMittelpunktY = (letztesZiel.y * zellenGroesse) + (zellenGroesse / 2);
 
-        touchOffsetX = figurMittelpunktX - (touchStartX - rect.left);
-        touchOffsetY = figurMittelpunktY - (touchStartY - rect.top);
+        touchOffsetX = figurMittelpunktX - (touchX - rect.left);
+        touchOffsetY = figurMittelpunktY - (touchY - rect.top);
 
+        handleBoardMove(e, true);
+        
         longPressTimer = setTimeout(() => {
             platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
         }, longPressDuration);
@@ -233,16 +234,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchMove(e) {
         if (!ausgewaehlteFigur) return;
         e.preventDefault();
-        
+
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
+
         const diffX = Math.abs(touchX - touchStartX);
         const diffY = Math.abs(touchY - touchStartY);
 
         if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
             clearTimeout(longPressTimer);
         }
-        handleBoardMove(e, true); 
+        handleBoardMove(e, true);
     }
 
     function handleTouchEnd(e) {
@@ -272,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
-        if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();
@@ -372,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false;
-        if (isTouchDevice) rotateButton.style.display = 'none';
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
