@@ -336,6 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
+        if (isTouchDevice) {
+            rotateButton.classList.add('versteckt');
+        }
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
@@ -347,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX, platziereY = startY - offsetY;
         if (!kannPlatzieren(figur, platziereX, platziereY)) return;
+
         if (!ersterZugGemacht) {
             ersterZugGemacht = true;
             startTimer();
@@ -354,16 +358,33 @@ document.addEventListener('DOMContentLoaded', () => {
             startTimer();
         }
         if (navigator.vibrate) navigator.vibrate(50);
+
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
             if (block === 1) spielbrett[platziereY + y][platziereX + x] = figur.color;
         }));
+        
         const blockAnzahl = figur.form.flat().reduce((a, b) => a + b, 0);
         let punktMultiplier = 1;
         if (figur.kategorie === 'normal') punktMultiplier = 2;
         else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
-        figurenInSlots[aktiverSlotIndex] = null;
-        zeichneFigurInSlot(aktiverSlotIndex);
+        
+        const alterSlotIndex = aktiverSlotIndex; // Wichtig: Index merken VOR dem Zurücksetzen
+        
+        // Zustand komplett zurücksetzen
+        aktiverSlotIndex = -1;
+        ausgewaehlteFigur = null;
+        hatFigurGedreht = false;
+
+        figurenInSlots[alterSlotIndex] = null;
+        zeichneFigurInSlot(alterSlotIndex);
+        zeichneSlotHighlights();
+        spielbrettElement.style.cursor = 'default';
+
+        if (isTouchDevice) {
+            rotateButton.classList.add('versteckt');
+        }
+
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
@@ -377,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             punkte += gesamtPunkteGewinn;
             punkteElement.textContent = punkte;
         }, 500);
-        abbrechen();
+
         if (figurenInSlots.every(f => f === null)) generiereNeueFiguren();
         if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
         else if (!isTouchDevice) wechsleZuNaechsterFigur();
