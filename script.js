@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile Steuerung Zustand
     let longPressTimer = null;
     let touchStartX, touchStartY, touchOffsetX, touchOffsetY;
-    const longPressDuration = 400; 
+    const longPressDuration = 200; 
     const touchMoveTolerance = 15;
     let lastTap = 0;
 
