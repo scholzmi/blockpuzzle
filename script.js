@@ -164,8 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         hardModeSchalter.addEventListener('change', () => {
             if (punkte > 0) {
-                confirmContainer.classList.remove('versteckt');
                 confirmContainer.classList.add('sichtbar');
+                confirmContainer.classList.remove('versteckt');
             } else {
                 spielStart();
             }
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         confirmNeinBtn.addEventListener('click', () => {
-            hardModeSchalter.checked = !hardModeSchalter.checked; // Schalter zurücksetzen
+            hardModeSchalter.checked = !hardModeSchalter.checked;
             confirmContainer.classList.add('versteckt');
             confirmContainer.classList.remove('sichtbar');
         });
@@ -186,6 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
                 const istVersteckt = anleitungContainer.classList.toggle('versteckt');
+                if (istVersteckt) {
+                    anleitungContainer.style.opacity = '0.5';
+                } else {
+                    anleitungContainer.style.opacity = '1';
+                }
                 setCookie('anleitungVersteckt', istVersteckt, 365);
             });
         }
