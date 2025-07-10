@@ -1,5 +1,5 @@
 {
-    "version": "V8.27",
+    "version": "V8.28",
     "letzteAenderung": "Einführung Touch Steuerung für Handy",
     "gameSettings": {
         "normal": {
@@ -8,7 +8,7 @@
             "jokerPenaltyCount": 3,
             "refreshPenaltyPoints": 100,
             "numberOfJokers": 3,
-            "zonkProbability": 0.03,
+            "zonkProbability": 0.06,
             "jokerProbability": 0.40,
             "jokerProbabilityReductionInterval": 10,
             "jokerProbabilityMinimum": 0.08
@@ -19,7 +19,7 @@
             "jokerPenaltyCount": 5,
             "refreshPenaltyPoints": 150,
             "numberOfJokers": 3,
-            "zonkProbability": 0.06,
+            "zonkProbability": 0.12,
             "jokerProbability": 0.30,
             "jokerProbabilityReductionInterval": 8,
             "jokerProbabilityMinimum": 0.03
