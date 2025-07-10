@@ -1,6 +1,6 @@
 {
-    "version": "V7.54",
-    "letzteAenderung": "Immer was",
+    "version": "V7.55",
+    "letzteAenderung": "bugfix rekord speicherung im cookie",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,

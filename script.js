@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmJaBtn = document.getElementById('confirm-ja-btn');
     const confirmNeinBtn = document.getElementById('confirm-nein-btn');
     
-    // Elemente für das neue Anleitungs-Modal
+    // Elemente für das Anleitungs-Modal
     const anleitungModalContainer = document.getElementById('anleitung-modal-container');
     const anleitungModalInhalt = document.getElementById('anleitung-modal-inhalt');
     const anleitungLink = document.getElementById('anleitung-link');
@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
 
+        // Lädt die Rekorde aus den Cookies und zeigt sie an
         rekordNormal = parseInt(getCookie('rekordNormal') || '0', 10);
         rekordSchwer = parseInt(getCookie('rekordSchwer') || '0', 10);
         rekordNormalElement.textContent = rekordNormal;
@@ -183,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmContainer.classList.remove('sichtbar');
         });
 
-        // Event Listeners für das neue Modal
         if (anleitungLink) {
             anleitungLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -197,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 anleitungModalContainer.classList.remove('sichtbar');
             });
         }
-
         if (refreshFigurenButton) {
             refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         }
@@ -702,8 +701,10 @@ document.addEventListener('DOMContentLoaded', () => {
             rekord = punkte;
             if(istHardMode) {
                 rekordSchwerElement.textContent = rekord;
+                rekordSchwer = rekord; // Aktualisiert die lokale Variable
             } else {
                 rekordNormalElement.textContent = rekord;
+                rekordNormal = rekord; // Aktualisiert die lokale Variable
             }
             setCookie(rekordCookieName, rekord, 365);
             gameOverTitel.textContent = 'Neuer Rekord!';
