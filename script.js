@@ -166,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (isTouchDevice) {
-            rotateButton.classList.remove('versteckt');
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
             figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigurMobile(index)));
@@ -189,10 +188,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     
     function waehleFigur(slotIndex) {
+        if (aktiverSlotIndex === slotIndex) {
+            abbrechen();
+            return;
+        }
+
+        if (hatFigurGedreht) {
+            verbrauchteJoker--;
+            zeichneJokerLeiste();
+        }
+
         if (slotIndex < 0 || slotIndex > 2 || !figurenInSlots[slotIndex]) {
             abbrechen();
             return;
         }
+
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
@@ -231,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const richtung = e.deltaY > 0 ? 1 : -1;
         const verfuegbareIndices = figurenInSlots.map((fig, index) => fig ? index : -1).filter(index => index !== -1);
         if (verfuegbareIndices.length <= 1) return;
-        if (hatFigurGedreht) verbrauchteJoker--;
+        
         const aktuellePosition = verfuegbareIndices.indexOf(aktiverSlotIndex);
         const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
         waehleFigur(verfuegbareIndices[neuePosition]);
@@ -239,11 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function wechsleZuNaechsterFigur() {
-        if (ausgewaehlteFigur) return;
         let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
         if (naechsterIndex !== -1) {
             waehleFigur(naechsterIndex);
             if(lastMausEvent) handleBoardMove(lastMausEvent);
+        } else {
+            abbrechen();
         }
     }
 
@@ -293,14 +304,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function abbrechen() {
-        if (!ausgewaehlteFigur) return;
         if (hatFigurGedreht) {
             verbrauchteJoker--;
-            penaltyAktiviert = false;
             zeichneJokerLeiste();
         }
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
+        hatFigurGedreht = false;
         if (isTouchDevice) rotateButton.classList.add('versteckt');
         zeichneSlotHighlights();
         zeichneSpielfeld();
@@ -333,10 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const figurenPunkte = blockAnzahl * punktMultiplier;
         
         const alterSlotIndex = aktiverSlotIndex;
-        
-        if (hatFigurGedreht && !figur.symmetrisch) {
-            penaltyAktiviert = verbrauchteJoker >= anzahlJoker;
-        }
         
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
@@ -451,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
