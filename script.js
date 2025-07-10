@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
     let anzahlJoker;
     const isTouchDevice = 'ontouchstart' in window;
-    let isDragging = false;
+    let longPressTimer = null;
+    let touchStartX, touchStartY;
+    const longPressDuration = 400; // Etwas kürzer für besseres Gefühl
+    const touchMoveTolerance = 15; // Größere Toleranz für Fingerzittern
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -190,22 +193,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleTouchStart(e) {
         if (!ausgewaehlteFigur) return;
-        isDragging = false;
+        e.preventDefault();
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        clearTimeout(longPressTimer); // Alten Timer löschen
+        handleBoardMove(e); // Position aktualisieren
+        longPressTimer = setTimeout(() => {
+            platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
+        }, longPressDuration);
     }
     
     function handleTouchMove(e) {
         if (!ausgewaehlteFigur) return;
         e.preventDefault();
-        isDragging = true;
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const diffX = Math.abs(touchX - touchStartX);
+        const diffY = Math.abs(touchY - touchStartY);
+        if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
+            clearTimeout(longPressTimer);
+        }
         handleBoardMove(e);
     }
 
     function handleTouchEnd(e) {
-        if (!ausgewaehlteFigur) return;
-        if (!isDragging) {
-             handleBoardClick(e);
-        }
-        isDragging = false;
+        clearTimeout(longPressTimer);
     }
 
     // ===================================================================================
