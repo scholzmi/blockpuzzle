@@ -88,6 +88,7 @@ body.boss-key-aktiv::before {
     flex-direction: column;
     align-items: center;
     position: relative;
+    touch-action: none; /* Verhindert Scrollen für den gesamten Spielbereich */
 }
 
 /* Punkte-Animation */
@@ -269,7 +270,6 @@ input:checked + .slider:before {
     background-color: rgba(248, 249, 250, 0.8);
     width: max-content;
     position: relative;
-    touch-action: none; /* Verhindert Scrollen beim Verschieben */
 }
 .zelle {
     width: 40px;
