@@ -435,9 +435,10 @@ input:checked + .slider:before {
     font-size: 1em;
 }
 .qr-code {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
     margin-bottom: 10px;
+    opacity: 1;
 }
 .paypal-link {
     color: #1a73e8;

@@ -73,8 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ausgewaehlteFigur = null;
         lastMausEvent = null;
 
-        if (getCookie('anleitungVersteckt') === 'true') anleitungContainer.classList.add('versteckt');
-
         erstelleJokerLeiste();
         zeichneJokerLeiste();
         erstelleSpielfeld();
