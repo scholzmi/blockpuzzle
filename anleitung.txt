@@ -1,9 +1,3 @@
-Absolut! Eine gute Anleitung ist entscheidend, besonders mit den neuen Gesten. Ich habe den Text überarbeitet und die Touch-Steuerung klar und verständlich ergänzt.
-
-Hier ist die aktualisierte Version der `anleitung.txt`.
-
----
-
 **Spielanleitung ZenPuzzle**
 
 **Ziel des Spiels:**
