@@ -72,6 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         lastMausEvent = null;
+        
+        // Stellt den Zustand der Anleitung wieder her oder klappt sie beim ersten Mal zu
+        if (getCookie('anleitungZugeklappt') !== 'false') {
+            anleitungContainer.classList.add('zugeklappt');
+        } else {
+            anleitungContainer.classList.remove('zugeklappt');
+        }
 
         erstelleJokerLeiste();
         zeichneJokerLeiste();
@@ -183,13 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
-                const istVersteckt = anleitungContainer.classList.toggle('versteckt');
-                if (istVersteckt) {
-                    anleitungContainer.style.opacity = '0.5';
-                } else {
-                    anleitungContainer.style.opacity = '1';
-                }
-                setCookie('anleitungVersteckt', istVersteckt, 365);
+                const istJetztZugeklappt = anleitungContainer.classList.toggle('zugeklappt');
+                setCookie('anleitungZugeklappt', istJetztZugeklappt, 365);
             });
         }
         if (refreshFigurenButton) {

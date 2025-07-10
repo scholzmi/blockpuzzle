@@ -1,5 +1,4 @@
 **Spielanleitung ZenPuzzle**
-**Nur für Browser am PC**
 
 **Ziel des Spiels:**
 Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
@@ -8,7 +7,6 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Figur wechseln:** Bewege die Maus über das Spielfeld und nutze das **Mausrad**, um eine der verfügbaren Figuren auszuwählen.
 * **Platzieren:** Klicke auf eine freie Stelle auf dem Spielfeld.
 * **Drehen:** Wenn du eine Figur ausgewählt hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen. Jede erstmalige Drehung einer Figur verbraucht einen Dreh-Joker.
-* **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
 
 **Punkte**
@@ -24,4 +22,7 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Unsichtbare Pause:** Der Timer läuft erst, wenn du die erste Figur eines Zuges platziert hast.
 
 **Dreh-Joker:**
-Du hast 5 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld! Das Tauschen der Figuren kostet ebenfalls einen Joker und Punkte.
+Du hast 3 Dreh-Joker (grüne Boxen). Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld!
+
+**Figuren neu auslosen**
+Das Tauschen der Figuren kostet je nach Spielmodus eine Anzahl von bereits erspielten Punkten.
