@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (isTouchDevice) {
+            rotateButton.classList.remove('versteckt');
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
             figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigurMobile(index)));
@@ -304,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function abbrechen() {
-        if (hatFigurGedreht) {
+        if (ausgewaehlteFigur && hatFigurGedreht) {
             verbrauchteJoker--;
             zeichneJokerLeiste();
         }
@@ -361,7 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        abbrechen();
+        // Zustand nach dem Platzieren korrekt zurücksetzen
+        aktiverSlotIndex = -1;
+        ausgewaehlteFigur = null;
+        hatFigurGedreht = false;
+        if (isTouchDevice) rotateButton.classList.add('versteckt');
+        zeichneSlotHighlights();
+        spielbrettElement.style.cursor = 'default';
+        zeichneSpielfeld();
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
