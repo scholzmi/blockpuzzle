@@ -3,11 +3,11 @@
     "letzteAenderung": "Touch-Steuerung verbessert",
     "gameSettings": {
         "normal": {
-            "timerDuration": 180,
+            "timerDuration": 120,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
             "refreshPenaltyPoints": 100,
-            "numberOfJokers": 3,
+            "numberOfJokers": 5,
             "zonkProbability": 0.03,
             "jokerProbability": 0.40,
             "jokerProbabilityReductionInterval": 10,
@@ -26,7 +26,7 @@
         }
     },
     "touchSettings": {
-        "longPressDuration": 250,
+        "longPressDuration": 200,
         "touchMoveTolerance": 15
     },
     "colorThemes": {
