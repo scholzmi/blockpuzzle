@@ -196,7 +196,6 @@ body.boss-key-aktiv::before {
     border-radius: 8px;
     box-sizing: border-box;
     gap: 12px;
-    opacity: 0.5;
 }
 .info-zeile {
     display: flex;
