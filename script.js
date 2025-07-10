@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
+        if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();
@@ -343,16 +344,17 @@ document.addEventListener('DOMContentLoaded', () => {
             zeichneJokerLeiste();
             penaltyAktiviert = false;
         }
-
+        
         const linienPunkte = leereVolleLinien();
         const gesamtPunkteGewinn = figurenPunkte + linienPunkte;
-        zeigePunkteAnimation(gesamtPunkteGewinn);
         
         punkte += gesamtPunkteGewinn;
         punkteElement.textContent = punkte;
-
+        zeigePunkteAnimation(gesamtPunkteGewinn);
+        
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
+        
         abbrechen();
 
         if (figurenInSlots.every(f => f === null)) {
@@ -449,9 +451,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
+    }
+
+    function zeigePunkteAnimation(wert) {
+        if (!punkteAnimationElement || wert === 0) return;
+        punkteAnimationElement.classList.remove('animieren');
+        void punkteAnimationElement.offsetWidth;
+        const text = wert > 0 ? `+${wert}` : wert;
+        const farbe = wert > 0 ? '#34A853' : '#EA4335';
+        punkteAnimationElement.textContent = text;
+        punkteAnimationElement.style.color = farbe;
+        const brettRect = spielbrettElement.getBoundingClientRect();
+        const randX = brettRect.width * 0.2 + Math.random() * brettRect.width * 0.6;
+        const randY = brettRect.height * 0.1 + Math.random() * brettRect.height * 0.2;
+        punkteAnimationElement.style.left = `${randX}px`;
+        punkteAnimationElement.style.top = `${randY}px`;
+        punkteAnimationElement.classList.add('animieren');
     }
 
     function erstelleJokerLeiste() { jokerBoxenContainer.innerHTML = ''; for (let i = 0; i < anzahlJoker; i++) { const jokerBox = document.createElement('div'); jokerBox.classList.add('joker-box'); jokerBoxenContainer.appendChild(jokerBox); } }
