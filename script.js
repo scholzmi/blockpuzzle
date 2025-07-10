@@ -79,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
-        startTimer();
+        
+        timerBar.style.setProperty('--timer-progress', '1'); // Balken zu Beginn voll
     }
 
     function updateHardModeLabel() {
@@ -358,6 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function platziereFigur(figur, startX, startY) {
         if (!ersterZugGemacht) {
             ersterZugGemacht = true;
+            startTimer(); // Timer beim ersten Zug starten
+        } else if (!timerInterval) {
+            startTimer(); // Timer nach einer Pause neu starten
         }
 
         const figurHoehe = figur.form.length;
@@ -434,11 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleBossKey() {
         document.body.classList.toggle('boss-key-aktiv');
         if (document.body.classList.contains('boss-key-aktiv')) {
-            document.title = "Photo Gallery";
             stopTimer();
             abbrechen();
         } else {
-            document.title = originalerTitel;
             resumeTimer();
         }
     }
@@ -451,13 +453,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         timerInterval = setInterval(() => {
             verbleibendeZeit--;
-            const progress = (verbleibendeZeit / timerDuration) * 100;
-            timerBar.style.setProperty('--timer-progress', `${progress / 100}`);
+            const progress = (verbleibendeZeit / timerDuration);
+            timerBar.style.setProperty('--timer-progress', `${progress}`);
 
             if (verbleibendeZeit <= 0) {
                 const anzahl = getGameSetting('timerPenaltyCount');
                 platziereStrafsteine(anzahl);
-                verbleibendeZeit = timerDuration;
+                stopTimer(); // Timer anhalten nach Strafe
+                timerBar.style.setProperty('--timer-progress', '1'); // Balken zurücksetzen
             }
         }, 1000);
     }
@@ -468,7 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resumeTimer() {
-        if (!timerInterval) {
+        // Startet den Timer nur neu, wenn ein Spiel aktiv ist (erster Zug gemacht)
+        if (ersterZugGemacht && !timerInterval) {
             startTimer();
         }
     }
