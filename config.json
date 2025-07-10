@@ -1,6 +1,6 @@
 {
-    "version": "V8.21",
-    "letzteAenderung": "Einführung Touch Steuerung für Handy",
+    "version": "V8.22",
+    "letzteAenderung": "Touch-Steuerung verbessert",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,
@@ -24,6 +24,10 @@
             "jokerProbabilityReductionInterval": 8,
             "jokerProbabilityMinimum": 0.03
         }
+    },
+    "touchSettings": {
+        "longPressDuration": 400,
+        "touchMoveTolerance": 15
     },
     "colorThemes": {
         "default": { "placed": "#4285F4", "preview": "rgba(66, 133, 244, 0.5)" },
