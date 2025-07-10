@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameOverText = document.getElementById('game-over-text');
     const neustartNormalBtn = document.getElementById('neustart-normal-btn');
     const neustartSchwerBtn = document.getElementById('neustart-schwer-btn');
+    const confirmContainer = document.getElementById('confirm-container');
+    const confirmJaBtn = document.getElementById('confirm-ja-btn');
+    const confirmNeinBtn = document.getElementById('confirm-nein-btn');
     const originalerTitel = document.title;
 
     // === Spiel-Zustand ===
@@ -40,13 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // INITIALISIERUNG
     // ===================================================================================
 
-    async function spielStart(neustartBestaetigen = false) {
-        if (neustartBestaetigen && punkte > 0) {
-            if (!confirm("Modus wechseln? Das aktuelle Spiel wird beendet und ein neues gestartet.")) {
-                hardModeSchalter.checked = !hardModeSchalter.checked;
-                return;
-            }
-        }
+    async function spielStart() {
         stopTimer();
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
@@ -164,7 +161,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 mausBewegungAufBrett(e);
             }
         });
-        hardModeSchalter.addEventListener('change', () => spielStart(true));
+        
+        hardModeSchalter.addEventListener('change', () => {
+            if (punkte > 0) {
+                confirmContainer.classList.remove('versteckt');
+                confirmContainer.classList.add('sichtbar');
+            } else {
+                spielStart();
+            }
+        });
+        
+        confirmJaBtn.addEventListener('click', () => {
+            confirmContainer.classList.add('versteckt');
+            confirmContainer.classList.remove('sichtbar');
+            spielStart();
+        });
+
+        confirmNeinBtn.addEventListener('click', () => {
+            hardModeSchalter.checked = !hardModeSchalter.checked; // Schalter zurücksetzen
+            confirmContainer.classList.add('versteckt');
+            confirmContainer.classList.remove('sichtbar');
+        });
+
         if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
                 const istVersteckt = anleitungContainer.classList.toggle('versteckt');
@@ -177,11 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
         neustartNormalBtn.addEventListener('click', () => {
             hardModeSchalter.checked = false;
             gameOverContainer.classList.add('versteckt');
+            gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
         neustartSchwerBtn.addEventListener('click', () => {
             hardModeSchalter.checked = true;
             gameOverContainer.classList.add('versteckt');
+            gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
     }

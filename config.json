@@ -1,6 +1,6 @@
 {
-    "version": "V7.35",
-    "letzteAenderung": "Wahrscheinlichkeiten pro Modus steuerbar",
+    "version": "V7.36",
+    "letzteAenderung": "Immer was",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,

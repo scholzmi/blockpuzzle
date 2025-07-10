@@ -469,7 +469,7 @@ footer a:hover {
     text-decoration: underline;
 }
 
-#game-over-container {
+.modal-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -484,34 +484,34 @@ footer a:hover {
     transition: opacity 0.3s ease;
     pointer-events: none;
 }
-#game-over-container.sichtbar {
+.modal-container.sichtbar {
     opacity: 1;
     pointer-events: all;
 }
 .versteckt {
     display: none !important;
 }
-.game-over-box {
+.modal-box {
     background-color: white;
     padding: 40px;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 5px 20px rgba(0,0,0,0.4);
 }
-.game-over-box h2 {
+.modal-box h2 {
     font-size: 2em;
     margin-top: 0;
 }
-.game-over-box p {
+.modal-box p {
     font-size: 1.2em;
     margin: 20px 0;
 }
-.game-over-buttons {
+.modal-buttons {
     display: flex;
     gap: 15px;
     margin-top: 30px;
 }
-.game-over-buttons button {
+.modal-buttons button {
     flex: 1;
     padding: 12px 20px;
     font-size: 1em;
@@ -521,21 +521,21 @@ footer a:hover {
     cursor: pointer;
     transition: all 0.2s ease;
 }
-#neustart-normal-btn {
+#neustart-normal-btn, #confirm-ja-btn {
     border-color: #34A853;
     background-color: #34A853;
     color: white;
 }
-#neustart-normal-btn:hover {
+#neustart-normal-btn:hover, #confirm-ja-btn:hover {
     background-color: white;
     color: #34A853;
 }
-#neustart-schwer-btn {
+#neustart-schwer-btn, #confirm-nein-btn {
     border-color: #EA4335;
     background-color: #EA4335;
     color: white;
 }
-#neustart-schwer-btn:hover {
+#neustart-schwer-btn:hover, #confirm-nein-btn:hover {
     background-color: white;
     color: #EA4335;
 }
