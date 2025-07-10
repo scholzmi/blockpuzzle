@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let longPressTimer = null;
     let touchStartX, touchStartY, touchOffsetX, touchOffsetY;
     const longPressDuration = 400; 
-    const touchMoveTolerance = 15; 
+    const touchMoveTolerance = 15;
     let lastTap = 0;
 
     // === Konfiguration ===
@@ -214,15 +214,15 @@ document.addEventListener('DOMContentLoaded', () => {
         lastTap = now;
 
         const rect = spielbrettElement.getBoundingClientRect();
-        const touchX = e.touches[0].clientX;
-        const touchY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
         
         const zellenGroesse = 40;
-        const figurMittelpunktX = (letztesZiel.x * zellenGroesse) + (zellenGroesse / 2);
-        const figurMittelpunktY = (letztesZiel.y * zellenGroesse) + (zellenGroesse / 2);
+        let figurMittelpunktX = (letztesZiel.x * zellenGroesse) + (zellenGroesse / 2);
+        let figurMittelpunktY = (letztesZiel.y * zellenGroesse) + (zellenGroesse / 2);
 
-        touchOffsetX = figurMittelpunktX - (touchX - rect.left);
-        touchOffsetY = figurMittelpunktY - (touchY - rect.top);
+        touchOffsetX = figurMittelpunktX - (touchStartX - rect.left);
+        touchOffsetY = figurMittelpunktY - (touchStartY - rect.top);
 
         handleBoardMove(e, true);
         
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchMove(e) {
         if (!ausgewaehlteFigur) return;
         e.preventDefault();
-
+        
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
 
@@ -373,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false;
+        if (isTouchDevice) rotateButton.style.display = 'none';
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
