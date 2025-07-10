@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile Steuerung Zustand
     let longPressTimer = null;
     let touchStartX, touchStartY, touchOffsetX, touchOffsetY;
-    const longPressDuration = 400; 
-    const touchMoveTolerance = 15;
+    let longPressDuration = 400; 
+    let touchMoveTolerance = 15;
     let lastTap = 0;
 
     // === Konfiguration ===
@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSpielfeld();
         generiereNeueFiguren();
         
+        wechsleZuNaechsterFigur();
         timerBar.style.setProperty('--timer-progress', '1');
     }
 
@@ -103,6 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
             spielConfig = await antwort.json();
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
+            
+            if (spielConfig.touchSettings) {
+                longPressDuration = spielConfig.touchSettings.longPressDuration || 400;
+                touchMoveTolerance = spielConfig.touchSettings.touchMoveTolerance || 15;
+            }
+
             anzahlJoker = getGameSetting('numberOfJokers');
             const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
             spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
@@ -256,6 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     
     function waehleFigur(slotIndex) {
+        if (slotIndex < 0 || !figurenInSlots[slotIndex]) {
+            return; 
+        }
+
         if (aktiverSlotIndex === slotIndex) {
             abbrechen();
             return;
@@ -266,15 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
             zeichneJokerLeiste();
         }
 
-        if (slotIndex < 0 || slotIndex > 2 || !figurenInSlots[slotIndex]) {
-            abbrechen();
-            return;
-        }
-
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
-        if(isTouchDevice) rotateButton.classList.remove('versteckt');
+        if(isTouchDevice) rotateButton.style.display = 'block';
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();
@@ -364,6 +370,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+        else if (isTouchDevice) {
+            wechsleZuNaechsterFigur();
+        }
     }
 
     function abbrechen() {
@@ -424,6 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
+        // Zustand nach dem Platzieren korrekt zurücksetzen
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false; 
