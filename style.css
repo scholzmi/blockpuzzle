@@ -542,4 +542,7 @@ footer a:hover {
     .spiel-wrapper {
         order: 1;
     }
+    #dreh-joker-leiste {
+        margin: 0 auto 15px; /* Zentriert die Joker-Leiste im mobilen Modus */
+    }
 }

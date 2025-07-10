@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
     let ausgewaehlteFigur = null, aktiverSlotIndex = -1, rundenZaehler = 0;
-    let letztesZiel = { x: 4, y: 4 }, verbrauchteJoker = 0; // Start in der Mitte für Touch
+    let letztesZiel = { x: 4, y: 4 }, verbrauchteJoker = 0;
     let hatFigurGedreht = false, penaltyAktiviert = false;
     let istHardMode = false, timerInterval = null, verbleibendeZeit;
     let ersterZugGemacht = false;
@@ -184,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isTouchDevice) {
             // === TOUCH STEUERUNG ===
             rotateButton.classList.remove('versteckt'); // Drehen-Button permanent einblenden
+            const spielWrapper = document.querySelector('.spiel-wrapper');
+            const spielbrett = document.getElementById('spielbrett');
+            spielWrapper.insertBefore(jokerBoxenContainer, spielbrett); // Joker-Leiste für Mobile verschieben
             
             figurenSlots.forEach((slot, index) => {
                 slot.addEventListener('click', () => waehleFigurMobile(index));
@@ -281,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleBoardEnter(e) {
         if (!ausgewaehlteFigur) {
-            waehleFigur(0);
+            wechsleZuNaechsterFigur();
         }
         handleBoardMove(e);
     }
@@ -303,6 +306,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
         waehleFigur(verfuegbareIndices[neuePosition]);
         handleBoardMove(lastMausEvent);
+    }
+    
+    function wechsleZuNaechsterFigur() {
+        if (ausgewaehlteFigur) return;
+        let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
+        if (naechsterIndex !== -1) {
+            waehleFigur(naechsterIndex);
+            if(lastMausEvent) handleBoardMove(lastMausEvent);
+        }
     }
 
     function zeichneSlotHighlights() {
@@ -396,10 +408,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (figur.kategorie === 'normal') punktMultiplier = 2;
         else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
-        const alterSlotIndex = aktiverSlotIndex;
-        figurenInSlots[alterSlotIndex] = null;
-        zeichneFigurInSlot(alterSlotIndex);
-        abbrechen();
+        
+        figurenInSlots[aktiverSlotIndex] = null;
+        zeichneFigurInSlot(aktiverSlotIndex);
+        
         if (penaltyAktiviert) {
             aktiviereJokerPenalty();
             verbrauchteJoker = 0;
@@ -413,8 +425,18 @@ document.addEventListener('DOMContentLoaded', () => {
             punkte += gesamtPunkteGewinn;
             punkteElement.textContent = punkte;
         }, 500);
-        if (figurenInSlots.every(f => f === null)) generiereNeueFiguren();
-        if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+
+        abbrechen(); // Figur ist platziert, Auswahl aufheben
+
+        if (figurenInSlots.every(f => f === null)) {
+            generiereNeueFiguren();
+        }
+
+        if (istSpielVorbei()) {
+             setTimeout(pruefeUndSpeichereRekord, 100);
+        } else if (!isTouchDevice) {
+            wechsleZuNaechsterFigur();
+        }
     }
 
     function handleBoardMove(e) {
