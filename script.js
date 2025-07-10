@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hardModeLabel = document.getElementById('hard-mode-label');
     const timerBar = document.getElementById('timer-bar');
     const refreshFigurenButton = document.getElementById('refresh-figuren-button');
-    const rotateButton = document.getElementById('rotate-button'); // Wird jetzt nur für PC-Alternative genutzt, ist aber standardmäßig versteckt
+    const rotateButton = document.getElementById('rotate-button');
     const punkteAnimationElement = document.getElementById('punkte-animation');
     const gameOverContainer = document.getElementById('game-over-container');
     const gameOverTitel = document.getElementById('game-over-titel');
@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const longPressDuration = 400; // ms
     const touchMoveTolerance = 15; // px
     let lastTap = 0;
+
 
     // === Konfiguration ===
     let spielConfig = {};
@@ -177,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isTouchDevice) {
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
-            rotateButton.style.display = 'none'; // Den Button für Mobile komplett ausblenden
+            rotateButton.style.display = 'none'; 
             figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigur(index)));
             spielbrettElement.addEventListener('touchstart', handleTouchStart);
             spielbrettElement.addEventListener('touchmove', handleTouchMove);
@@ -204,28 +205,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeSinceLastTap = now - lastTap;
 
         if (timeSinceLastTap < 300 && timeSinceLastTap > 0) { // Doppel-Tipp erkannt
+            clearTimeout(longPressTimer);
             dreheAktiveFigur();
             zeichneSpielfeld();
             zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
-            clearTimeout(longPressTimer);
-            lastTap = 0; // Verhindert mehrfaches Drehen
+            lastTap = 0; 
             return;
         }
         lastTap = now;
 
         const rect = spielbrettElement.getBoundingClientRect();
-        const touchX = e.touches[0].clientX - rect.left;
-        const touchY = e.touches[0].clientY - rect.top;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
         
         const zellenGroesse = 40;
-        const figurPixelBreite = (ausgewaehlteFigur.form[0].length * zellenGroesse) / 2;
-        const figurPixelHoehe = (ausgewaehlteFigur.form.length * zellenGroesse) / 2;
+        let figurMittelpunktX = (letztesZiel.x * zellenGroesse) + (zellenGroesse / 2);
+        let figurMittelpunktY = (letztesZiel.y * zellenGroesse) + (zellenGroesse / 2);
 
-        touchOffsetX = (letztesZiel.x * zellenGroesse + zellenGroesse/2) - touchX;
-        touchOffsetY = (letztesZiel.y * zellenGroesse + zellenGroesse/2) - touchY;
+        touchOffsetX = figurMittelpunktX - (touchStartX - rect.left);
+        touchOffsetY = figurMittelpunktY - (touchStartY - rect.top);
 
-        handleBoardMove(e);
-        
         longPressTimer = setTimeout(() => {
             platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
         }, longPressDuration);
@@ -234,8 +233,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchMove(e) {
         if (!ausgewaehlteFigur) return;
         e.preventDefault();
-        clearTimeout(longPressTimer);
-        handleBoardMove(e, true); // Mit Offset-Parameter
+        
+        const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
+        const diffX = Math.abs(touchX - touchStartX);
+        const diffY = Math.abs(touchY - touchStartY);
+
+        if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
+            clearTimeout(longPressTimer);
+        }
+        handleBoardMove(e, true); 
     }
 
     function handleTouchEnd(e) {
@@ -251,17 +258,21 @@ document.addEventListener('DOMContentLoaded', () => {
             abbrechen();
             return;
         }
+
         if (hatFigurGedreht) {
             verbrauchteJoker--;
             zeichneJokerLeiste();
         }
+
         if (slotIndex < 0 || slotIndex > 2 || !figurenInSlots[slotIndex]) {
             abbrechen();
             return;
         }
+
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
+        if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();
@@ -291,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const richtung = e.deltaY > 0 ? 1 : -1;
         const verfuegbareIndices = figurenInSlots.map((fig, index) => fig ? index : -1).filter(index => index !== -1);
         if (verfuegbareIndices.length <= 1) return;
+        
         const aktuellePosition = verfuegbareIndices.indexOf(aktiverSlotIndex);
         const neuePosition = (aktuellePosition + richtung + verfuegbareIndices.length) % verfuegbareIndices.length;
         waehleFigur(verfuegbareIndices[neuePosition]);
@@ -360,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false;
+        if (isTouchDevice) rotateButton.style.display = 'none';
         zeichneSlotHighlights();
         zeichneSpielfeld();
         spielbrettElement.style.cursor = 'default';
@@ -508,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
         for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (tempSpielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
@@ -538,8 +551,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const rect = spielbrettElement.getBoundingClientRect();
         const clientX = e.touches[0].clientX;
         const clientY = e.touches[0].clientY;
-        const mausX = clientX - rect.left + touchOffsetX;
-        const mausY = clientY - rect.top + touchOffsetY;
+        const mausX = (clientX - rect.left) + touchOffsetX;
+        const mausY = (clientY - rect.top) + touchOffsetY;
         return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) };
     }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
