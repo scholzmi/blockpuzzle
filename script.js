@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerBar = document.getElementById('timer-bar');
     const refreshFigurenButton = document.getElementById('refresh-figuren-button');
     const punkteAnimationElement = document.getElementById('punkte-animation');
+    const gameOverContainer = document.getElementById('game-over-container');
+    const gameOverTitel = document.getElementById('game-over-titel');
+    const gameOverText = document.getElementById('game-over-text');
+    const neustartNormalBtn = document.getElementById('neustart-normal-btn');
+    const neustartSchwerBtn = document.getElementById('neustart-schwer-btn');
     const originalerTitel = document.title;
 
     // === Konstanten ===
@@ -39,10 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function spielStart(neustartBestaetigen = false) {
         if (neustartBestaetigen) {
-            if (!confirm("Modus wechseln? Das aktuelle Spiel wird beendet und ein neues gestartet.")) {
-                hardModeSchalter.checked = !hardModeSchalter.checked;
-                return;
-            }
+            // Logik entfernt, da jetzt über Game-Over-Screen gesteuert
         }
         stopTimer();
         istHardMode = hardModeSchalter.checked;
@@ -80,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSpielfeld();
         generiereNeueFiguren();
         
-        timerBar.style.setProperty('--timer-progress', '1'); // Balken zu Beginn voll
+        timerBar.style.setProperty('--timer-progress', '1');
     }
 
     function updateHardModeLabel() {
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mausBewegungAufBrett(e);
             }
         });
-        hardModeSchalter.addEventListener('change', () => spielStart(true));
+        hardModeSchalter.addEventListener('change', () => spielStart());
         if (anleitungToggleIcon) {
             anleitungToggleIcon.addEventListener('click', () => {
                 const istVersteckt = anleitungContainer.classList.toggle('versteckt');
@@ -175,6 +177,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (refreshFigurenButton) {
             refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         }
+        neustartNormalBtn.addEventListener('click', () => {
+            hardModeSchalter.checked = false;
+            gameOverContainer.classList.add('versteckt');
+            spielStart();
+        });
+        neustartSchwerBtn.addEventListener('click', () => {
+            hardModeSchalter.checked = true;
+            gameOverContainer.classList.add('versteckt');
+            spielStart();
+        });
     }
 
     // ===================================================================================
@@ -359,9 +371,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function platziereFigur(figur, startX, startY) {
         if (!ersterZugGemacht) {
             ersterZugGemacht = true;
-            startTimer(); // Timer beim ersten Zug starten
+            startTimer();
         } else if (!timerInterval) {
-            startTimer(); // Timer nach einer Pause neu starten
+            startTimer();
         }
 
         const figurHoehe = figur.form.length;
@@ -459,8 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (verbleibendeZeit <= 0) {
                 const anzahl = getGameSetting('timerPenaltyCount');
                 platziereStrafsteine(anzahl);
-                stopTimer(); // Timer anhalten nach Strafe
-                timerBar.style.setProperty('--timer-progress', '1'); // Balken zurücksetzen
+                stopTimer();
+                timerBar.style.setProperty('--timer-progress', '1');
             }
         }, 1000);
     }
@@ -471,7 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resumeTimer() {
-        // Startet den Timer nur neu, wenn ein Spiel aktiv ist (erster Zug gemacht)
         if (ersterZugGemacht && !timerInterval) {
             startTimer();
         }
@@ -654,28 +665,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function getZielKoordinaten(e) { const rect = spielbrettElement.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; const mausX = clientX - rect.left; const mausY = clientY - rect.top; return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) }; }
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
+    
     function pruefeUndSpeichereRekord() {
-        if (istHardMode) {
-            if (punkte > rekordSchwer) {
-                rekordSchwer = punkte;
-                rekordSchwerElement.textContent = rekordSchwer;
-                setCookie('rekordSchwer', rekordSchwer, 365);
-                alert(`Neuer Rekord im schweren Modus: ${rekordSchwer} Punkte!`);
+        let rekord = istHardMode ? rekordSchwer : rekordNormal;
+        let rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
+        
+        if (punkte > rekord) {
+            rekord = punkte;
+            if(istHardMode) {
+                rekordSchwerElement.textContent = rekord;
             } else {
-                alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`);
+                rekordNormalElement.textContent = rekord;
             }
+            setCookie(rekordCookieName, rekord, 365);
+            gameOverTitel.textContent = 'Neuer Rekord!';
+            gameOverText.textContent = `Du hast ${rekord} Punkte erreicht!`;
         } else {
-            if (punkte > rekordNormal) {
-                rekordNormal = punkte;
-                rekordNormalElement.textContent = rekordNormal;
-                setCookie('rekordNormal', rekordNormal, 365);
-                alert(`Neuer Rekord im normalen Modus: ${rekordNormal} Punkte!`);
-            } else {
-                alert(`Spiel vorbei! Deine Punktzahl: ${punkte}`);
-            }
+            gameOverTitel.textContent = 'Spiel vorbei!';
+            gameOverText.textContent = `Deine Punktzahl: ${punkte}`;
         }
-        spielStart();
+        gameOverContainer.classList.remove('versteckt');
     }
+    
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: HOEHE }, () => Array(BREITE).fill(0)); for (let y = 0; y < HOEHE; y++) { for (let x = 0; x < BREITE; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
 
     eventListenerZuweisen();
