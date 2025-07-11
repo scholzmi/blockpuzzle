@@ -241,8 +241,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
 
-        const diffX = Math.abs(touchX - startX);
-        const diffY = Math.abs(touchY - startY);
+        // KORRIGIERTE STELLE: Die korrekten Variablennamen werden hier verwendet
+        const diffX = Math.abs(touchX - touchStartX);
+        const diffY = Math.abs(touchY - touchStartY);
 
         if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
             clearTimeout(longPressTimer);
@@ -545,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const platziereX = startX - offsetX, platziereY = startY - offsetY;
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
         
-        zeichneSpielfeld(); // Wichtig: Spielfeld erst zurücksetzen
+        zeichneSpielfeld();
         
         if (kannFigurPlatzieren) {
             const tempSpielbrett = spielbrett.map(row => [...row]);
@@ -553,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (block === 1) { 
                     const bY = platziereY + y, bX = platziereX + x; 
                     if (bY >= 0 && bY < 9 && bX >=0 && bX < 9) {
-                        tempSpielbrett[bY][bX] = 1; // Temporär belegen
+                        tempSpielbrett[bY][bX] = 1;
                     }
                 } 
             }));
@@ -573,17 +574,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
-        // Reihen prüfen
         for (let y = 0; y < 9; y++) {
             if (tempSpielbrett[y].every(zelle => zelle !== 0)) {
                 vR.push(y);
             }
         }
-        // Spalten prüfen (KORRIGIERTE STELLE)
         for (let x = 0; x < 9; x++) {
             let spalteVoll = true;
             for (let y = 0; y < 9; y++) {
-                if (tempSpielbrett[y][x] === 0) { // <-- HIER WAR DER FEHLER, jetzt korrigiert
+                if (tempSpielbrett[y][x] === 0) {
                     spalteVoll = false;
                     break;
                 }
@@ -592,7 +591,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 vS.push(x);
             }
         }
-        // Vorschau-Klassen hinzufügen
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
