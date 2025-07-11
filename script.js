@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
     let anzahlJoker;
     let erzwungeneJoker = false; 
+    let ersterZug = true;
     const isTouchDevice = 'ontouchstart' in window;
 
     // Mobile Steuerung Zustand
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         erzwungeneJoker = false;
+        ersterZug = true;
 
         erstelleJokerLeiste();
         zeichneJokerLeiste();
@@ -107,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
             anzahlJoker = getGameSetting('numberOfJokers');
-            const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ form: parseShape(f.shape), color: f.color || 'default', symmetrisch: f.symmetrisch || false })) : [];
+            const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
             spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
             spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
             spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker);
@@ -241,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
 
-        // KORRIGIERTE STELLE: Die korrekten Variablennamen werden hier verwendet
         const diffX = Math.abs(touchX - touchStartX);
         const diffY = Math.abs(touchY - touchStartY);
 
@@ -331,33 +332,152 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function figurenNeuAuslosen() {
         abbrechen();
+        stopTimer();
         const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
         zeigePunkteAnimation(-penaltyPoints);
         setTimeout(() => {
             punkte = Math.max(0, punkte - penaltyPoints);
             punkteElement.textContent = punkte;
         }, 500);
+
+        const besteFigur = berechneBesteFigur();
+
+        if (besteFigur) {
+            figurenInSlots[0] = { ...besteFigur, id: 0 };
+            for(let i = 1; i < 3; i++) {
+                 if (spielConfig.figures.jokerPool.length > 0) {
+                    let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
+                    figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
+                 } else {
+                    figurenInSlots[i] = null;
+                 }
+            }
+        } else {
+            const groessteFigur = berechneGroessteFigur();
+            if (groessteFigur) {
+                figurenInSlots[0] = { ...groessteFigur, id: 0 };
+                for(let i = 1; i < 3; i++) {
+                     if (spielConfig.figures.jokerPool.length > 0) {
+                        let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
+                        figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
+                     } else {
+                        figurenInSlots[i] = null;
+                     }
+                }
+            } else {
+                erzwungeneJoker = true;
+                generiereNeueFiguren();
+            }
+        }
         
-        erzwungeneJoker = true;
-        generiereNeueFiguren();
+        for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
         wechsleZuNaechsterFigur();
     }
 
+    function berechneBesteFigur() {
+        let bestMove = { score: 0, figur: null };
+        const alleFiguren = [ ...spielConfig.figures.normalPool, ...spielConfig.figures.zonkPool, ...spielConfig.figures.jokerPool];
+
+        for (const figurVorlage of alleFiguren) {
+            let aktuelleForm = figurVorlage.form;
+            for (let r = 0; r < 4; r++) { 
+                const tempFigur = { ...figurVorlage, form: aktuelleForm };
+                const figurHoehe = tempFigur.form.length;
+                const figurBreite = tempFigur.form[0].length;
+
+                for (let y = 0; y < 9; y++) {
+                    for (let x = 0; x < 9; x++) {
+                        const offsetX = Math.floor(figurBreite / 2);
+                        const offsetY = Math.floor(figurHoehe / 2);
+                        const platziereX = x - offsetX;
+                        const platziereY = y - offsetY;
+
+                        if (kannPlatzieren(tempFigur, platziereX, platziereY)) {
+                            const tempSpielbrett = spielbrett.map(row => [...row]);
+                            tempFigur.form.forEach((reihe, fY) => reihe.forEach((block, fX) => {
+                                if (block === 1) tempSpielbrett[platziereY + fY][platziereX + fX] = 1;
+                            }));
+                            
+                            let linien = 0;
+                            for (let i = 0; i < 9; i++) {
+                                if (tempSpielbrett[i].every(z => z !== 0)) linien++;
+                                let spalteVoll = true;
+                                for(let j=0; j < 9; j++){
+                                    if(tempSpielbrett[j][i] === 0) {
+                                        spalteVoll = false;
+                                        break;
+                                    }
+                                }
+                                if(spalteVoll) linien++;
+                            }
+
+                            if (linien > bestMove.score) {
+                                bestMove = { score: linien, figur: tempFigur };
+                            }
+                        }
+                    }
+                }
+                aktuelleForm = dreheFigur90Grad(aktuelleForm);
+                if (figurVorlage.symmetrisch) break; 
+            }
+        }
+        return bestMove.score > 0 ? bestMove.figur : null;
+    }
+    
+    function berechneGroessteFigur() {
+        const alleFiguren = [ ...spielConfig.figures.zonkPool, ...spielConfig.figures.normalPool, ...spielConfig.figures.jokerPool ];
+        alleFiguren.sort((a, b) => {
+            const sizeA = a.form.flat().reduce((sum, val) => sum + val, 0);
+            const sizeB = b.form.flat().reduce((sum, val) => sum + val, 0);
+            return sizeB - sizeA;
+        });
+
+        for (const figurVorlage of alleFiguren) {
+            let aktuelleForm = figurVorlage.form;
+            for (let r = 0; r < 4; r++) {
+                const tempFigur = { ...figurVorlage, form: aktuelleForm };
+                for (let y = 0; y < 9; y++) {
+                    for (let x = 0; x < 9; x++) {
+                        if (kannPlatzieren(tempFigur, x, y)) {
+                            return tempFigur;
+                        }
+                    }
+                }
+                aktuelleForm = dreheFigur90Grad(aktuelleForm);
+                if (figurVorlage.symmetrisch) break;
+            }
+        }
+        return null;
+    }
+
+
     function generiereNeueFiguren() {
+        if (ersterZug) {
+            if (spielConfig.figures.zonkPool.length > 0) {
+                let zonkFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
+                figurenInSlots[0] = { ...zonkFigur, kategorie: 'zonk', id: 0 };
+            }
+            for (let i = 1; i < 3; i++) {
+                 let normalFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
+                 figurenInSlots[i] = { ...normalFigur, kategorie: 'normal', id: i };
+            }
+            ersterZug = false;
+            for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
+            if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+            return;
+        }
+
         if (erzwungeneJoker) {
             for (let i = 0; i < 3; i++) {
                 if (spielConfig.figures.jokerPool.length > 0) {
                     let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                    let form = zufallsFigur.form;
-                    const anzahlRotationen = Math.floor(Math.random() * 4);
-                    for (let r = 0; r < anzahlRotationen; r++) form = dreheFigur90Grad(form);
-                    figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, kategorie: 'joker', id: i };
-                    zeichneFigurInSlot(i);
+                    figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
                 } else {
                     figurenInSlots[i] = null;
                 }
             }
             erzwungeneJoker = false;
+            for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
             if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
             return;
         }
@@ -379,10 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
             }
             if (zufallsFigur) {
-                let form = zufallsFigur.form;
-                const anzahlRotationen = Math.floor(Math.random() * 4);
-                for (let r = 0; r < anzahlRotationen; r++) form = dreheFigur90Grad(form);
-                figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, kategorie: kategorie, id: i };
+                figurenInSlots[i] = { ...zufallsFigur, kategorie: kategorie, id: i };
                 zeichneFigurInSlot(i);
             } else {
                 figurenInSlots[i] = null;
@@ -415,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ersterZugGemacht = true;
             startTimer();
         } else if (!timerInterval) {
-            startTimer();
+            resumeTimer(); // NEU: resumeTimer statt startTimer, um nicht bei 0 zu beginnen
         }
         if (navigator.vibrate) navigator.vibrate(50);
 
@@ -498,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleBossKey() { document.body.classList.toggle('boss-key-aktiv'); if (document.body.classList.contains('boss-key-aktiv')) { stopTimer(); abbrechen(); } else { resumeTimer(); } }
     function startTimer() { const timerDuration = getGameSetting('timerDuration'); verbleibendeZeit = timerDuration; if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(() => { verbleibendeZeit--; const progress = (verbleibendeZeit / timerDuration); timerBar.style.setProperty('--timer-progress', `${progress}`); if (verbleibendeZeit <= 0) { platziereStrafsteine(getGameSetting('timerPenaltyCount')); stopTimer(); timerBar.style.setProperty('--timer-progress', '1'); } }, 1000); }
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-    function resumeTimer() { if (ersterZugGemacht && !timerInterval) startTimer(); }
+    function resumeTimer() { if (ersterZugGemacht && !timerInterval && punkte > 0) startTimer(); } // Timer nur fortsetzen, wenn schon gestartet
     
     function platziereStrafsteine(anzahl) {
         const leereZellen = [];

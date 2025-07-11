@@ -1,6 +1,6 @@
 {
-    "version": "V8.34",
-    "letzteAenderung": "Figur Tausch -> 3 leichte Figuren",
+    "version": "V8.35",
+    "letzteAenderung": "Panic",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,
