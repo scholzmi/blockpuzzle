@@ -280,6 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
+
+        // NEU: Setze die Startposition für den Koloss
+        if (ausgewaehlteFigur.isKolossFigur && ausgewaehlteFigur.platzierung) {
+            letztesZiel = { 
+                x: ausgewaehlteFigur.platzierung.x,
+                y: ausgewaehlteFigur.platzierung.y
+            };
+        }
+
         if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
@@ -372,6 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, blinkDuration);
     }
     
+    // KORRIGIERTE VERSION: Berechnet eine maßgeschneiderte Figur
     function berechneKolossFigur() {
         const leereZellen = [];
         for (let r = 0; r < 9; r++) {
@@ -409,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alleLoecher.push(aktuellesLoch);
             }
         }
-
+        
         const validLoecher = alleLoecher.filter(loch => {
             let minR = 8, maxR = 0, minC = 8, maxC = 0;
             loch.forEach(({r, c}) => {
@@ -418,19 +428,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 minC = Math.min(minC, c);
                 maxC = Math.max(maxC, c);
             });
-            const hoehe = maxR - minR + 1;
-            const breite = maxC - minC + 1;
-            return hoehe <= 5 && breite <= 5;
+            return (maxR - minR + 1) <= 5 && (maxC - minC + 1) <= 5;
         });
-        
+
         if(validLoecher.length === 0) return null;
 
-        let groesstesLoch = validLoecher[0];
-        for(let i=1; i < validLoecher.length; i++){
-            if(validLoecher[i].length > groesstesLoch.length){
-                groesstesLoch = validLoecher[i];
-            }
-        }
+        let groesstesLoch = validLoecher.reduce((groesstes, aktuelles) => aktuelles.length > groesstes.length ? aktuelles : groesstes, []);
+
+        if (groesstesLoch.length === 0) return null;
 
         let minR = 8, maxR = 0, minC = 8, maxC = 0;
         groesstesLoch.forEach(({r, c}) => {
@@ -509,11 +514,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function platziereFigur(figur, startX, startY) {
         if (!figur) return;
-        const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = figur.isKolossFigur ? figur.platzierung.x : Math.floor(figurBreite / 2);
-        const offsetY = figur.isKolossFigur ? figur.platzierung.y : Math.floor(figurHoehe / 2);
-        const platziereX = figur.isKolossFigur ? figur.platzierung.x : startX - offsetX;
-        const platziereY = figur.isKolossFigur ? figur.platzierung.y : startY - offsetY;
+        const figurHoehe = figur.form.length;
+        const figurBreite = figur.form[0].length;
+        
+        const platziereX = figur.isKolossFigur ? figur.platzierung.x : startX - Math.floor(figurBreite / 2);
+        const platziereY = figur.isKolossFigur ? figur.platzierung.y : startY - Math.floor(figurHoehe / 2);
 
         if (!kannPlatzieren(figur, platziereX, platziereY)) return;
 
@@ -586,18 +591,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
         let { x, y } = mitOffset ? getZielKoordinatenMitOffset(e) : getZielKoordinaten(e);
     
-        const figurHoehe = ausgewaehlteFigur.form.length;
-        const figurBreite = ausgewaehlteFigur.form[0].length;
-        const offsetX = ausgewaehlteFigur.isKolossFigur ? ausgewaehlteFigur.platzierung.x : Math.floor(figurBreite / 2);
-        const offsetY = ausgewaehlteFigur.isKolossFigur ? ausgewaehlteFigur.platzierung.y : Math.floor(figurHoehe / 2);
-    
-        x = Math.max(offsetX, x);
-        y = Math.max(offsetY, y);
-    
-        x = Math.min(9 - figurBreite + offsetX, x);
-        y = Math.min(9 - figurHoehe + offsetY, y);
-    
-        letztesZiel = { x, y };
+        if (ausgewaehlteFigur.isKolossFigur) {
+            letztesZiel = { x: ausgewaehlteFigur.platzierung.x, y: ausgewaehlteFigur.platzierung.y };
+        } else {
+            const figurHoehe = ausgewaehlteFigur.form.length;
+            const figurBreite = ausgewaehlteFigur.form[0].length;
+            const offsetX = Math.floor(figurBreite / 2);
+            const offsetY = Math.floor(figurHoehe / 2);
+            x = Math.max(offsetX, x);
+            y = Math.max(offsetY, y);
+            x = Math.min(8 - (figurBreite - 1 - offsetX), x);
+            y = Math.min(8 - (figurHoehe - 1 - offsetY), y);
+            letztesZiel = { x, y };
+        }
     
         zeichneSpielfeld();
         zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
@@ -672,10 +678,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneVorschau(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = figur.isKolossFigur ? figur.platzierung.x : Math.floor(figurBreite / 2);
-        const offsetY = figur.isKolossFigur ? figur.platzierung.y : Math.floor(figurHoehe / 2);
-        const platziereX = figur.isKolossFigur ? figur.platzierung.x : startX - offsetX;
-        const platziereY = figur.isKolossFigur ? figur.platzierung.y : startY - offsetY;
+        const platziereX = figur.isKolossFigur ? figur.platzierung.x : startX - Math.floor(figurBreite / 2);
+        const platziereY = figur.isKolossFigur ? figur.platzierung.y : startY - Math.floor(figurHoehe / 2);
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
         
         zeichneSpielfeld();
