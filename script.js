@@ -124,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function getGameSetting(key) {
         const modus = istHardMode ? 'hard' : 'normal';
-        // Greift auf globale oder modusspezifische Einstellungen zu
         return spielConfig.gameSettings[modus][key] ?? spielConfig.gameSettings[key];
     }
 
@@ -268,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (hatFigurGedreht) { // BUGFIX: Dieser Block wird nur ausgeführt, wenn eine *andere* Figur gewählt wird
+        if (hatFigurGedreht) {
             verbrauchteJoker--;
             zeichneJokerLeiste();
         }
@@ -350,8 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
         punkteElement.textContent = punkte;
         updatePanicButtonStatus();
 
-        const blinkDuration = getGameSetting('panicBlinkDuration') || 1000;
-        const blinkFrequency = getGameSetting('panicBlinkFrequency') || '0.2s';
+        const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 1000;
+        const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
         spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
         spielbrettElement.classList.add('panic-blinken');
         
@@ -370,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         figurenInSlots[i] = null;
                      }
                 }
-            } else { // Fallback, falls kein Loch gefunden wurde
+            } else { // Fallback, falls absolut kein Loch gefunden wurde
                 for(let i = 0; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
@@ -380,7 +379,6 @@ document.addEventListener('DOMContentLoaded', () => {
                      }
                 }
             }
-            
             for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
             wechsleZuNaechsterFigur();
         }, blinkDuration);
@@ -438,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(validLoecher.length === 0) return null;
 
-        let groesstesLoch = validLoecher.reduce((groesstes, aktuelles) => aktuelles.length > groesstes.length ? aktuelles : groesstes, []);
+        let groesstesLoch = validLoecher.reduce((groesstes, aktuelles) => aktuelles.length > groestes.length ? aktuelles : groesstes, []);
 
         if (groesstesLoch.length === 0) return null;
 
@@ -458,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form[r - minR][c - minC] = 1;
         });
 
-        return { form, isKolossFigur: true, color: 'super', kategorie: 'koloss' };
+        return { form, isKolossFigur: true, color: 'super' };
     }
 
 
@@ -506,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function abbrechen() {
         if (ausgewaehlteFigur && hatFigurGedreht) {
-            verbrauchteJoker--; // Joker nur zurückgeben, wenn wirklich abgebrochen wird
+            verbrauchteJoker--;
             zeichneJokerLeiste();
         }
         aktiverSlotIndex = -1;
@@ -549,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const blockAnzahl = figur.form.flat().reduce((a, b) => a + b, 0);
         let punktMultiplier = 1;
         if (figur.kategorie === 'normal') punktMultiplier = 2;
-        else if (figur.kategorie === 'zonk') punktMultiplier = 5;
+        else if (figur.kategorie === 'zonk' || figur.isKolossFigur) punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
         
         const alterSlotIndex = aktiverSlotIndex;
@@ -572,7 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        // BUGFIX: Sauberer Reset ohne `abbrechen()` aufzurufen
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false; 
@@ -807,10 +804,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const cost = getGameSetting('refreshPenaltyPoints') || 0;
             if (punkte >= cost) {
                 refreshFigurenButton.classList.add('auto-panic');
+                const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 2000;
+                const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
+                spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
+                spielbrettElement.classList.add('panic-blinken');
+
                 setTimeout(() => {
                     refreshFigurenButton.classList.remove('auto-panic');
+                    spielbrettElement.classList.remove('panic-blinken');
                     if (istSpielVorbei()) figurenNeuAuslosen();
-                }, 2000);
+                }, blinkDuration);
                 return;
             }
         }
