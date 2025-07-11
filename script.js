@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleBoardMove(e, true);
         
         longPressTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(50); // Vibrations-Fix
+            if (navigator.vibrate) navigator.vibrate(50);
             platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
         }, longPressDuration);
     }
@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             ersterZug = false;
             for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-            if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
+            if (istSpielVorbei()) setTimeout(() => handleSpielEnde(true), 100);
             return;
         }
 
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 figurenInSlots[i] = null;
             }
         }
-        if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
+        if (istSpielVorbei()) setTimeout(() => handleSpielEnde(true), 100);
     }
 
     function abbrechen() {
@@ -502,14 +502,21 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        abbrechen();
+        // JOKER-FIX: Manuelle Zurücksetzung statt abbrechen()
+        aktiverSlotIndex = -1;
+        ausgewaehlteFigur = null;
+        hatFigurGedreht = false; 
+        if (isTouchDevice) rotateButton.style.display = 'none';
+        zeichneSlotHighlights();
+        zeichneSpielfeld();
+        spielbrettElement.style.cursor = 'default';
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
         }
 
         if (istSpielVorbei()) {
-            setTimeout(handleSpielEnde, 100);
+            setTimeout(() => handleSpielEnde(true), 100);
         } else {
             wechsleZuNaechsterFigur();
         }
@@ -723,19 +730,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     
-    function handleSpielEnde() {
-        stopTimer();
-        const cost = getGameSetting('refreshPenaltyPoints') || 0;
-
-        if (punkte >= cost) {
-            refreshFigurenButton.classList.add('auto-panic');
-            setTimeout(() => {
-                refreshFigurenButton.classList.remove('auto-panic');
-                figurenNeuAuslosen();
-            }, 2000);
-            return;
+    function handleSpielEnde(checkAutoPanic = false) {
+        if (checkAutoPanic) {
+            const cost = getGameSetting('refreshPenaltyPoints') || 0;
+            if (punkte >= cost) {
+                refreshFigurenButton.classList.add('auto-panic');
+                setTimeout(() => {
+                    refreshFigurenButton.classList.remove('auto-panic');
+                    if (istSpielVorbei()) figurenNeuAuslosen(); // Nur auslösen, wenn immer noch vorbei
+                }, 2000);
+                return;
+            }
         }
 
+        stopTimer();
         spielbrettElement.classList.add('zerbroeselt');
         
         setTimeout(() => {

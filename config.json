@@ -3,7 +3,7 @@
     "letzteAenderung": "god mode panic button",
     "gameSettings": {
         "normal": {
-            "timerDuration": 180,
+            "timerDuration": 60,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
             "refreshPenaltyPoints": 200,
