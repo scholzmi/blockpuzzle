@@ -92,9 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSpielfeld();
         updatePanicButtonStatus();
         generiereNeueFiguren();
-        wechsleZuNaechsterFigur();
-        
-        timerBar.style.setProperty('--timer-progress', '1');
     }
 
     function updateHardModeLabel() {
@@ -321,6 +318,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function wechsleZuNaechsterFigur() {
+        if (istSpielVorbei()) {
+            checkGameState();
+            return;
+        }
         let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
         if (naechsterIndex !== -1) {
             waehleFigur(naechsterIndex);
@@ -376,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         figurenInSlots[i] = null;
                      }
                 }
-            } else { // Fallback, falls absolut kein Loch gefunden wurde
+            } else {
                 for(let i = 0; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
@@ -441,11 +442,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return (maxR - minR + 1) <= 5 && (maxC - minC + 1) <= 5;
         });
 
-        if(validLoecher.length === 0) return null;
+        if (validLoecher.length === 0) return null;
 
-        let groesstesLoch = validLoecher.reduce((groesstes, aktuelles) => aktuelles.length > groestes.length ? aktuelles : groesstes, []);
-
-        if (groesstesLoch.length === 0) return null;
+        validLoecher.sort((a, b) => b.length - a.length);
+        const groesstesLoch = validLoecher[0];
 
         let minR = 8, maxR = 0, minC = 8, maxC = 0;
         groesstesLoch.forEach(({r, c}) => {
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-        checkGameState();
+        wechsleZuNaechsterFigur();
     }
 
     function abbrechen() {
@@ -585,21 +585,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
         } else {
-            checkGameState();
+            wechsleZuNaechsterFigur();
         }
     }
     
-    // NEU: Stabile Game-State-Prüfung
     function checkGameState() {
         if (istSpielVorbei()) {
             const cost = getGameSetting('refreshPenaltyPoints') || 0;
             if (punkte >= cost) {
-                figurenNeuAuslosen(true); // Auto-Panic
+                figurenNeuAuslosen(true);
             } else {
-                triggerGameOver(); // Echtes Game Over
+                triggerGameOver();
             }
-        } else {
-            wechsleZuNaechsterFigur();
         }
     }
 
@@ -647,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0)); let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / 5); const col = (coord - 1) % 5; if (row < 5 && col < 5) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if (maxRow === -1) return []; return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1)); }
     function dreheFigur90Grad(matrix) { return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse()); }
-    function istSpielVorbei() { for (const figur of figurenInSlots) { if (figur) { for (let r = 0; r < 4; r++) { for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { if (kannPlatzieren(figur, x, y)) return false; } } figur.form = dreheFigur90Grad(figur.form); } } } return true; }
+    function istSpielVorbei() { for (const figur of figurenInSlots) { if (figur) { for (let r = 0; r < 4; r++) { const tempFigur = { ...figur, form: dreheFigur90Grad(figur.form, r) }; for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= 9 || bY < 0 || bY >= 9 || spielbrett[bY][bX] !== 0) return false; } } } return true; }
     
     function leereVolleLinien() {
