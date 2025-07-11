@@ -124,7 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function getGameSetting(key) {
         const modus = istHardMode ? 'hard' : 'normal';
-        return spielConfig.gameSettings[modus][key];
+        // Greift auf globale oder modusspezifische Einstellungen zu
+        return spielConfig.gameSettings[modus][key] ?? spielConfig.gameSettings[key];
     }
 
     async function ladeAnleitung() {
@@ -267,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (hatFigurGedreht) {
+        if (hatFigurGedreht) { // BUGFIX: Dieser Block wird nur ausgeführt, wenn eine *andere* Figur gewählt wird
             verbrauchteJoker--;
             zeichneJokerLeiste();
         }
@@ -280,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
+
         if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
@@ -348,14 +350,16 @@ document.addEventListener('DOMContentLoaded', () => {
         punkteElement.textContent = punkte;
         updatePanicButtonStatus();
 
-        const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 1000;
-        const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
+        const blinkDuration = getGameSetting('panicBlinkDuration') || 1000;
+        const blinkFrequency = getGameSetting('panicBlinkFrequency') || '0.2s';
         spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
         spielbrettElement.classList.add('panic-blinken');
         
         setTimeout(() => {
             spielbrettElement.classList.remove('panic-blinken');
+            
             const kolossFigur = berechneKolossFigur();
+            
             if (kolossFigur) {
                 figurenInSlots[0] = { ...kolossFigur, id: 0 };
                 for(let i = 1; i < 3; i++) {
@@ -376,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      }
                 }
             }
+            
             for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
             wechsleZuNaechsterFigur();
         }, blinkDuration);
@@ -420,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const validLoecher = alleLoecher.filter(loch => {
+            if (loch.length === 0) return false;
             let minR = 8, maxR = 0, minC = 8, maxC = 0;
             loch.forEach(({r, c}) => {
                 minR = Math.min(minR, r);
@@ -452,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form[r - minR][c - minC] = 1;
         });
 
-        return { form, isKolossFigur: true, color: 'super' };
+        return { form, isKolossFigur: true, color: 'super', kategorie: 'koloss' };
     }
 
 
@@ -500,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function abbrechen() {
         if (ausgewaehlteFigur && hatFigurGedreht) {
-            verbrauchteJoker--;
+            verbrauchteJoker--; // Joker nur zurückgeben, wenn wirklich abgebrochen wird
             zeichneJokerLeiste();
         }
         aktiverSlotIndex = -1;
@@ -566,6 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
+        // BUGFIX: Sauberer Reset ohne `abbrechen()` aufzurufen
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false; 
@@ -800,16 +807,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const cost = getGameSetting('refreshPenaltyPoints') || 0;
             if (punkte >= cost) {
                 refreshFigurenButton.classList.add('auto-panic');
-                const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 2000;
-                const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
-                spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
-                spielbrettElement.classList.add('panic-blinken');
-
                 setTimeout(() => {
                     refreshFigurenButton.classList.remove('auto-panic');
-                    spielbrettElement.classList.remove('panic-blinken');
                     if (istSpielVorbei()) figurenNeuAuslosen();
-                }, blinkDuration);
+                }, 2000);
                 return;
             }
         }
