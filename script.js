@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
     let anzahlJoker;
     let ersterZug = true;
+    let currentPanicCost = 0; // NEU
+    let panicCooldown = 0;
     const isTouchDevice = 'ontouchstart' in window;
 
     // Mobile Steuerung Zustand
@@ -85,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         ersterZug = true;
+        currentPanicCost = getGameSetting('refreshPenaltyPoints');
+        panicCooldown = 0;
 
         erstelleJokerLeiste();
         zeichneJokerLeiste();
@@ -124,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function getGameSetting(key) {
         const modus = istHardMode ? 'hard' : 'normal';
-        // NEU: Zugriff auf globale Einstellungen
         if (spielConfig.gameSettings[key] !== undefined) {
             return spielConfig.gameSettings[key];
         }
@@ -339,18 +342,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePanicButtonStatus() {
-        const cost = getGameSetting('refreshPenaltyPoints') || 0;
-        refreshFigurenButton.disabled = punkte < cost;
+        refreshFigurenButton.disabled = punkte < currentPanicCost || panicCooldown > 0;
+        refreshFigurenButton.title = `Kosten: ${Math.round(currentPanicCost)} Punkte, Cooldown: ${panicCooldown} Runden`;
     }
 
     function figurenNeuAuslosen() {
         abbrechen();
         stopTimer();
-        const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
-        zeigePunkteAnimation(-penaltyPoints);
         
-        punkte = Math.max(0, punkte - penaltyPoints);
+        zeigePunkteAnimation(-currentPanicCost);
+        
+        punkte = Math.max(0, punkte - currentPanicCost);
         punkteElement.textContent = punkte;
+        
+        currentPanicCost += getGameSetting('panicCostIncrement');
+        panicCooldown = getGameSetting('panicCooldownRounds');
         updatePanicButtonStatus();
 
         const blinkDuration = getGameSetting('panicBlinkDuration') || 1000;
@@ -387,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function berechneKolossFigur() {
-        let bestesFenster = { anzahl: 0, form: null, position: {r: 0, c: 0} };
+        let bestesFenster = { anzahl: 0, form: null };
 
         for (let startR = 0; startR <= 4; startR++) {
             for (let startC = 0; startC <= 4; startC++) {
@@ -433,6 +439,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function generiereNeueFiguren() {
+        if(panicCooldown > 0) {
+            panicCooldown--;
+            updatePanicButtonStatus();
+        }
+
         if (ersterZug) {
             if (spielConfig.figures.zonkPool.length > 0) {
                 let zonkFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
@@ -773,8 +784,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleSpielEnde(checkAutoPanic = false) {
         if (checkAutoPanic) {
-            const cost = getGameSetting('refreshPenaltyPoints') || 0;
-            if (punkte >= cost) {
+            const cost = currentPanicCost;
+            if (punkte >= cost && panicCooldown === 0) {
                 refreshFigurenButton.classList.add('auto-panic');
                 const blinkDuration = getGameSetting('panicBlinkDuration') || 2000;
                 const blinkFrequency = getGameSetting('panicBlinkFrequency') || '0.2s';

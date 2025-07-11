@@ -1,14 +1,16 @@
 {
-    "version": "V9.22",
+    "version": "V9.24",
     "letzteAenderung": "god mode panic button",
     "gameSettings": {
         "panicBlinkDuration": 1000,
         "panicBlinkFrequency": "0.2s",
+        "panicCooldownRounds": 3,
         "normal": {
             "timerDuration": 60,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
             "refreshPenaltyPoints": 200,
+            "panicCostIncrement": 50,
             "numberOfJokers": 3,
             "zonkProbability": 0.03,
             "jokerProbability": 0.30,
@@ -19,7 +21,8 @@
             "timerDuration": 30,
             "timerPenaltyCount": 2,
             "jokerPenaltyCount": 5,
-            "refreshPenaltyPoints": 500,
+            "refreshPenaltyPoints": 200,
+            "panicCostIncrement": 100,
             "numberOfJokers": 3,
             "zonkProbability": 0.05,
             "jokerProbability": 0.25,
