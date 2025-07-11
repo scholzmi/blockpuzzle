@@ -1,6 +1,6 @@
 {
-    "version": "V8.36",
-    "letzteAenderung": "Panic",
+    "version": "V8.37",
+    "letzteAenderung": "god mode panic button",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,

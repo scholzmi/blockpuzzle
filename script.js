@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
-        updatePanicButtonStatus(); // NEU: Button-Status initial setzen
+        updatePanicButtonStatus();
         generiereNeueFiguren();
         wechsleZuNaechsterFigur();
         
@@ -289,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function dreheAktiveFigur() {
         if (!ausgewaehlteFigur) return;
+        if (ausgewaehlteFigur.isSuperFigur) return; // Super-Figur nicht drehbar
         if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
             if (verbrauchteJoker >= anzahlJoker) return;
             verbrauchteJoker++;
@@ -307,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function wechsleFigurPerScroll(e) {
         e.preventDefault();
         if (!ausgewaehlteFigur) return;
+        if (ausgewaehlteFigur.isSuperFigur) return; 
         const richtung = e.deltaY > 0 ? 1 : -1;
         const verfuegbareIndices = figurenInSlots.map((fig, index) => fig ? index : -1).filter(index => index !== -1);
         if (verfuegbareIndices.length <= 1) return;
@@ -331,14 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenSlots.forEach((slot, index) => slot.classList.toggle('aktiver-slot', index === aktiverSlotIndex));
     }
 
-    // NEU: Funktion zum Aktivieren/Deaktivieren des Panic-Buttons
     function updatePanicButtonStatus() {
         const cost = getGameSetting('refreshPenaltyPoints') || 0;
-        if (punkte >= cost) {
-            refreshFigurenButton.disabled = false;
-        } else {
-            refreshFigurenButton.disabled = true;
-        }
+        refreshFigurenButton.disabled = punkte < cost;
     }
 
     function figurenNeuAuslosen() {
@@ -349,13 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         punkte = Math.max(0, punkte - penaltyPoints);
         punkteElement.textContent = punkte;
-        updatePanicButtonStatus(); // Button-Status nach Abzug neu prüfen
+        updatePanicButtonStatus();
 
-        const besteFigur = berechneBesteFigur();
+        const besteFigur = berechneSuperFigur();
 
-        if (besteFigur) {
-            figurenInSlots[0] = { ...besteFigur, id: 0 };
-            for(let i = 1; i < 3; i++) {
+        if (besteFigur && besteFigur.score > 0) {
+            figurenInSlots[0] = { ...besteFigur.figur, id: 0 };
+             for(let i = 1; i < 3; i++) {
                  if (spielConfig.figures.jokerPool.length > 0) {
                     let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
                     figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
@@ -367,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const groessteFigur = berechneGroessteFigur();
             if (groessteFigur) {
                 figurenInSlots[0] = { ...groessteFigur, id: 0 };
-                for(let i = 1; i < 3; i++) {
+                 for(let i = 1; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
                         figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
@@ -385,54 +382,52 @@ document.addEventListener('DOMContentLoaded', () => {
         wechsleZuNaechsterFigur();
     }
 
-    function berechneBesteFigur() {
-        let bestMove = { score: 0, figur: null };
-        const alleFiguren = [ ...spielConfig.figures.normalPool, ...spielConfig.figures.zonkPool, ...spielConfig.figures.jokerPool];
+    function berechneSuperFigur() {
+        let bestMove = { score: 0, figur: null, platzierung: {x: 0, y: 0} };
 
-        for (const figurVorlage of alleFiguren) {
-            let aktuelleForm = figurVorlage.form;
-            for (let r = 0; r < 4; r++) { 
-                const tempFigur = { ...figurVorlage, form: aktuelleForm };
-                const figurHoehe = tempFigur.form.length;
-                const figurBreite = tempFigur.form[0].length;
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (spielbrett[r][c] === 0) {
+                    for (let h = 1; h <= 5; h++) {
+                        for (let w = 1; w <= 5; w++) {
+                            if (r + h <= 9 && c + w <= 9) {
+                                let tempSpielbrett = spielbrett.map(row => [...row]);
+                                let form = Array.from({length: h}, () => Array(w).fill(0));
+                                let isValid = true;
+                                let blocksCount = 0;
 
-                for (let y = 0; y < 9; y++) {
-                    for (let x = 0; x < 9; x++) {
-                        const offsetX = Math.floor(figurBreite / 2);
-                        const offsetY = Math.floor(figurHoehe / 2);
-                        const platziereX = x - offsetX;
-                        const platziereY = y - offsetY;
-
-                        if (kannPlatzieren(tempFigur, platziereX, platziereY)) {
-                            const tempSpielbrett = spielbrett.map(row => [...row]);
-                            tempFigur.form.forEach((reihe, fY) => reihe.forEach((block, fX) => {
-                                if (block === 1) tempSpielbrett[platziereY + fY][platziereX + fX] = 1;
-                            }));
-                            
-                            let linien = 0;
-                            for (let i = 0; i < 9; i++) {
-                                if (tempSpielbrett[i].every(z => z !== 0)) linien++;
-                                let spalteVoll = true;
-                                for(let j=0; j < 9; j++){
-                                    if(tempSpielbrett[j][i] === 0) {
-                                        spalteVoll = false;
-                                        break;
+                                for (let i = 0; i < h; i++) {
+                                    for (let j = 0; j < w; j++) {
+                                        if (tempSpielbrett[r + i][c + j] === 0) {
+                                            tempSpielbrett[r + i][c + j] = 1;
+                                            form[i][j] = 1;
+                                            blocksCount++;
+                                        }
                                     }
                                 }
-                                if(spalteVoll) linien++;
-                            }
 
-                            if (linien > bestMove.score) {
-                                bestMove = { score: linien, figur: tempFigur };
+                                if (blocksCount === 0) continue;
+
+                                let linien = 0;
+                                for (let i = 0; i < 9; i++) {
+                                    if (tempSpielbrett[i].every(z => z !== 0)) linien++;
+                                    if (tempSpielbrett.every(row => row[i] !== 0)) linien++;
+                                }
+                                
+                                if (linien > bestMove.score) {
+                                    bestMove = {
+                                        score: linien,
+                                        figur: { form: form, color: 'super', isSuperFigur: true },
+                                        platzierung: { x: c, y: r }
+                                    };
+                                }
                             }
                         }
                     }
                 }
-                aktuelleForm = dreheFigur90Grad(aktuelleForm);
-                if (figurVorlage.symmetrisch) break; 
             }
         }
-        return bestMove.score > 0 ? bestMove.figur : null;
+        return bestMove;
     }
     
     function berechneGroessteFigur() {
@@ -535,8 +530,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function platziereFigur(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
-        const platziereX = startX - offsetX, platziereY = startY - offsetY;
+        const offsetX = figur.isSuperFigur ? 0 : Math.floor(figurBreite / 2);
+        const offsetY = figur.isSuperFigur ? 0 : Math.floor(figurHoehe / 2);
+        const platziereX = startX - offsetX;
+        const platziereY = startY - offsetY;
+
         if (!kannPlatzieren(figur, platziereX, platziereY)) return;
 
         if (!ersterZugGemacht) {
@@ -548,7 +546,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (navigator.vibrate) navigator.vibrate(50);
 
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
-            if (block === 1) spielbrett[platziereY + y][platziereX + x] = figur.color;
+            if (block === 1) {
+                if(figur.isSuperFigur) {
+                    spielbrett[platziereY + y][platziereX + x] = getGradientColor(x, y, figurBreite, figurHoehe);
+                } else {
+                    spielbrett[platziereY + y][platziereX + x] = figur.color;
+                }
+            }
         }));
         
         const blockAnzahl = figur.form.flat().reduce((a, b) => a + b, 0);
@@ -572,18 +576,12 @@ document.addEventListener('DOMContentLoaded', () => {
         punkte += gesamtPunkteGewinn;
         punkteElement.textContent = punkte;
         zeigePunkteAnimation(gesamtPunkteGewinn);
-        updatePanicButtonStatus(); // NEU: Button-Status nach Punktgewinn prüfen
+        updatePanicButtonStatus();
         
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        aktiverSlotIndex = -1;
-        ausgewaehlteFigur = null;
-        hatFigurGedreht = false; 
-        if (isTouchDevice) rotateButton.style.display = 'none';
-        zeichneSlotHighlights();
-        zeichneSpielfeld();
-        spielbrettElement.style.cursor = 'default';
+        abbrechen();
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
@@ -604,8 +602,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const figurHoehe = ausgewaehlteFigur.form.length;
         const figurBreite = ausgewaehlteFigur.form[0].length;
-        const offsetX = Math.floor(figurBreite / 2);
-        const offsetY = Math.floor(figurHoehe / 2);
+        const offsetX = ausgewaehlteFigur.isSuperFigur ? 0 : Math.floor(figurBreite / 2);
+        const offsetY = ausgewaehlteFigur.isSuperFigur ? 0 : Math.floor(figurHoehe / 2);
     
         x = Math.max(offsetX, x);
         y = Math.max(offsetY, y);
@@ -658,20 +656,38 @@ document.addEventListener('DOMContentLoaded', () => {
             reihe.forEach((inhalt, x) => {
                 const zelle = spielbrettElement.children[y * 9 + x];
                 zelle.className = 'zelle';
-                zelle.style.backgroundColor = '';
-                if (inhalt === 'blocker') zelle.classList.add('belegt', 'blocker');
-                else if (inhalt !== 0) {
+                if(typeof inhalt === 'string' && inhalt.startsWith('rgb')) {
+                    zelle.classList.add('belegt');
+                    zelle.style.backgroundColor = inhalt;
+                } else if (inhalt === 'blocker') {
+                    zelle.classList.add('belegt', 'blocker');
+                    zelle.style.backgroundColor = '';
+                } else if (inhalt !== 0) {
                     zelle.classList.add('belegt');
                     zelle.style.backgroundColor = spielConfig.colorThemes[inhalt]?.placed || spielConfig.colorThemes['default'].placed;
+                } else {
+                     zelle.style.backgroundColor = '';
                 }
             });
         });
     }
 
+    function getGradientColor(x, y, width, height) {
+        const from = [66, 133, 244]; // Blau
+        const to = [251, 188, 4];   // Gelb
+        const factor = (x + y) / (width - 1 + height - 1);
+
+        const r = Math.round(from[0] + factor * (to[0] - from[0]));
+        const g = Math.round(from[1] + factor * (to[1] - from[1]));
+        const b = Math.round(from[2] + factor * (to[2] - from[2]));
+        return `rgb(${r},${g},${b})`;
+    }
+
     function zeichneVorschau(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
+        const offsetX = figur.isSuperFigur ? 0 : Math.floor(figurBreite / 2);
+        const offsetY = figur.isSuperFigur ? 0 : Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX, platziereY = startY - offsetY;
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
         
@@ -695,7 +711,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const brettY = platziereY + y, brettX = platziereX + x;
                 if (brettY < 9 && brettX < 9 && brettY >= 0 && brettX >= 0) {
                     const zelle = spielbrettElement.children[brettY * 9 + brettX];
-                    zelle.style.backgroundColor = kannFigurPlatzieren ? (spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']).preview : 'rgba(234, 67, 53, 0.5)';
+                    if (figur.isSuperFigur) {
+                        const color = getGradientColor(x, y, figurBreite, figurHoehe);
+                        zelle.style.backgroundColor = kannFigurPlatzieren ? color.replace('rgb', 'rgba').replace(')', ', 0.5)') : 'rgba(234, 67, 53, 0.5)';
+                    } else {
+                        zelle.style.backgroundColor = kannFigurPlatzieren ? (spielConfig.colorThemes[figur.color] || spielConfig.colorThemes['default']).preview : 'rgba(234, 67, 53, 0.5)';
+                    }
                 }
             }
         }));
@@ -742,7 +763,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function erstelleJokerLeiste() { jokerBoxenContainer.innerHTML = ''; for (let i = 0; i < anzahlJoker; i++) { const jokerBox = document.createElement('div'); jokerBox.classList.add('joker-box'); jokerBoxenContainer.appendChild(jokerBox); } }
     function zeichneJokerLeiste() { const jokerBoxen = jokerBoxenContainer.children; for (let i = 0; i < jokerBoxen.length; i++) { jokerBoxen[i].classList.toggle('verbraucht', i < verbrauchteJoker); jokerBoxen[i].classList.toggle('voll', i >= verbrauchteJoker); } }
-    function zeichneFigurInSlot(index) { const slot = figurenSlots[index], figur = figurenInSlots[index]; slot.innerHTML = ''; if (figur) { const container = document.createElement('div'); container.classList.add('figur-container'); const form = figur.form; container.style.gridTemplateRows = `repeat(${form.length}, 20px)`; container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`; form.forEach(reihe => reihe.forEach(block => { const blockDiv = document.createElement('div'); if (block === 1) { blockDiv.classList.add('figur-block'); blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed; } container.appendChild(blockDiv); })); slot.appendChild(container); } }
+    function zeichneFigurInSlot(index) {
+        const slot = figurenSlots[index];
+        const figur = figurenInSlots[index];
+        slot.innerHTML = '';
+        if (figur) {
+            const container = document.createElement('div');
+            container.classList.add('figur-container');
+            const form = figur.form;
+            container.style.gridTemplateRows = `repeat(${form.length}, 20px)`;
+            container.style.gridTemplateColumns = `repeat(${form[0].length}, 20px)`;
+            form.forEach((reihe, y) => reihe.forEach((block, x) => {
+                const blockDiv = document.createElement('div');
+                if (block === 1) {
+                    blockDiv.classList.add('figur-block');
+                    if (figur.isSuperFigur) {
+                        blockDiv.style.backgroundColor = getGradientColor(x, y, form[0].length, form.length);
+                    } else {
+                        blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed;
+                    }
+                }
+                container.appendChild(blockDiv);
+            }));
+            slot.appendChild(container);
+        }
+    }
+
     function aktiviereJokerPenalty() { platziereStrafsteine(getGameSetting('jokerPenaltyCount')); }
     function getZielKoordinaten(e) { const rect = spielbrettElement.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; const mausX = clientX - rect.left; const mausY = clientY - rect.top; return { x: Math.floor(mausX / 40), y: Math.floor(mausY / 40) }; }
     function getZielKoordinatenMitOffset(e) {

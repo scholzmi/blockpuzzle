@@ -330,24 +330,41 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-#refresh-figuren-button, #rotate-button {
+/* NEU: Styling für den Panic Button (aktiv, inaktiv, hover) */
+#refresh-figuren-button {
     border-color: #4285F4;
     background-color: white;
     color: #4285F4;
     cursor: pointer;
     transition: all 0.2s ease;
 }
-#refresh-figuren-button:hover, #rotate-button:hover {
+#refresh-figuren-button:hover:not(:disabled) {
     background-color: #4285F4;
     color: white;
 }
 #refresh-figuren-button:disabled {
     border-color: #ccc;
-    background-color: #f0f0f0;
+    background-color: white;
     color: #ccc;
     cursor: not-allowed;
 }
-#refresh-figuren-button:focus, #rotate-button:focus {
+#refresh-figuren-button:focus {
+    outline: none;
+}
+
+
+#rotate-button {
+    border-color: #4285F4;
+    background-color: white;
+    color: #4285F4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+#rotate-button:hover {
+    background-color: #4285F4;
+    color: white;
+}
+#rotate-button:focus {
     outline: none;
 }
 
@@ -380,7 +397,7 @@ input:checked + .slider:before {
     transition: all 0.2s;
 }
 .figur-slot:hover {
-    background-color: transparent; /* Sichergestellt, dass kein Hintergrund bei Hover erscheint */
+    background-color: transparent;
 }
 
 .aktiver-slot {
