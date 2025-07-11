@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ersterZugGemacht = false;
     let lastMausEvent = null;
     let anzahlJoker;
-    let erzwungeneJoker = false; // NEU: Flag für den Joker-Tausch
+    let erzwungeneJoker = false; 
     const isTouchDevice = 'ontouchstart' in window;
 
     // Mobile Steuerung Zustand
@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
 
-        const diffX = Math.abs(touchX - touchStartX);
-        const diffY = Math.abs(touchY - touchStartY);
+        const diffX = Math.abs(touchX - startX);
+        const diffY = Math.abs(touchY - startY);
 
         if (diffX > touchMoveTolerance || diffY > touchMoveTolerance) {
             clearTimeout(longPressTimer);
@@ -337,13 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
             punkteElement.textContent = punkte;
         }, 500);
         
-        erzwungeneJoker = true; // Flag für garantierte Joker setzen
+        erzwungeneJoker = true;
         generiereNeueFiguren();
-        wechsleZuNaechsterFigur(); // Nächste Figur (Joker) direkt auswählen
+        wechsleZuNaechsterFigur();
     }
 
     function generiereNeueFiguren() {
-        // NEU: Logik für erzwungenen Joker-Tausch
         if (erzwungeneJoker) {
             for (let i = 0; i < 3; i++) {
                 if (spielConfig.figures.jokerPool.length > 0) {
@@ -354,15 +353,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, kategorie: 'joker', id: i };
                     zeichneFigurInSlot(i);
                 } else {
-                    figurenInSlots[i] = null; // Fallback, falls Joker-Pool leer
+                    figurenInSlots[i] = null;
                 }
             }
-            erzwungeneJoker = false; // Flag zurücksetzen
+            erzwungeneJoker = false;
             if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
-            return; // Funktion hier beenden
+            return;
         }
 
-        // Bisherige Logik für normale Runden
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
@@ -546,11 +544,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const offsetX = Math.floor(figurBreite / 2), offsetY = Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX, platziereY = startY - offsetY;
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
+        
+        zeichneSpielfeld(); // Wichtig: Spielfeld erst zurücksetzen
+        
         if (kannFigurPlatzieren) {
             const tempSpielbrett = spielbrett.map(row => [...row]);
-            figur.form.forEach((reihe, y) => reihe.forEach((block, x) => { if (block === 1) { const bY = platziereY + y, bX = platziereX + x; if (bY < 9 && bX < 9) tempSpielbrett[bY][bX] = 1; } }));
+            figur.form.forEach((reihe, y) => reihe.forEach((block, x) => { 
+                if (block === 1) { 
+                    const bY = platziereY + y, bX = platziereX + x; 
+                    if (bY >= 0 && bY < 9 && bX >=0 && bX < 9) {
+                        tempSpielbrett[bY][bX] = 1; // Temporär belegen
+                    }
+                } 
+            }));
             zeichneLinienVorschau(tempSpielbrett);
         }
+
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
             if (block === 1) {
                 const brettY = platziereY + y, brettX = platziereX + x;
@@ -564,8 +573,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function zeichneLinienVorschau(tempSpielbrett) {
         let vR = [], vS = [];
-        for (let y = 0; y < 9; y++) if (tempSpielbrett[y].every(zelle => zelle !== 0)) vR.push(y);
-        for (let x = 0; x < 9; x++) { let spalteVoll = true; for (let y = 0; y < 9; y++) if (spielbrett[y][x] === 0) { spalteVoll = false; break; } if (spalteVoll) vS.push(x); }
+        // Reihen prüfen
+        for (let y = 0; y < 9; y++) {
+            if (tempSpielbrett[y].every(zelle => zelle !== 0)) {
+                vR.push(y);
+            }
+        }
+        // Spalten prüfen (KORRIGIERTE STELLE)
+        for (let x = 0; x < 9; x++) {
+            let spalteVoll = true;
+            for (let y = 0; y < 9; y++) {
+                if (tempSpielbrett[y][x] === 0) { // <-- HIER WAR DER FEHLER, jetzt korrigiert
+                    spalteVoll = false;
+                    break;
+                }
+            }
+            if (spalteVoll) {
+                vS.push(x);
+            }
+        }
+        // Vorschau-Klassen hinzufügen
         vR.forEach(y => { for (let x = 0; x < 9; x++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
         vS.forEach(x => { for (let y = 0; y < 9; y++) spielbrettElement.children[y * 9 + x].classList.add('linie-vorschau'); });
     }
