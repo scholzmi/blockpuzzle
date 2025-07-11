@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     async function spielStart() {
-        spielbrettElement.classList.remove('zerbroeselt');
+        spielbrettElement.classList.remove('zerbroeselt', 'panic-blinken');
         stopTimer();
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
@@ -348,22 +348,28 @@ document.addEventListener('DOMContentLoaded', () => {
         punkteElement.textContent = punkte;
         updatePanicButtonStatus();
 
-        const kolossFigur = berechneKolossFigur();
+        const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 1000;
+        const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
+        spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
+        spielbrettElement.classList.add('panic-blinken');
         
-        if (kolossFigur) {
-            figurenInSlots[0] = { ...kolossFigur, id: 0 };
-            for(let i = 1; i < 3; i++) {
-                 if (spielConfig.figures.jokerPool.length > 0) {
-                    let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                    figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
-                 } else {
-                    figurenInSlots[i] = null;
-                 }
+        setTimeout(() => {
+            spielbrettElement.classList.remove('panic-blinken');
+            const kolossFigur = berechneKolossFigur();
+            if (kolossFigur) {
+                figurenInSlots[0] = { ...kolossFigur, id: 0 };
+                for(let i = 1; i < 3; i++) {
+                     if (spielConfig.figures.jokerPool.length > 0) {
+                        let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
+                        figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
+                     } else {
+                        figurenInSlots[i] = null;
+                     }
+                }
             }
-        }
-        
-        for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-        wechsleZuNaechsterFigur();
+            for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
+            wechsleZuNaechsterFigur();
+        }, blinkDuration);
     }
     
     function berechneKolossFigur() {
@@ -425,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form[r - minR][c - minC] = 1;
         });
 
-        return { form: form, isKolossFigur: true, color: 'super' };
+        return { form: form, isKolossFigur: true, color: 'super', platzierung: {x: minC, y: minR} };
     }
 
 
@@ -487,10 +493,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function platziereFigur(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = figur.isKolossFigur ? 0 : Math.floor(figurBreite / 2);
-        const offsetY = figur.isKolossFigur ? 0 : Math.floor(figurHoehe / 2);
-        const platziereX = startX - offsetX;
-        const platziereY = startY - offsetY;
+        const offsetX = figur.isKolossFigur ? figur.platzierung.x : Math.floor(figurBreite / 2);
+        const offsetY = figur.isKolossFigur ? figur.platzierung.y : Math.floor(figurHoehe / 2);
+        const platziereX = figur.isKolossFigur ? figur.platzierung.x : startX - offsetX;
+        const platziereY = figur.isKolossFigur ? figur.platzierung.y : startY - offsetY;
 
         if (!kannPlatzieren(figur, platziereX, platziereY)) return;
 
@@ -565,8 +571,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const figurHoehe = ausgewaehlteFigur.form.length;
         const figurBreite = ausgewaehlteFigur.form[0].length;
-        const offsetX = ausgewaehlteFigur.isKolossFigur ? 0 : Math.floor(figurBreite / 2);
-        const offsetY = ausgewaehlteFigur.isKolossFigur ? 0 : Math.floor(figurHoehe / 2);
+        const offsetX = ausgewaehlteFigur.isKolossFigur ? ausgewaehlteFigur.platzierung.x : Math.floor(figurBreite / 2);
+        const offsetY = ausgewaehlteFigur.isKolossFigur ? ausgewaehlteFigur.platzierung.y : Math.floor(figurHoehe / 2);
     
         x = Math.max(offsetX, x);
         y = Math.max(offsetY, y);
@@ -649,9 +655,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneVorschau(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = figur.isKolossFigur ? 0 : Math.floor(figurBreite / 2);
-        const offsetY = figur.isKolossFigur ? 0 : Math.floor(figurHoehe / 2);
-        const platziereX = startX - offsetX, platziereY = startY - offsetY;
+        const offsetX = figur.isKolossFigur ? figur.platzierung.x : Math.floor(figurBreite / 2);
+        const offsetY = figur.isKolossFigur ? figur.platzierung.y : Math.floor(figurHoehe / 2);
+        const platziereX = figur.isKolossFigur ? figur.platzierung.x : startX - offsetX;
+        const platziereY = figur.isKolossFigur ? figur.platzierung.y : startY - offsetY;
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
         
         zeichneSpielfeld();
@@ -770,10 +777,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const cost = getGameSetting('refreshPenaltyPoints') || 0;
             if (punkte >= cost) {
                 refreshFigurenButton.classList.add('auto-panic');
+                const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 2000;
+                const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
+                spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
+                spielbrettElement.classList.add('panic-blinken');
+
                 setTimeout(() => {
                     refreshFigurenButton.classList.remove('auto-panic');
+                    spielbrettElement.classList.remove('panic-blinken');
                     if (istSpielVorbei()) figurenNeuAuslosen();
-                }, 2000);
+                }, blinkDuration);
                 return;
             }
         }

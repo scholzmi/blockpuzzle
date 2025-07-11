@@ -1,7 +1,9 @@
 {
-    "version": "V9.01",
+    "version": "V9.02",
     "letzteAenderung": "god mode panic button",
     "gameSettings": {
+        "panicBlinkDuration": 1000,
+        "panicBlinkFrequency": "0.2s",
         "normal": {
             "timerDuration": 60,
             "timerPenaltyCount": 1,

@@ -261,6 +261,7 @@ input:checked + .slider:before {
     background-color: rgba(248, 249, 250, 0.8);
     width: max-content;
     position: relative;
+    --panic-blink-frequenz: 0.2s; /* NEU: Variable für Frequenz */
 }
 .zelle {
     width: 40px;
@@ -277,7 +278,6 @@ input:checked + .slider:before {
     border-color: #000 !important;
 }
 
-/* NEU: Animation für das Zerbröseln */
 @keyframes zerbroeseln {
     from {
         transform: scale(1) translateY(0);
@@ -291,6 +291,14 @@ input:checked + .slider:before {
 #spielbrett.zerbroeselt .zelle.belegt {
     animation: zerbroeseln 1s ease-in forwards;
     animation-delay: var(--delay, 0s);
+}
+
+/* NEU: Animation für Rahmen-Blinken */
+@keyframes panic-blinken-animation {
+    50% { border-color: #EA4335; }
+}
+#spielbrett.panic-blinken {
+    animation: panic-blinken-animation var(--panic-blink-frequenz) infinite;
 }
 
 .linie-vorschau {
@@ -356,6 +364,26 @@ input:checked + .slider:before {
 }
 #refresh-figuren-button:focus {
     outline: none;
+}
+
+@keyframes auto-panic-glow {
+    0% { transform: scale(1) translateX(0); }
+    10% { transform: scale(1.1) translateX(-5px); }
+    20% { transform: scale(1.1) translateX(5px); }
+    30% { transform: scale(1.1) translateX(-5px); }
+    40% { transform: scale(1.1) translateX(5px); }
+    50% { transform: scale(1.1) translateX(-5px); }
+    60% { transform: scale(1.1) translateX(5px); }
+    70% { transform: scale(1.1) translateX(-5px); }
+    80% { transform: scale(1.1) translateX(5px); }
+    90% { transform: scale(1.1) translateX(-5px); }
+    100% { transform: scale(1) translateX(0); }
+}
+#refresh-figuren-button.auto-panic {
+    animation: auto-panic-glow 0.5s ease-in-out infinite;
+    background-color: #EA4335;
+    border-color: #EA4335;
+    color: white;
 }
 
 
