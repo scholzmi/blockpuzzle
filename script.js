@@ -142,13 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     function eventListenerZuweisen() {
-        // Globale Events
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') abbrechen();
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
-        
-        // Buttons und Modals
         hardModeSchalter.addEventListener('change', () => {
             if (punkte > 0) confirmContainer.classList.add('sichtbar'), confirmContainer.classList.remove('versteckt');
             else spielStart();
@@ -180,39 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
             spielStart();
         });
 
-        // Spezifische Steuerung je nach Gerät
         if (isTouchDevice) {
             const spielWrapper = document.querySelector('.spiel-wrapper');
             spielWrapper.insertBefore(jokerBoxenContainer, spielbrettElement);
             rotateButton.style.display = 'none'; 
-
-            // NEU: Logik zum direkten Greifen aus den Slots
-            figurenSlots.forEach((slot, index) => {
-                slot.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    // Nur neue Figur greifen, wenn keine ausgewählt ist
-                    if (!ausgewaehlteFigur) {
-                        waehleFigur(index);
-                        if (ausgewaehlteFigur) {
-                           setupDrag(e);
-                        }
-                    }
-                });
-            });
-
-            // Listener zum Neupositionieren oder Ablegen einer bereits gegriffenen Figur
-            spielbrettElement.addEventListener('touchstart', (e) => {
-                if (ausgewaehlteFigur) {
-                    e.preventDefault();
-                    setupDrag(e);
-                }
-            });
-
-            // Globale Listener für die Bewegung und das Ende der Berührung
-            window.addEventListener('touchmove', handleTouchMove, { passive: false });
-            window.addEventListener('touchend', handleTouchEnd);
-
-        } else { // PC Steuerung
+            figurenSlots.forEach((slot, index) => slot.addEventListener('click', () => waehleFigur(index)));
+            spielbrettElement.addEventListener('touchstart', handleTouchStart);
+            spielbrettElement.addEventListener('touchmove', handleTouchMove);
+            spielbrettElement.addEventListener('touchend', handleTouchEnd);
+        } else {
             spielbrettElement.addEventListener('mouseenter', handleBoardEnter);
             spielbrettElement.addEventListener('click', handleBoardClick);
             spielbrettElement.addEventListener('mousemove', handleBoardMove);
@@ -225,13 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
     // TOUCH-SPEZIFISCHE HANDLER
     // ===================================================================================
-    
-    // NEU: Hilfsfunktion, um Drag-Start zu initialisieren
-    function setupDrag(e) {
+
+    function handleTouchStart(e) {
+        if (!ausgewaehlteFigur) return;
+        e.preventDefault();
+        
         const now = new Date().getTime();
         const timeSinceLastTap = now - lastTap;
 
-        // Doppeltipp zum Drehen
         if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
             clearTimeout(longPressTimer);
             dreheAktiveFigur();
@@ -242,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         lastTap = now;
 
-        // Drag-Parameter berechnen
         const rect = spielbrettElement.getBoundingClientRect();
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
@@ -256,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         handleBoardMove(e, true);
         
-        // Timer für das Ablegen starten
         longPressTimer = setTimeout(() => {
             platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
         }, longPressDuration);
@@ -264,11 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleTouchMove(e) {
         if (!ausgewaehlteFigur) return;
-        e.preventDefault(); // Wichtig für globale Listener
+        e.preventDefault();
         
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
 
+        // KORRIGIERTE STELLE: Die korrekten Variablennamen werden hier verwendet
         const diffX = Math.abs(touchX - touchStartX);
         const diffY = Math.abs(touchY - touchStartY);
 
@@ -278,10 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
         handleBoardMove(e, true);
     }
 
-    function handleTouchEnd() {
+    function handleTouchEnd(e) {
         clearTimeout(longPressTimer);
     }
-
 
     // ===================================================================================
     // STEUERUNG & SPIEL-LOGIK
@@ -326,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function dreheFigurPC(e) { e.preventDefault(); dreheAktiveFigur(); handleBoardMove(e); }
+    function dreheFigurMobile() { dreheAktiveFigur(); zeichneSpielfeld(); zeichneVorschau(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y); }
     function handleBoardEnter(e) { if (!ausgewaehlteFigur) wechsleZuNaechsterFigur(); handleBoardMove(e); }
     function handleBoardLeave() { if (ausgewaehlteFigur) zeichneSpielfeld(); }
     
@@ -475,7 +448,13 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        abbrechen(); // Zustand sauber zurücksetzen
+        aktiverSlotIndex = -1;
+        ausgewaehlteFigur = null;
+        hatFigurGedreht = false; 
+        if (isTouchDevice) rotateButton.style.display = 'none';
+        zeichneSlotHighlights();
+        zeichneSpielfeld();
+        spielbrettElement.style.cursor = 'default';
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
