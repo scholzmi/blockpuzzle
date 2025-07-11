@@ -1,6 +1,6 @@
 {
-    "version": "V8.29",
-    "letzteAenderung": "Einführung Touch Steuerung für Handy",
+    "version": "V8.30",
+    "letzteAenderung": "Figur Tausch -> 3 leichte Figuren",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,

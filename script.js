@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ersterZugGemacht = false;
     let lastMausEvent = null;
     let anzahlJoker;
+    let erzwungeneJoker = false; // NEU: Flag für den Joker-Tausch
     const isTouchDevice = 'ontouchstart' in window;
 
     // Mobile Steuerung Zustand
@@ -82,13 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
         lastMausEvent = null;
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
+        erzwungeneJoker = false;
 
         erstelleJokerLeiste();
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
         generiereNeueFiguren();
-        wechsleZuNaechsterFigur(); // Wählt direkt die erste Figur aus
+        wechsleZuNaechsterFigur();
         
         timerBar.style.setProperty('--timer-progress', '1');
     }
@@ -334,10 +336,33 @@ document.addEventListener('DOMContentLoaded', () => {
             punkte = Math.max(0, punkte - penaltyPoints);
             punkteElement.textContent = punkte;
         }, 500);
+        
+        erzwungeneJoker = true; // Flag für garantierte Joker setzen
         generiereNeueFiguren();
+        wechsleZuNaechsterFigur(); // Nächste Figur (Joker) direkt auswählen
     }
 
     function generiereNeueFiguren() {
+        // NEU: Logik für erzwungenen Joker-Tausch
+        if (erzwungeneJoker) {
+            for (let i = 0; i < 3; i++) {
+                if (spielConfig.figures.jokerPool.length > 0) {
+                    let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
+                    let form = zufallsFigur.form;
+                    const anzahlRotationen = Math.floor(Math.random() * 4);
+                    for (let r = 0; r < anzahlRotationen; r++) form = dreheFigur90Grad(form);
+                    figurenInSlots[i] = { form, color: zufallsFigur.color, symmetrisch: zufallsFigur.symmetrisch, kategorie: 'joker', id: i };
+                    zeichneFigurInSlot(i);
+                } else {
+                    figurenInSlots[i] = null; // Fallback, falls Joker-Pool leer
+                }
+            }
+            erzwungeneJoker = false; // Flag zurücksetzen
+            if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+            return; // Funktion hier beenden
+        }
+
+        // Bisherige Logik für normale Runden
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
