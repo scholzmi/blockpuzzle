@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     async function spielStart() {
+        spielbrettElement.classList.remove('zerbroeselt'); // Animation zurücksetzen
         stopTimer();
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
@@ -289,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function dreheAktiveFigur() {
         if (!ausgewaehlteFigur) return;
-        if (ausgewaehlteFigur.isSuperFigur) return; // Super-Figur nicht drehbar
+        if (ausgewaehlteFigur.isKolossFigur) return; // Koloss-Figur nicht drehbar
         if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
             if (verbrauchteJoker >= anzahlJoker) return;
             verbrauchteJoker++;
@@ -308,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function wechsleFigurPerScroll(e) {
         e.preventDefault();
         if (!ausgewaehlteFigur) return;
-        if (ausgewaehlteFigur.isSuperFigur) return; 
+        if (ausgewaehlteFigur.isKolossFigur) return; 
         const richtung = e.deltaY > 0 ? 1 : -1;
         const verfuegbareIndices = figurenInSlots.map((fig, index) => fig ? index : -1).filter(index => index !== -1);
         if (verfuegbareIndices.length <= 1) return;
@@ -348,11 +349,11 @@ document.addEventListener('DOMContentLoaded', () => {
         punkteElement.textContent = punkte;
         updatePanicButtonStatus();
 
-        const besteFigur = berechneSuperFigur();
-
-        if (besteFigur && besteFigur.score > 0) {
-            figurenInSlots[0] = { ...besteFigur.figur, id: 0 };
-             for(let i = 1; i < 3; i++) {
+        const kolossFigur = berechneKolossFigur();
+        
+        if (kolossFigur) {
+            figurenInSlots[0] = { ...kolossFigur, id: 0 };
+            for(let i = 1; i < 3; i++) {
                  if (spielConfig.figures.jokerPool.length > 0) {
                     let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
                     figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
@@ -361,77 +362,18 @@ document.addEventListener('DOMContentLoaded', () => {
                  }
             }
         } else {
-            const groessteFigur = berechneGroessteFigur();
-            if (groessteFigur) {
-                figurenInSlots[0] = { ...groessteFigur, id: 0 };
-                 for(let i = 1; i < 3; i++) {
-                     if (spielConfig.figures.jokerPool.length > 0) {
-                        let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                        figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
-                     } else {
-                        figurenInSlots[i] = null;
-                     }
-                }
-            } else {
-                erzwungeneJoker = true;
-                generiereNeueFiguren();
-            }
+            erzwungeneJoker = true;
+            generiereNeueFiguren();
         }
         
         for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
         wechsleZuNaechsterFigur();
     }
-
-    function berechneSuperFigur() {
-        let bestMove = { score: 0, figur: null, platzierung: {x: 0, y: 0} };
-
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-                if (spielbrett[r][c] === 0) {
-                    for (let h = 1; h <= 5; h++) {
-                        for (let w = 1; w <= 5; w++) {
-                            if (r + h <= 9 && c + w <= 9) {
-                                let tempSpielbrett = spielbrett.map(row => [...row]);
-                                let form = Array.from({length: h}, () => Array(w).fill(0));
-                                let isValid = true;
-                                let blocksCount = 0;
-
-                                for (let i = 0; i < h; i++) {
-                                    for (let j = 0; j < w; j++) {
-                                        if (tempSpielbrett[r + i][c + j] === 0) {
-                                            tempSpielbrett[r + i][c + j] = 1;
-                                            form[i][j] = 1;
-                                            blocksCount++;
-                                        }
-                                    }
-                                }
-
-                                if (blocksCount === 0) continue;
-
-                                let linien = 0;
-                                for (let i = 0; i < 9; i++) {
-                                    if (tempSpielbrett[i].every(z => z !== 0)) linien++;
-                                    if (tempSpielbrett.every(row => row[i] !== 0)) linien++;
-                                }
-                                
-                                if (linien > bestMove.score) {
-                                    bestMove = {
-                                        score: linien,
-                                        figur: { form: form, color: 'super', isSuperFigur: true },
-                                        platzierung: { x: c, y: r }
-                                    };
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return bestMove;
-    }
     
-    function berechneGroessteFigur() {
+    function berechneKolossFigur() {
+        let bestMove = { size: 0, figur: null };
         const alleFiguren = [ ...spielConfig.figures.zonkPool, ...spielConfig.figures.normalPool, ...spielConfig.figures.jokerPool ];
+        
         alleFiguren.sort((a, b) => {
             const sizeA = a.form.flat().reduce((sum, val) => sum + val, 0);
             const sizeB = b.form.flat().reduce((sum, val) => sum + val, 0);
@@ -441,11 +383,14 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const figurVorlage of alleFiguren) {
             let aktuelleForm = figurVorlage.form;
             for (let r = 0; r < 4; r++) {
-                const tempFigur = { ...figurVorlage, form: aktuelleForm };
+                const tempFigur = { ...figurVorlage, form: aktuelleForm, isKolossFigur: true, color: 'super' };
                 for (let y = 0; y < 9; y++) {
                     for (let x = 0; x < 9; x++) {
                         if (kannPlatzieren(tempFigur, x, y)) {
-                            return tempFigur;
+                            const size = tempFigur.form.flat().reduce((sum, val) => sum + val, 0);
+                            if(size > bestMove.size) {
+                                bestMove = { size: size, figur: tempFigur };
+                            }
                         }
                     }
                 }
@@ -453,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (figurVorlage.symmetrisch) break;
             }
         }
-        return null;
+        return bestMove.size > 0 ? bestMove.figur : null;
     }
 
 
@@ -469,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             ersterZug = false;
             for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-            if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+            if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
             return;
         }
 
@@ -484,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             erzwungeneJoker = false;
             for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-            if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+            if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
             return;
         }
 
@@ -511,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 figurenInSlots[i] = null;
             }
         }
-        if (istSpielVorbei()) setTimeout(pruefeUndSpeichereRekord, 100);
+        if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
     }
 
     function abbrechen() {
@@ -530,8 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function platziereFigur(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = figur.isSuperFigur ? 0 : Math.floor(figurBreite / 2);
-        const offsetY = figur.isSuperFigur ? 0 : Math.floor(figurHoehe / 2);
+        const offsetX = figur.isKolossFigur ? 0 : Math.floor(figurBreite / 2);
+        const offsetY = figur.isKolossFigur ? 0 : Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX;
         const platziereY = startY - offsetY;
 
@@ -547,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
             if (block === 1) {
-                if(figur.isSuperFigur) {
+                if(figur.isKolossFigur) {
                     spielbrett[platziereY + y][platziereX + x] = getGradientColor(x, y, figurBreite, figurHoehe);
                 } else {
                     spielbrett[platziereY + y][platziereX + x] = figur.color;
@@ -588,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (istSpielVorbei()) {
-            setTimeout(pruefeUndSpeichereRekord, 100);
+            setTimeout(handleSpielEnde, 100);
         } else {
             wechsleZuNaechsterFigur();
         }
@@ -602,8 +547,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const figurHoehe = ausgewaehlteFigur.form.length;
         const figurBreite = ausgewaehlteFigur.form[0].length;
-        const offsetX = ausgewaehlteFigur.isSuperFigur ? 0 : Math.floor(figurBreite / 2);
-        const offsetY = ausgewaehlteFigur.isSuperFigur ? 0 : Math.floor(figurHoehe / 2);
+        const offsetX = ausgewaehlteFigur.isKolossFigur ? 0 : Math.floor(figurBreite / 2);
+        const offsetY = ausgewaehlteFigur.isKolossFigur ? 0 : Math.floor(figurHoehe / 2);
     
         x = Math.max(offsetX, x);
         y = Math.max(offsetY, y);
@@ -673,9 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getGradientColor(x, y, width, height) {
-        const from = [66, 133, 244]; // Blau
-        const to = [251, 188, 4];   // Gelb
-        const factor = (x + y) / (width - 1 + height - 1);
+        const from = [66, 133, 244];
+        const to = [251, 188, 4];
+        const factor = (x + y) / (Math.max(1, width - 1) + Math.max(1, height - 1));
 
         const r = Math.round(from[0] + factor * (to[0] - from[0]));
         const g = Math.round(from[1] + factor * (to[1] - from[1]));
@@ -686,8 +631,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function zeichneVorschau(figur, startX, startY) {
         if (!figur) return;
         const figurHoehe = figur.form.length, figurBreite = figur.form[0].length;
-        const offsetX = figur.isSuperFigur ? 0 : Math.floor(figurBreite / 2);
-        const offsetY = figur.isSuperFigur ? 0 : Math.floor(figurHoehe / 2);
+        const offsetX = figur.isKolossFigur ? 0 : Math.floor(figurBreite / 2);
+        const offsetY = figur.isKolossFigur ? 0 : Math.floor(figurHoehe / 2);
         const platziereX = startX - offsetX, platziereY = startY - offsetY;
         const kannFigurPlatzieren = kannPlatzieren(figur, platziereX, platziereY);
         
@@ -711,7 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const brettY = platziereY + y, brettX = platziereX + x;
                 if (brettY < 9 && brettX < 9 && brettY >= 0 && brettX >= 0) {
                     const zelle = spielbrettElement.children[brettY * 9 + brettX];
-                    if (figur.isSuperFigur) {
+                    if (figur.isKolossFigur) {
                         const color = getGradientColor(x, y, figurBreite, figurHoehe);
                         zelle.style.backgroundColor = kannFigurPlatzieren ? color.replace('rgb', 'rgba').replace(')', ', 0.5)') : 'rgba(234, 67, 53, 0.5)';
                     } else {
@@ -777,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const blockDiv = document.createElement('div');
                 if (block === 1) {
                     blockDiv.classList.add('figur-block');
-                    if (figur.isSuperFigur) {
+                    if (figur.isKolossFigur) {
                         blockDiv.style.backgroundColor = getGradientColor(x, y, form[0].length, form.length);
                     } else {
                         blockDiv.style.backgroundColor = spielConfig.colorThemes[figur.color]?.placed || spielConfig.colorThemes['default'].placed;
@@ -802,24 +747,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     
-    function pruefeUndSpeichereRekord() {
+    // NEU: Geteilte Funktion für Spiel-Ende-Logik
+    function handleSpielEnde() {
         stopTimer();
-        let rekord = istHardMode ? rekordSchwer : rekordNormal, rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
-        if (punkte > rekord) {
-            rekord = punkte;
-            if (istHardMode) { rekordSchwerElement.textContent = rekord; rekordSchwer = rekord; }
-            else { rekordNormalElement.textContent = rekord; rekordNormal = rekord; }
-            setCookie(rekordCookieName, rekord, 365);
-            gameOverTitel.textContent = 'Neuer Rekord!';
-            gameOverText.textContent = `Du hast ${rekord} Punkte erreicht!`;
-        } else {
-            gameOverTitel.textContent = 'Spiel vorbei!';
-            gameOverText.textContent = `Deine Punktzahl: ${punkte}`;
-        }
-        gameOverContainer.classList.add('sichtbar'), gameOverContainer.classList.remove('versteckt');
+        spielbrettElement.classList.add('zerbroeselt');
+        
+        // Warte, bis die Animation vorbei ist
+        setTimeout(() => {
+            let rekord = istHardMode ? rekordSchwer : rekordNormal;
+            let rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
+            if (punkte > rekord) {
+                rekord = punkte;
+                if (istHardMode) { rekordSchwerElement.textContent = rekord; rekordSchwer = rekord; }
+                else { rekordNormalElement.textContent = rekord; rekordNormal = rekord; }
+                setCookie(rekordCookieName, rekord, 365);
+                gameOverTitel.textContent = 'Neuer Rekord!';
+                gameOverText.textContent = `Du hast ${rekord} Punkte erreicht!`;
+            } else {
+                gameOverTitel.textContent = 'Spiel vorbei!';
+                gameOverText.textContent = `Deine Punktzahl: ${punkte}`;
+            }
+            gameOverContainer.classList.add('sichtbar');
+            gameOverContainer.classList.remove('versteckt');
+        }, 3000); // 3 Sekunden warten
     }
     
-    function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: 9 }, () => Array(9).fill(0)); for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); spielbrettElement.appendChild(zelle); } } }
+    function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: 9 }, () => Array(9).fill(0)); for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); zelle.style.setProperty('--delay', `${Math.random() * 2}s`); spielbrettElement.appendChild(zelle); } } }
 
     eventListenerZuweisen();
     spielStart();

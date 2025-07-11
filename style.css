@@ -3,7 +3,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #3c4043;
     margin: 0;
-    padding: 20px 20px 60px 20px; /* Platz für den Footer */
+    padding: 20px 20px 60px 20px;
     height: 100vh;
     box-sizing: border-box;
     display: flex;
@@ -88,7 +88,7 @@ body.boss-key-aktiv::before {
     flex-direction: column;
     align-items: center;
     position: relative;
-    touch-action: none; /* Verhindert Scrollen für den gesamten Spielbereich */
+    touch-action: none;
 }
 
 /* Punkte-Animation */
@@ -106,18 +106,9 @@ body.boss-key-aktiv::before {
     animation: punkteExplosion 1.2s ease-out forwards;
 }
 @keyframes punkteExplosion {
-    0% {
-        opacity: 1;
-        transform: scale(0.5);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.5);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(1);
-    }
+    0% { opacity: 1; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.5); }
+    100% { opacity: 0; transform: scale(1); }
 }
 
 
@@ -246,7 +237,7 @@ input:checked + .slider:before {
     width: 100%;
     max-width: 200px;
     gap: 5px;
-    margin-bottom: 15px; /* Abstand zum Spielfeld */
+    margin-bottom: 15px;
 }
 .joker-box {
     width: 45px;
@@ -276,7 +267,7 @@ input:checked + .slider:before {
     height: 40px;
     border: 1px solid #E0E0E0;
     box-sizing: border-box;
-    transition: background-color 0.1s;
+    transition: background-color 0.1s, transform 0.5s ease, opacity 0.5s ease;
 }
 .belegt {
     border: 1px solid rgba(0, 0, 0, 0.2);
@@ -284,6 +275,22 @@ input:checked + .slider:before {
 .blocker {
     background-color: #333 !important;
     border-color: #000 !important;
+}
+
+/* NEU: Animation für das Zerbröseln */
+@keyframes zerbroeseln {
+    from {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0) translateY(200px);
+        opacity: 0;
+    }
+}
+#spielbrett.zerbroeselt .zelle.belegt {
+    animation: zerbroeseln 1s ease-in forwards;
+    animation-delay: var(--delay, 0s);
 }
 
 .linie-vorschau {
@@ -330,7 +337,6 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-/* NEU: Styling für den Panic Button (aktiv, inaktiv, hover) */
 #refresh-figuren-button {
     border-color: #4285F4;
     background-color: white;
@@ -475,7 +481,7 @@ footer a:hover {
     align-items: center;
     z-index: 200;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.5s ease;
     pointer-events: none;
 }
 .modal-container.sichtbar {
@@ -560,6 +566,6 @@ footer a:hover {
         order: 1;
     }
     #dreh-joker-leiste {
-        margin: 0 auto 15px; /* Zentriert die Joker-Leiste im mobilen Modus */
+        margin: 0 auto 15px;
     }
 }
