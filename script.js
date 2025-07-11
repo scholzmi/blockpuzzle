@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMausEvent = null;
     let anzahlJoker;
     let ersterZug = true;
-    let currentPanicCost = 0; // NEU
+    let currentPanicCost = 0;
     let panicCooldown = 0;
     const isTouchDevice = 'ontouchstart' in window;
 
@@ -342,8 +342,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePanicButtonStatus() {
-        refreshFigurenButton.disabled = punkte < currentPanicCost || panicCooldown > 0;
-        refreshFigurenButton.title = `Kosten: ${Math.round(currentPanicCost)} Punkte, Cooldown: ${panicCooldown} Runden`;
+        const wasPreviouslyDisabled = refreshFigurenButton.disabled;
+        const cost = currentPanicCost;
+        refreshFigurenButton.disabled = punkte < cost || panicCooldown > 0;
+        refreshFigurenButton.title = `Kosten: ${Math.round(cost)} Punkte, Cooldown: ${panicCooldown} Runden`;
+
+        if (wasPreviouslyDisabled && !refreshFigurenButton.disabled) {
+            refreshFigurenButton.classList.add('wieder-aktiv');
+            setTimeout(() => {
+                refreshFigurenButton.classList.remove('wieder-aktiv');
+            }, 1000); // Dauer der Animation
+        }
     }
 
     function figurenNeuAuslosen() {
