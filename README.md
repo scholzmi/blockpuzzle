@@ -1,3 +1,3 @@
-läuft auf zenpuzzle.netlify.all
+läuft auf zenpuzzle.netlify.app
 
 # blockpuzzle
