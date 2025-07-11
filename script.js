@@ -367,29 +367,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function berechneKolossFigur() {
-        const alleFiguren = [ ...spielConfig.figures.zonkPool, ...spielConfig.figures.normalPool, ...spielConfig.figures.jokerPool ];
-        alleFiguren.sort((a, b) => {
-            const sizeA = a.form.flat().reduce((sum, val) => sum + val, 0);
-            const sizeB = b.form.flat().reduce((sum, val) => sum + val, 0);
-            return sizeB - sizeA;
-        });
-
-        for (const figurVorlage of alleFiguren) {
-            let aktuelleForm = figurVorlage.form;
-            for (let r = 0; r < 4; r++) {
-                const tempFigur = { ...figurVorlage, form: aktuelleForm, isKolossFigur: true, color: 'super' };
-                for (let y = 0; y < 9; y++) {
-                    for (let x = 0; x < 9; x++) {
-                        if (kannPlatzieren(tempFigur, x, y)) {
-                            return tempFigur;
-                        }
-                    }
+        const leereZellen = [];
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (spielbrett[r][c] === 0) {
+                    leereZellen.push({r, c});
                 }
-                aktuelleForm = dreheFigur90Grad(aktuelleForm);
-                if (figurVorlage.symmetrisch) break;
             }
         }
-        return null;
+
+        if (leereZellen.length === 0) return null;
+
+        const visited = Array.from({length: 9}, () => Array(9).fill(false));
+        let groesstesLoch = [];
+
+        for (const zelle of leereZellen) {
+            if (!visited[zelle.r][zelle.c]) {
+                const aktuellesLoch = [];
+                const queue = [zelle];
+                visited[zelle.r][zelle.c] = true;
+
+                while (queue.length > 0) {
+                    const { r, c } = queue.shift();
+                    aktuellesLoch.push({r, c});
+
+                    [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
+                        const nr = r + dr;
+                        const nc = c + dc;
+                        if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9 && spielbrett[nr][nc] === 0 && !visited[nr][nc]) {
+                            visited[nr][nc] = true;
+                            queue.push({r: nr, c: nc});
+                        }
+                    });
+                }
+                
+                if (aktuellesLoch.length > groesstesLoch.length) {
+                    groesstesLoch = aktuellesLoch;
+                }
+            }
+        }
+
+        if (groesstesLoch.length === 0) return null;
+
+        let minR = 8, maxR = 0, minC = 8, maxC = 0;
+        groesstesLoch.forEach(({r, c}) => {
+            minR = Math.min(minR, r);
+            maxR = Math.max(maxR, r);
+            minC = Math.min(minC, c);
+            maxC = Math.max(maxC, c);
+        });
+
+        const hoehe = maxR - minR + 1;
+        const breite = maxC - minC + 1;
+        const form = Array.from({length: hoehe}, () => Array(breite).fill(0));
+        
+        groesstesLoch.forEach(({r, c}) => {
+            form[r - minR][c - minC] = 1;
+        });
+
+        return { form: form, isKolossFigur: true, color: 'super' };
     }
 
 
@@ -502,7 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
         
-        // JOKER-FIX: Manuelle Zurücksetzung statt abbrechen()
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
         hatFigurGedreht = false; 
@@ -737,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 refreshFigurenButton.classList.add('auto-panic');
                 setTimeout(() => {
                     refreshFigurenButton.classList.remove('auto-panic');
-                    if (istSpielVorbei()) figurenNeuAuslosen(); // Nur auslösen, wenn immer noch vorbei
+                    if (istSpielVorbei()) figurenNeuAuslosen();
                 }, 2000);
                 return;
             }
