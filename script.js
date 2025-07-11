@@ -92,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneSpielfeld();
         updatePanicButtonStatus();
         generiereNeueFiguren();
+        wechsleZuNaechsterFigur();
+        
+        timerBar.style.setProperty('--timer-progress', '1');
     }
 
     function updateHardModeLabel() {
@@ -121,7 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function getGameSetting(key) {
         const modus = istHardMode ? 'hard' : 'normal';
-        return spielConfig.gameSettings[modus][key] ?? spielConfig.gameSettings[key];
+        // NEU: Zugriff auf globale Einstellungen
+        if (spielConfig.gameSettings[key] !== undefined) {
+            return spielConfig.gameSettings[key];
+        }
+        return spielConfig.gameSettings[modus][key];
     }
 
     async function ladeAnleitung() {
@@ -164,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         anleitungSchliessenBtn.addEventListener('click', () => {
             anleitungModalContainer.classList.add('versteckt'), anleitungModalContainer.classList.remove('sichtbar');
         });
-        refreshFigurenButton.addEventListener('click', () => figurenNeuAuslosen(false));
+        refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         neustartNormalBtn.addEventListener('click', () => {
             hardModeSchalter.checked = false;
             gameOverContainer.classList.add('versteckt'), gameOverContainer.classList.remove('sichtbar');
@@ -277,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aktiverSlotIndex = slotIndex;
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
-
+        
         if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
@@ -318,10 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function wechsleZuNaechsterFigur() {
-        if (istSpielVorbei()) {
-            checkGameState();
-            return;
-        }
         let naechsterIndex = figurenInSlots.findIndex(fig => fig !== null);
         if (naechsterIndex !== -1) {
             waehleFigur(naechsterIndex);
@@ -340,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshFigurenButton.disabled = punkte < cost;
     }
 
-    function figurenNeuAuslosen(isAutoPanic = false) {
+    function figurenNeuAuslosen() {
         abbrechen();
         stopTimer();
         const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
@@ -352,21 +355,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const blinkDuration = getGameSetting('panicBlinkDuration') || 1000;
         const blinkFrequency = getGameSetting('panicBlinkFrequency') || '0.2s';
-        
-        if (isAutoPanic) {
-            refreshFigurenButton.classList.add('auto-panic');
-        }
         spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
         spielbrettElement.classList.add('panic-blinken');
         
         setTimeout(() => {
-            if (isAutoPanic) {
-                refreshFigurenButton.classList.remove('auto-panic');
-            }
             spielbrettElement.classList.remove('panic-blinken');
-            
             const kolossFigur = berechneKolossFigur();
-            
             if (kolossFigur) {
                 figurenInSlots[0] = { ...kolossFigur, id: 0 };
                 for(let i = 1; i < 3; i++) {
@@ -393,77 +387,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function berechneKolossFigur() {
-        const leereZellen = [];
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-                if (spielbrett[r][c] === 0) {
-                    leereZellen.push({r, c});
-                }
-            }
-        }
+        let bestesFenster = { anzahl: 0, form: null, position: {r: 0, c: 0} };
 
-        if (leereZellen.length === 0) return null;
+        for (let startR = 0; startR <= 4; startR++) {
+            for (let startC = 0; startC <= 4; startC++) {
+                let aktuellesFensterAnzahl = 0;
+                let aktuelleForm = Array.from({ length: 5 }, () => Array(5).fill(0));
 
-        const visited = Array.from({length: 9}, () => Array(9).fill(false));
-        let alleLoecher = [];
-
-        for (const zelle of leereZellen) {
-            if (!visited[zelle.r][zelle.c]) {
-                const aktuellesLoch = [];
-                const queue = [zelle];
-                visited[zelle.r][zelle.c] = true;
-
-                while (queue.length > 0) {
-                    const { r, c } = queue.shift();
-                    aktuellesLoch.push({r, c});
-
-                    [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
-                        const nr = r + dr;
-                        const nc = c + dc;
-                        if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9 && spielbrett[nr][nc] === 0 && !visited[nr][nc]) {
-                            visited[nr][nc] = true;
-                            queue.push({r: nr, c: nc});
+                for (let r_offset = 0; r_offset < 5; r_offset++) {
+                    for (let c_offset = 0; c_offset < 5; c_offset++) {
+                        if (spielbrett[startR + r_offset][startC + c_offset] === 0) {
+                            aktuellesFensterAnzahl++;
+                            aktuelleForm[r_offset][c_offset] = 1;
                         }
-                    });
+                    }
                 }
-                alleLoecher.push(aktuellesLoch);
+
+                if (aktuellesFensterAnzahl > bestesFenster.anzahl) {
+                    bestesFenster = { anzahl: aktuellesFensterAnzahl, form: aktuelleForm };
+                }
             }
         }
         
-        const validLoecher = alleLoecher.filter(loch => {
-            if (loch.length === 0) return false;
-            let minR = 8, maxR = 0, minC = 8, maxC = 0;
-            loch.forEach(({r, c}) => {
-                minR = Math.min(minR, r);
-                maxR = Math.max(maxR, r);
-                minC = Math.min(minC, c);
-                maxC = Math.max(maxC, c);
-            });
-            return (maxR - minR + 1) <= 5 && (maxC - minC + 1) <= 5;
-        });
+        if (bestesFenster.anzahl > 0) {
+            let minR = -1, maxR = -1, minC = -1, maxC = -1;
+            for(let r = 0; r < 5; r++) {
+                for(let c = 0; c < 5; c++) {
+                    if (bestesFenster.form[r][c] === 1) {
+                        if(minR === -1) minR = r;
+                        maxR = r;
+                        if(minC === -1 || c < minC) minC = c;
+                        if(maxC === -1 || c > maxC) maxC = c;
+                    }
+                }
+            }
+            
+            if (minR === -1) return null;
 
-        if (validLoecher.length === 0) return null;
+            const zugeschnitteneForm = bestesFenster.form.slice(minR, maxR + 1).map(row => row.slice(minC, maxC + 1));
+            return { form: zugeschnitteneForm, isKolossFigur: true, color: 'super' };
+        }
 
-        validLoecher.sort((a, b) => b.length - a.length);
-        const groesstesLoch = validLoecher[0];
-
-        let minR = 8, maxR = 0, minC = 8, maxC = 0;
-        groesstesLoch.forEach(({r, c}) => {
-            minR = Math.min(minR, r);
-            maxR = Math.max(maxR, r);
-            minC = Math.min(minC, c);
-            maxC = Math.max(maxC, c);
-        });
-
-        const hoehe = maxR - minR + 1;
-        const breite = maxC - minC + 1;
-        const form = Array.from({length: hoehe}, () => Array(breite).fill(0));
-        
-        groesstesLoch.forEach(({r, c}) => {
-            form[r - minR][c - minC] = 1;
-        });
-
-        return { form, isKolossFigur: true, color: 'super' };
+        return null;
     }
 
 
@@ -478,32 +443,35 @@ document.addEventListener('DOMContentLoaded', () => {
                  figurenInSlots[i] = { ...normalFigur, kategorie: 'normal', id: i };
             }
             ersterZug = false;
-        } else {
-            rundenZaehler++;
-            const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
-                  reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
-            const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
-            const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
-            for (let i = 0; i < 3; i++) {
-                let zufallsFigur = null, kategorie = 'normal', zufallsZahl = Math.random();
-                if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
-                    zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
-                    kategorie = 'zonk';
-                } else if (spielConfig.figures.jokerPool.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
-                    zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                    kategorie = 'joker';
-                } else if (spielConfig.figures.normalPool.length > 0) {
-                    zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
-                }
-                if (zufallsFigur) {
-                    figurenInSlots[i] = { ...zufallsFigur, kategorie: kategorie, id: i };
-                } else {
-                    figurenInSlots[i] = null;
-                }
+            for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
+            if (istSpielVorbei()) setTimeout(() => handleSpielEnde(true), 100);
+            return;
+        }
+
+        rundenZaehler++;
+        const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
+              reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
+        const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
+        const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
+        for (let i = 0; i < 3; i++) {
+            let zufallsFigur = null, kategorie = 'normal', zufallsZahl = Math.random();
+            if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
+                zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
+                kategorie = 'zonk';
+            } else if (spielConfig.figures.jokerPool.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
+                zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
+                kategorie = 'joker';
+            } else if (spielConfig.figures.normalPool.length > 0) {
+                zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
+            }
+            if (zufallsFigur) {
+                figurenInSlots[i] = { ...zufallsFigur, kategorie: kategorie, id: i };
+                zeichneFigurInSlot(i);
+            } else {
+                figurenInSlots[i] = null;
             }
         }
-        for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-        wechsleZuNaechsterFigur();
+        if (istSpielVorbei()) setTimeout(() => handleSpielEnde(true), 100);
     }
 
     function abbrechen() {
@@ -551,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const blockAnzahl = figur.form.flat().reduce((a, b) => a + b, 0);
         let punktMultiplier = 1;
         if (figur.kategorie === 'normal') punktMultiplier = 2;
-        else if (figur.kategorie === 'zonk' || figur.isKolossFigur) punktMultiplier = 5;
+        else if (figur.kategorie === 'zonk') punktMultiplier = 5;
         const figurenPunkte = blockAnzahl * punktMultiplier;
         
         const alterSlotIndex = aktiverSlotIndex;
@@ -584,19 +552,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (figurenInSlots.every(f => f === null)) {
             generiereNeueFiguren();
+        }
+
+        if (istSpielVorbei()) {
+            setTimeout(() => handleSpielEnde(true), 100);
         } else {
             wechsleZuNaechsterFigur();
-        }
-    }
-    
-    function checkGameState() {
-        if (istSpielVorbei()) {
-            const cost = getGameSetting('refreshPenaltyPoints') || 0;
-            if (punkte >= cost) {
-                figurenNeuAuslosen(true);
-            } else {
-                triggerGameOver();
-            }
         }
     }
 
@@ -644,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function parseShape(shapeCoords) { if (!shapeCoords || shapeCoords.length === 0) return [[]]; let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0)); let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1; shapeCoords.forEach(coord => { const row = Math.floor((coord - 1) / 5); const col = (coord - 1) % 5; if (row < 5 && col < 5) { tempMatrix[row][col] = 1; minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row); minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col); } }); if (maxRow === -1) return []; return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1)); }
     function dreheFigur90Grad(matrix) { return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse()); }
-    function istSpielVorbei() { for (const figur of figurenInSlots) { if (figur) { for (let r = 0; r < 4; r++) { const tempFigur = { ...figur, form: dreheFigur90Grad(figur.form, r) }; for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { if (kannPlatzieren(tempFigur, x, y)) return false; } } } } } return true; }
+    function istSpielVorbei() { for (const figurSlot of figurenInSlots) { if (figurSlot && figurSlot.form.length > 0 && figurSlot.form[0].length > 0) { let aktuelleForm = figurSlot.form; for (let i = 0; i < 4; i++) { const tempFigur = { form: aktuelleForm }; for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) if (kannPlatzieren(tempFigur, x, y)) return false; aktuelleForm = dreheFigur90Grad(aktuelleForm); } } } return true; }
     function kannPlatzieren(figur, startX, startY) { if (!figur || !figur.form || figur.form.length === 0 || figur.form[0].length === 0) return false; for (let y = 0; y < figur.form.length; y++) { for (let x = 0; x < figur.form[y].length; x++) { if (figur.form[y][x] === 1) { const bX = startX + x, bY = startY + y; if (bX < 0 || bX >= 9 || bY < 0 || bY >= 9 || spielbrett[bY][bX] !== 0) return false; } } } return true; }
     
     function leereVolleLinien() {
@@ -810,7 +771,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     
-    function triggerGameOver() {
+    function handleSpielEnde(checkAutoPanic = false) {
+        if (checkAutoPanic) {
+            const cost = getGameSetting('refreshPenaltyPoints') || 0;
+            if (punkte >= cost) {
+                refreshFigurenButton.classList.add('auto-panic');
+                const blinkDuration = getGameSetting('panicBlinkDuration') || 2000;
+                const blinkFrequency = getGameSetting('panicBlinkFrequency') || '0.2s';
+                spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
+                spielbrettElement.classList.add('panic-blinken');
+
+                setTimeout(() => {
+                    refreshFigurenButton.classList.remove('auto-panic');
+                    spielbrettElement.classList.remove('panic-blinken');
+                    if (istSpielVorbei()) figurenNeuAuslosen();
+                }, blinkDuration);
+                return;
+            }
+        }
+
         stopTimer();
         spielbrettElement.classList.add('zerbroeselt');
         
