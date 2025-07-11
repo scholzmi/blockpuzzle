@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         anleitungSchliessenBtn.addEventListener('click', () => {
             anleitungModalContainer.classList.add('versteckt'), anleitungModalContainer.classList.remove('sichtbar');
         });
-        refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
+        refreshFigurenButton.addEventListener('click', () => figurenNeuAuslosen(false));
         neustartNormalBtn.addEventListener('click', () => {
             hardModeSchalter.checked = false;
             gameOverContainer.classList.add('versteckt'), gameOverContainer.classList.remove('sichtbar');
@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshFigurenButton.disabled = punkte < cost;
     }
 
-    function figurenNeuAuslosen() {
+    function figurenNeuAuslosen(isAutoPanic = false) {
         abbrechen();
         stopTimer();
         const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
@@ -349,12 +349,19 @@ document.addEventListener('DOMContentLoaded', () => {
         punkteElement.textContent = punkte;
         updatePanicButtonStatus();
 
-        const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 1000;
-        const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
+        const blinkDuration = getGameSetting('panicBlinkDuration') || 1000;
+        const blinkFrequency = getGameSetting('panicBlinkFrequency') || '0.2s';
+        
+        if (isAutoPanic) {
+            refreshFigurenButton.classList.add('auto-panic');
+        }
         spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
         spielbrettElement.classList.add('panic-blinken');
         
         setTimeout(() => {
+            if (isAutoPanic) {
+                refreshFigurenButton.classList.remove('auto-panic');
+            }
             spielbrettElement.classList.remove('panic-blinken');
             
             const kolossFigur = berechneKolossFigur();
@@ -800,20 +807,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     
     function handleSpielEnde(checkAutoPanic = false) {
-        if (checkAutoPanic) {
+        if (checkAutoPanic && istSpielVorbei()) {
             const cost = getGameSetting('refreshPenaltyPoints') || 0;
             if (punkte >= cost) {
-                refreshFigurenButton.classList.add('auto-panic');
-                const blinkDuration = spielConfig.gameSettings.panicBlinkDuration || 2000;
-                const blinkFrequency = spielConfig.gameSettings.panicBlinkFrequency || '0.2s';
-                spielbrettElement.style.setProperty('--panic-blink-frequenz', blinkFrequency);
-                spielbrettElement.classList.add('panic-blinken');
-
-                setTimeout(() => {
-                    refreshFigurenButton.classList.remove('auto-panic');
-                    spielbrettElement.classList.remove('panic-blinken');
-                    if (istSpielVorbei()) figurenNeuAuslosen();
-                }, blinkDuration);
+                figurenNeuAuslosen(true);
                 return;
             }
         }
