@@ -232,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleBoardMove(e, true);
         
         longPressTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(50); // Vibrations-Fix
             platziereFigur(ausgewaehlteFigur, letztesZiel.x, letztesZiel.y);
         }, longPressDuration);
     }
@@ -463,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (!timerInterval) {
             resumeTimer();
         }
-        if (navigator.vibrate) navigator.vibrate(50);
+        if (navigator.vibrate && !isTouchDevice) navigator.vibrate(50);
 
         figur.form.forEach((reihe, y) => reihe.forEach((block, x) => {
             if (block === 1) {
@@ -724,6 +725,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleSpielEnde() {
         stopTimer();
+        const cost = getGameSetting('refreshPenaltyPoints') || 0;
+
+        if (punkte >= cost) {
+            refreshFigurenButton.classList.add('auto-panic');
+            setTimeout(() => {
+                refreshFigurenButton.classList.remove('auto-panic');
+                figurenNeuAuslosen();
+            }, 2000);
+            return;
+        }
+
         spielbrettElement.classList.add('zerbroeselt');
         
         setTimeout(() => {
