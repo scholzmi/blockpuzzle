@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         zeichneJokerLeiste();
         erstelleSpielfeld();
         zeichneSpielfeld();
+        updatePanicButtonStatus(); // NEU: Button-Status initial setzen
         generiereNeueFiguren();
         wechsleZuNaechsterFigur();
         
@@ -330,15 +331,25 @@ document.addEventListener('DOMContentLoaded', () => {
         figurenSlots.forEach((slot, index) => slot.classList.toggle('aktiver-slot', index === aktiverSlotIndex));
     }
 
+    // NEU: Funktion zum Aktivieren/Deaktivieren des Panic-Buttons
+    function updatePanicButtonStatus() {
+        const cost = getGameSetting('refreshPenaltyPoints') || 0;
+        if (punkte >= cost) {
+            refreshFigurenButton.disabled = false;
+        } else {
+            refreshFigurenButton.disabled = true;
+        }
+    }
+
     function figurenNeuAuslosen() {
         abbrechen();
         stopTimer();
         const penaltyPoints = getGameSetting('refreshPenaltyPoints') || 0;
         zeigePunkteAnimation(-penaltyPoints);
-        setTimeout(() => {
-            punkte = Math.max(0, punkte - penaltyPoints);
-            punkteElement.textContent = punkte;
-        }, 500);
+        
+        punkte = Math.max(0, punkte - penaltyPoints);
+        punkteElement.textContent = punkte;
+        updatePanicButtonStatus(); // Button-Status nach Abzug neu prüfen
 
         const besteFigur = berechneBesteFigur();
 
@@ -532,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ersterZugGemacht = true;
             startTimer();
         } else if (!timerInterval) {
-            resumeTimer(); // NEU: resumeTimer statt startTimer, um nicht bei 0 zu beginnen
+            resumeTimer();
         }
         if (navigator.vibrate) navigator.vibrate(50);
 
@@ -561,6 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         punkte += gesamtPunkteGewinn;
         punkteElement.textContent = punkte;
         zeigePunkteAnimation(gesamtPunkteGewinn);
+        updatePanicButtonStatus(); // NEU: Button-Status nach Punktgewinn prüfen
         
         figurenInSlots[alterSlotIndex] = null;
         zeichneFigurInSlot(alterSlotIndex);
@@ -615,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleBossKey() { document.body.classList.toggle('boss-key-aktiv'); if (document.body.classList.contains('boss-key-aktiv')) { stopTimer(); abbrechen(); } else { resumeTimer(); } }
     function startTimer() { const timerDuration = getGameSetting('timerDuration'); verbleibendeZeit = timerDuration; if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(() => { verbleibendeZeit--; const progress = (verbleibendeZeit / timerDuration); timerBar.style.setProperty('--timer-progress', `${progress}`); if (verbleibendeZeit <= 0) { platziereStrafsteine(getGameSetting('timerPenaltyCount')); stopTimer(); timerBar.style.setProperty('--timer-progress', '1'); } }, 1000); }
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-    function resumeTimer() { if (ersterZugGemacht && !timerInterval && punkte > 0) startTimer(); } // Timer nur fortsetzen, wenn schon gestartet
+    function resumeTimer() { if (ersterZugGemacht && !timerInterval && punkte > 0) startTimer(); }
     
     function platziereStrafsteine(anzahl) {
         const leereZellen = [];

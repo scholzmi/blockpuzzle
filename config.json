@@ -1,12 +1,12 @@
 {
-    "version": "V8.35",
+    "version": "V8.36",
     "letzteAenderung": "Panic",
     "gameSettings": {
         "normal": {
             "timerDuration": 180,
             "timerPenaltyCount": 1,
             "jokerPenaltyCount": 3,
-            "refreshPenaltyPoints": 100,
+            "refreshPenaltyPoints": 200,
             "numberOfJokers": 3,
             "zonkProbability": 0.03,
             "jokerProbability": 0.30,
@@ -17,7 +17,7 @@
             "timerDuration": 30,
             "timerPenaltyCount": 2,
             "jokerPenaltyCount": 5,
-            "refreshPenaltyPoints": 150,
+            "refreshPenaltyPoints": 500,
             "numberOfJokers": 3,
             "zonkProbability": 0.05,
             "jokerProbability": 0.25,

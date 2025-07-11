@@ -1,11 +1,9 @@
 **Spielanleitung ZenPuzzle**
 
-**Vorab:** In der mobile Version muss man ganz unten anfassen, um auf der WebApp nach unten zu scrollen,
-um zB den Rekord anzuschauen.
-
 **Ziel des Spiels:**
-Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte. Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
-
+Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld.
+Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte.
+Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
 ---
 
 **Steuerung (PC)**
@@ -14,14 +12,14 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Drehen:** Wenn du eine Figur ausgewählt hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen.
 * **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
 * **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
-
 ---
 
 **Steuerung (Touchscreen)**
 * **Figur auswählen:** **Tippe** auf eine der drei Figuren unten im Auswahlbereich.
-* **Figur bewegen:** Berühre das Spielfeld und **ziehe** die Figur an die gewünschte Position. Dein Finger kann dabei versetzt zur Figur sein, um die Sicht freizuhalten.
+* **Figur bewegen:** Berühre das Spielfeld und **ziehe** die Figur an die gewünschte Position.
+Dein Finger kann dabei versetzt zur Figur sein, um die Sicht freizuhalten.
 * **Drehen:** Ein schneller **Doppel-Tipp** irgendwo auf dem Spielfeld dreht die Figur.
-* **Platzieren:** Um die Figur abzulegen, **hebe den Finger und berühre wieder den Screen und halte den Finger für einen kurzen Moment ruhig** an der Zielposition. Ein kurzes Summen bestätigt das Ablegen.
+* **Platzieren:** Um die Figur abzulegen, **halte den Finger für einen kurzen Moment ruhig** an der Zielposition. Ein kurzes Summen bestätigt das Ablegen.
 
 ---
 
@@ -38,13 +36,15 @@ Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld. Wenn eine horizontale 
 * **Normal:** Das klassische, entspannte Spiel mit Timer.
 * **Schwer:** Aktiviere den Schalter für eine zusätzliche Herausforderung mit kürzerem Timer und mehr Strafsteinen!
 * **Unsichtbare Pause:** Der Timer läuft erst, wenn du die erste Figur eines Zuges platziert hast.
-
 ---
 
 **Dreh-Joker:**
-Du hast 3 Dreh-Joker (grüne Boxen). Jede erstmalige Drehung einer Figur verbraucht einen Joker. Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld!
-
+Du hast 3 Dreh-Joker (grüne Boxen). Jede erstmalige Drehung einer Figur verbraucht einen Joker.
+Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld!
 ---
 
-**Figuren neu auslosen:**
-Das Tauschen der Figuren kostet je nach Spielmodus eine Anzahl von bereits erspielten Punkten.
+**Der Panic-Button**
+Wenn du in Not bist, hilft dir der **Panic-Button** – vorausgesetzt, du hast genügend Punkte, um die Gebühr zu bezahlen. Der Knopf ist erst aktiv, wenn du ihn dir leisten kannst. Er hat mehrere Stufen:
+* **Stufe 1 (Bester Zug):** Er berechnet den besten Zug, der die meisten Linien abräumt, und gibt dir diese Figur zusammen mit zwei Jokern. Der Timer stoppt, damit du den Zug in Ruhe ausführen kannst.
+* **Stufe 2 (Größter Zug):** Wenn kein Zug Linien abräumt, findet er die größte Figur, die noch auf das Feld passt, und gibt sie dir ebenfalls mit zwei Jokern und angehaltenem Timer.
+* **Stufe 3 (Letzte Rettung):** Wenn gar nichts mehr geht, erhältst du drei Joker als letzte Chance.
