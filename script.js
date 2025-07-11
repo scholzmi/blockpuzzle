@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let ersterZugGemacht = false;
     let lastMausEvent = null;
     let anzahlJoker;
-    let erzwungeneJoker = false; 
     let ersterZug = true;
     const isTouchDevice = 'ontouchstart' in window;
 
@@ -55,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     async function spielStart() {
-        spielbrettElement.classList.remove('zerbroeselt'); // Animation zurücksetzen
+        spielbrettElement.classList.remove('zerbroeselt');
         stopTimer();
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
@@ -85,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lastMausEvent = null;
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
-        erzwungeneJoker = false;
         ersterZug = true;
 
         erstelleJokerLeiste();
@@ -290,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function dreheAktiveFigur() {
         if (!ausgewaehlteFigur) return;
-        if (ausgewaehlteFigur.isKolossFigur) return; // Koloss-Figur nicht drehbar
+        if (ausgewaehlteFigur.isKolossFigur) return;
         if (!ausgewaehlteFigur.symmetrisch && !hatFigurGedreht) {
             if (verbrauchteJoker >= anzahlJoker) return;
             verbrauchteJoker++;
@@ -361,9 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     figurenInSlots[i] = null;
                  }
             }
-        } else {
-            erzwungeneJoker = true;
-            generiereNeueFiguren();
         }
         
         for(let i = 0; i < 3; i++) zeichneFigurInSlot(i);
@@ -371,9 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function berechneKolossFigur() {
-        let bestMove = { size: 0, figur: null };
         const alleFiguren = [ ...spielConfig.figures.zonkPool, ...spielConfig.figures.normalPool, ...spielConfig.figures.jokerPool ];
-        
         alleFiguren.sort((a, b) => {
             const sizeA = a.form.flat().reduce((sum, val) => sum + val, 0);
             const sizeB = b.form.flat().reduce((sum, val) => sum + val, 0);
@@ -387,10 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let y = 0; y < 9; y++) {
                     for (let x = 0; x < 9; x++) {
                         if (kannPlatzieren(tempFigur, x, y)) {
-                            const size = tempFigur.form.flat().reduce((sum, val) => sum + val, 0);
-                            if(size > bestMove.size) {
-                                bestMove = { size: size, figur: tempFigur };
-                            }
+                            return tempFigur;
                         }
                     }
                 }
@@ -398,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (figurVorlage.symmetrisch) break;
             }
         }
-        return bestMove.size > 0 ? bestMove.figur : null;
+        return null;
     }
 
 
@@ -413,21 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  figurenInSlots[i] = { ...normalFigur, kategorie: 'normal', id: i };
             }
             ersterZug = false;
-            for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-            if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
-            return;
-        }
-
-        if (erzwungeneJoker) {
-            for (let i = 0; i < 3; i++) {
-                if (spielConfig.figures.jokerPool.length > 0) {
-                    let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                    figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
-                } else {
-                    figurenInSlots[i] = null;
-                }
-            }
-            erzwungeneJoker = false;
             for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
             if (istSpielVorbei()) setTimeout(handleSpielEnde, 100);
             return;
@@ -747,12 +722,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function setCookie(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); expires = "; expires=" + date.toUTCString(); } document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax"; }
     function getCookie(name) { const nameEQ = name + "="; const ca = document.cookie.split(';'); for (let i = 0; i < ca.length; i++) { let c = ca[i]; while (c.charAt(0) == ' ') c = c.substring(1, c.length); if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length); } return null; }
     
-    // NEU: Geteilte Funktion für Spiel-Ende-Logik
     function handleSpielEnde() {
         stopTimer();
         spielbrettElement.classList.add('zerbroeselt');
         
-        // Warte, bis die Animation vorbei ist
         setTimeout(() => {
             let rekord = istHardMode ? rekordSchwer : rekordNormal;
             let rekordCookieName = istHardMode ? 'rekordSchwer' : 'rekordNormal';
@@ -769,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             gameOverContainer.classList.add('sichtbar');
             gameOverContainer.classList.remove('versteckt');
-        }, 3000); // 3 Sekunden warten
+        }, 3000);
     }
     
     function erstelleSpielfeld() { spielbrettElement.innerHTML = ''; spielbrett = Array.from({ length: 9 }, () => Array(9).fill(0)); for (let y = 0; y < 9; y++) { for (let x = 0; x < 9; x++) { const zelle = document.createElement('div'); zelle.classList.add('zelle'); zelle.style.setProperty('--delay', `${Math.random() * 2}s`); spielbrettElement.appendChild(zelle); } } }

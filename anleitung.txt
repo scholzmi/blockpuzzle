@@ -44,7 +44,5 @@ Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Str
 ---
 
 **Der Panic-Button**
-Wenn du in Not bist, hilft dir der **Panic-Button** – vorausgesetzt, du hast genügend Punkte, um die Gebühr zu bezahlen. Der Knopf ist erst aktiv, wenn du ihn dir leisten kannst. Er hat mehrere Stufen:
-* **Stufe 1 (Bester Zug):** Er berechnet den besten Zug, der die meisten Linien abräumt, und gibt dir diese Figur zusammen mit zwei Jokern. Der Timer stoppt, damit du den Zug in Ruhe ausführen kannst.
-* **Stufe 2 (Größter Zug):** Wenn kein Zug Linien abräumt, findet er die größte Figur, die noch auf das Feld passt, und gibt sie dir ebenfalls mit zwei Jokern und angehaltenem Timer.
-* **Stufe 3 (Letzte Rettung):** Wenn gar nichts mehr geht, erhältst du drei Joker als letzte Chance.
+Wenn du in Not bist, hilft dir der **Panic-Button** – vorausgesetzt, du hast genügend Punkte, um die Gebühr zu bezahlen. Der Knopf ist erst aktiv, wenn du ihn dir leisten kannst. Die Funktion ist simpel und mächtig:
+* **Der Koloss:** Der Button berechnet die **größtmögliche Figur**, die noch auf das Feld passt, und gibt sie dir in Slot 1, flankiert von zwei Jokern. Der Timer stoppt, damit du den Zug in Ruhe ausführen kannst.
