@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (leereZellen.length === 0) return null;
 
         const visited = Array.from({length: 9}, () => Array(9).fill(false));
-        let groesstesLoch = [];
+        let alleLoecher = [];
 
         for (const zelle of leereZellen) {
             if (!visited[zelle.r][zelle.c]) {
@@ -406,14 +406,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
                 }
-                
-                if (aktuellesLoch.length > groesstesLoch.length) {
-                    groesstesLoch = aktuellesLoch;
-                }
+                alleLoecher.push(aktuellesLoch);
             }
         }
 
-        if (groesstesLoch.length === 0) return null;
+        const validLoecher = alleLoecher.filter(loch => {
+            let minR = 8, maxR = 0, minC = 8, maxC = 0;
+            loch.forEach(({r, c}) => {
+                minR = Math.min(minR, r);
+                maxR = Math.max(maxR, r);
+                minC = Math.min(minC, c);
+                maxC = Math.max(maxC, c);
+            });
+            const hoehe = maxR - minR + 1;
+            const breite = maxC - minC + 1;
+            return hoehe <= 5 && breite <= 5;
+        });
+        
+        if(validLoecher.length === 0) return null;
+
+        let groesstesLoch = validLoecher[0];
+        for(let i=1; i < validLoecher.length; i++){
+            if(validLoecher[i].length > groesstesLoch.length){
+                groesstesLoch = validLoecher[i];
+            }
+        }
 
         let minR = 8, maxR = 0, minC = 8, maxC = 0;
         groesstesLoch.forEach(({r, c}) => {
@@ -431,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form[r - minR][c - minC] = 1;
         });
 
-        return { form: form, isKolossFigur: true, color: 'super', platzierung: {x: minC, y: minR} };
+        return { form, isKolossFigur: true, color: 'super', platzierung: {x: minC, y: minR} };
     }
 
 
