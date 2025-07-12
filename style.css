@@ -75,12 +75,12 @@ body.boss-key-aktiv::before {
     border-radius: 4px;
     border: 1px solid rgba(0,0,0,0.2);
 }
-.c-z, .c-z2, .c-z3 { background-color: #EA4335; }
-.c-e, .c-e2 { background-color: #FBBC04; }
-.c-n { background-color: #4285F4; }
-.c-p { background-color: #34A853; }
-.c-u { background-color: #A142F4; }
-.c-l { background-color: #4285F4; }
+.c-z, .c-z2, .c-z3 { background-color: #FFCDD2; } /* Red */
+.c-e, .c-e2 { background-color: #FFF9C4; color: #827717; } /* Yellow */
+.c-n { background-color: #AECBFA; } /* Blue */
+.c-p { background-color: #C8E6C9; } /* Green */
+.c-u { background-color: #E1BEE7; } /* Purple */
+.c-l { background-color: #AECBFA; } /* Blue */
 
 
 .spiel-wrapper {
@@ -225,7 +225,7 @@ body.boss-key-aktiv::before {
     border-radius: 50%;
 }
 input:checked + .slider {
-    background-color: #4285F4;
+    background-color: #AECBFA; /* Blue */
 }
 input:checked + .slider:before {
     transform: translateX(22px);
@@ -247,10 +247,10 @@ input:checked + .slider:before {
     border: 2px solid rgba(0,0,0,0.2);
 }
 .joker-box.voll {
-    background-color: #34A853;
+    background-color: #C8E6C9; /* Green */
 }
 .joker-box.verbraucht {
-    background-color: rgba(52, 168, 83, 0.3);
+    background-color: rgba(200, 230, 201, 0.3);
 }
 
 #spielbrett {
@@ -261,7 +261,7 @@ input:checked + .slider:before {
     background-color: rgba(248, 249, 250, 0.8);
     width: max-content;
     position: relative;
-    --panic-blink-frequenz: 0.2s; /* NEU: Variable für Frequenz */
+    --panic-blink-frequenz: 0.2s;
 }
 .zelle {
     width: 40px;
@@ -293,16 +293,15 @@ input:checked + .slider:before {
     animation-delay: var(--delay, 0s);
 }
 
-/* NEU: Animation für Rahmen-Blinken */
 @keyframes panic-blinken-animation {
-    50% { border-color: #EA4335; }
+    50% { border-color: #FFCDD2; } /* Red */
 }
 #spielbrett.panic-blinken {
     animation: panic-blinken-animation var(--panic-blink-frequenz) infinite;
 }
 
 .linie-vorschau {
-    background-color: rgba(52, 168, 83, 0.2) !important;
+    background-color: rgba(200, 230, 201, 0.2) !important; /* Green */
 }
 
 #timer-bar-container {
@@ -316,7 +315,7 @@ input:checked + .slider:before {
 #timer-bar {
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, #EA4335, #FBBC04, #34A853);
+    background: linear-gradient(to right, #FFCDD2, #FFF9C4, #C8E6C9); /* Red, Yellow, Green */
     border-radius: 5px;
     transform-origin: left;
     transform: scaleX(var(--timer-progress, 1));
@@ -346,14 +345,14 @@ input:checked + .slider:before {
 }
 
 #refresh-figuren-button {
-    border-color: #4285F4;
+    border-color: #AECBFA; /* Blue */
     background-color: white;
-    color: #4285F4;
+    color: #AECBFA; /* Blue */
     cursor: pointer;
     transition: all 0.2s ease;
 }
 #refresh-figuren-button:hover:not(:disabled) {
-    background-color: #4285F4;
+    background-color: #AECBFA; /* Blue */
     color: white;
 }
 #refresh-figuren-button:disabled {
@@ -381,21 +380,33 @@ input:checked + .slider:before {
 }
 #refresh-figuren-button.auto-panic {
     animation: auto-panic-glow 0.5s ease-in-out infinite;
-    background-color: #EA4335;
-    border-color: #EA4335;
+    background-color: #FFCDD2; /* Red */
+    border-color: #FFCDD2; /* Red */
     color: white;
+}
+
+@keyframes wieder-aktiv-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px #C8E6C9; /* Green */
+    }
+    50% {
+        box-shadow: 0 0 20px #C8E6C9; /* Green */
+    }
+}
+#refresh-figuren-button.wieder-aktiv {
+    animation: wieder-aktiv-glow 1s ease;
 }
 
 
 #rotate-button {
-    border-color: #4285F4;
+    border-color: #AECBFA; /* Blue */
     background-color: white;
-    color: #4285F4;
+    color: #AECBFA; /* Blue */
     cursor: pointer;
     transition: all 0.2s ease;
 }
 #rotate-button:hover {
-    background-color: #4285F4;
+    background-color: #AECBFA; /* Blue */
     color: white;
 }
 #rotate-button:focus {
@@ -435,7 +446,7 @@ input:checked + .slider:before {
 }
 
 .aktiver-slot {
-    border-color: #FBBC04;
+    border-color: #FFF9C4; /* Yellow */
     border-style: solid;
     transform: scale(1.05);
 }
@@ -552,22 +563,22 @@ footer a:hover {
     transition: all 0.2s ease;
 }
 #neustart-normal-btn, #confirm-ja-btn {
-    border-color: #34A853;
-    background-color: #34A853;
-    color: white;
+    border-color: #C8E6C9; /* Green */
+    background-color: #C8E6C9; /* Green */
+    color: #388E3C;
 }
 #neustart-normal-btn:hover, #confirm-ja-btn:hover {
     background-color: white;
-    color: #34A853;
+    color: #C8E6C9; /* Green */
 }
 #neustart-schwer-btn, #confirm-nein-btn, #anleitung-schliessen-btn {
-    border-color: #EA4335;
-    background-color: #EA4335;
-    color: white;
+    border-color: #FFCDD2; /* Red */
+    background-color: #FFCDD2; /* Red */
+    color: #D32F2F;
 }
 #neustart-schwer-btn:hover, #confirm-nein-btn:hover, #anleitung-schliessen-btn:hover {
     background-color: white;
-    color: #EA4335;
+    color: #FFCDD2; /* Red */
 }
 
 
