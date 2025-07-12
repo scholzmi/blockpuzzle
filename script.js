@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPanicCost = 0;
     let panicCooldown = 0;
     const isTouchDevice = 'ontouchstart' in window;
-    let activeColorScheme = 'kräftig'; // Aktives Farbschema
+    let activeColorScheme = 'Herbst';
 
     // Mobile Steuerung Zustand
     let longPressTimer = null;
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
-        applyColorScheme(); // Farben anwenden
+        applyColorScheme();
         await ladeAnleitung();
 
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
@@ -130,18 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // NEU: Funktion zum Anwenden des Farbschemas
     function applyColorScheme() {
         const scheme = spielConfig.colorSchemes[activeColorScheme];
         if (!scheme) return;
         const root = document.documentElement;
 
         Object.keys(scheme).forEach(key => {
-            if (typeof scheme[key] === 'object') {
+            if (typeof scheme[key] === 'object' && key !== 'figurePalettes') {
                 Object.keys(scheme[key]).forEach(subKey => {
                     root.style.setProperty(`--${key}-${subKey}`, scheme[key][subKey]);
                 });
-            } else {
+            } else if (key !== 'figurePalettes') {
                  root.style.setProperty(`--${key}`, scheme[key]);
             }
         });
@@ -560,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(figur.isKolossFigur) {
                     spielbrett[platziereY + y][platziereX + x] = getGradientColor(x, y, figurBreite, figurHoehe);
                 } else {
-                    spielbrett[platziereY + y][platziereX + x] = figur.color;
+                    spielbrett[platziereY + y][platziereX + x] = figur.kategorie;
                 }
             }
         }));
@@ -676,6 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reihe.forEach((inhalt, x) => {
                 const zelle = spielbrettElement.children[y * 9 + x];
                 zelle.className = 'zelle';
+                const figurePalettes = spielConfig.colorSchemes[activeColorScheme].figurePalettes;
                 if(typeof inhalt === 'string' && inhalt.startsWith('rgb')) {
                     zelle.classList.add('belegt');
                     zelle.style.backgroundColor = inhalt;
@@ -684,7 +684,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     zelle.style.backgroundColor = '';
                 } else if (inhalt !== 0) {
                     zelle.classList.add('belegt');
-                    const figurePalettes = spielConfig.colorSchemes[activeColorScheme].figurePalettes;
                     zelle.style.backgroundColor = figurePalettes[inhalt]?.placed || figurePalettes['default'].placed;
                 } else {
                      zelle.style.backgroundColor = '';
@@ -736,10 +735,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const zelle = spielbrettElement.children[brettY * 9 + brettX];
                     if (figur.isKolossFigur) {
                         const color = getGradientColor(x, y, figurBreite, figurHoehe);
-                        zelle.style.backgroundColor = kannFigurPlatzieren ? color.replace('rgb', 'rgba').replace(')', ', 0.5)') : 'rgba(233, 78, 119, 0.5)'; // Red preview for invalid
+                        zelle.style.backgroundColor = kannFigurPlatzieren ? color.replace('rgb', 'rgba').replace(')', ', 0.5)') : 'rgba(233, 78, 119, 0.5)';
                     } else {
                         const figurePalettes = spielConfig.colorSchemes[activeColorScheme].figurePalettes;
-                        zelle.style.backgroundColor = kannFigurPlatzieren ? (figurePalettes[figur.color] || figurePalettes['default']).preview : 'rgba(233, 78, 119, 0.5)';
+                        zelle.style.backgroundColor = kannFigurPlatzieren ? (figurePalettes[figur.kategorie] || figurePalettes['default']).preview : 'rgba(233, 78, 119, 0.5)';
                     }
                 }
             }
@@ -805,7 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         blockDiv.style.backgroundColor = getGradientColor(x, y, form[0].length, form.length);
                     } else {
                         const figurePalettes = spielConfig.colorSchemes[activeColorScheme].figurePalettes;
-                        blockDiv.style.backgroundColor = figurePalettes[figur.color]?.placed || figurePalettes['default'].placed;
+                        blockDiv.style.backgroundColor = figurePalettes[figur.kategorie]?.placed || figurePalettes['default'].placed;
                     }
                 }
                 container.appendChild(blockDiv);
