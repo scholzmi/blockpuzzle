@@ -450,7 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let i = 1; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                        figurenInSlots[i] = { ...zufallsFigur, id: i };
+                        const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes['joker']?.placed || spielConfig.colorSchemes[activeColorScheme].figurePalettes['default'].placed;
+                        const variedColor = variiereFarbe(baseColor);
+                        figurenInSlots[i] = { ...zufallsFigur, id: i, color: variedColor, kategorie: 'joker' };
                      } else {
                         figurenInSlots[i] = null;
                      }
@@ -459,7 +461,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let i = 0; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                        figurenInSlots[i] = { ...zufallsFigur, id: i };
+                         const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes['joker']?.placed || spielConfig.colorSchemes[activeColorScheme].figurePalettes['default'].placed;
+                        const variedColor = variiereFarbe(baseColor);
+                        figurenInSlots[i] = { ...zufallsFigur, id: i, color: variedColor, kategorie: 'joker' };
                      } else {
                         figurenInSlots[i] = null;
                      }
@@ -521,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panicCooldown--;
             updatePanicButtonStatus();
         }
-
+        
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
