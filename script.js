@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function spielStart() {
         spielbrettElement.classList.remove('zerbroeselt', 'panic-blinken');
         stopTimer();
+
+        // NEU: Modus aus Cookie laden
+        const savedMode = getCookie('hardMode');
+        hardModeSchalter.checked = savedMode === 'true';
+
         istHardMode = hardModeSchalter.checked;
         updateHardModeLabel();
         abbrechen(); 
@@ -156,8 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (e.key.toLowerCase() === 'b') toggleBossKey();
         });
         hardModeSchalter.addEventListener('change', () => {
-            if (punkte > 0) confirmContainer.classList.add('sichtbar'), confirmContainer.classList.remove('versteckt');
-            else spielStart();
+            // NEU: Modus in Cookie speichern
+            setCookie('hardMode', hardModeSchalter.checked, 365);
+            if (punkte > 0) {
+                 confirmContainer.classList.add('sichtbar');
+                 confirmContainer.classList.remove('versteckt');
+            } else {
+                 spielStart();
+            }
         });
         confirmJaBtn.addEventListener('click', () => {
             confirmContainer.classList.add('versteckt'), confirmContainer.classList.remove('sichtbar');
@@ -165,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         confirmNeinBtn.addEventListener('click', () => {
             hardModeSchalter.checked = !hardModeSchalter.checked;
+             setCookie('hardMode', hardModeSchalter.checked, 365);
             confirmContainer.classList.add('versteckt'), confirmContainer.classList.remove('sichtbar');
         });
         anleitungLink.addEventListener('click', (e) => {
@@ -177,11 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshFigurenButton.addEventListener('click', figurenNeuAuslosen);
         neustartNormalBtn.addEventListener('click', () => {
             hardModeSchalter.checked = false;
+            setCookie('hardMode', false, 365);
             gameOverContainer.classList.add('versteckt'), gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
         neustartSchwerBtn.addEventListener('click', () => {
             hardModeSchalter.checked = true;
+            setCookie('hardMode', true, 365);
             gameOverContainer.classList.add('versteckt'), gameOverContainer.classList.remove('sichtbar');
             spielStart();
         });
@@ -288,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
         
-        if(isTouchDevice) rotateButton.style.display = 'none';
+        if(isTouchDevice) rotateButton.classList.remove('versteckt');
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();

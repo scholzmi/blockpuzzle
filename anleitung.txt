@@ -47,5 +47,6 @@ Wenn du in Not bist, hilft Dir der **Der Panic-Button**.
 Er ist aktiv, sobald man genügend Punkte dafür erspielt hat. Nach dem Einsatz bleibt er für drei Runden gesperrt.
 Die Funktion ist simpel und mächtig:
 * **Der Koloss:** Der Button berechnet die **größtmögliche 5x5 Figur**, die noch auf das Feld passt, und gibt sie Dir in Slot 1, flankiert von zwei Jokern.
-Der Timer stoppt, damit du den Zug in Ruhe ausführen kannst.
+Der Timer stoppt, damit du den Zug in Ruhe ausführen kannst. Die Kosten für den Koloss steigen von Nutzung zu Nutzung.
+Die Punkte, die Du beim Ablegen des Koloss erzielen kannst, sind begrenzt auf seine Kosten.
 * **Auto Panic:** Wenn das Spiel zu Ende wäre, Du aber noch genügend Punkte hast, dann zündet der Panic Button von alleine :-)
