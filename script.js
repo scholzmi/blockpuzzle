@@ -71,8 +71,15 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
+        
+        populateColorSchemeSwitcher();
+        const savedScheme = getCookie('colorScheme') || Object.keys(spielConfig.colorSchemes)[0];
+        colorSchemeSwitcher.value = savedScheme;
+        activeColorScheme = savedScheme;
 
-        // NEU: High-Score Reset Logik
+        applyColorScheme();
+        await ladeAnleitung();
+
         const serverVersion = getGameSetting('gameVersion') || "1.0";
         const localVersion = getCookie('gameVersion');
         if (serverVersion !== localVersion) {
@@ -80,14 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setCookie('rekordSchwer', '0', 365);
             setCookie('gameVersion', serverVersion, 365);
         }
-        
-        populateColorSchemeSwitcher();
-        const savedScheme = getCookie('colorScheme') || activeColorScheme;
-        colorSchemeSwitcher.value = savedScheme;
-        activeColorScheme = savedScheme;
-
-        applyColorScheme();
-        await ladeAnleitung();
 
         if (document.body.classList.contains('boss-key-aktiv')) toggleBossKey();
 
@@ -137,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
             spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal, 'normal');
             spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk, 'zonk');
             spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker, 'joker');
-            if (spielConfig.figures.normalPool.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
             return true;
         } catch (error) {
             console.error('Fehler beim Laden der Konfiguration:', error);
@@ -150,6 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const scheme = spielConfig.colorSchemes[activeColorScheme];
         if (!scheme) return;
         const root = document.documentElement;
+
+        const bgImage = scheme.backgroundImage || 'bg.jpg';
+        root.style.setProperty('--background-image-url', `url('img/${bgImage}')`);
 
         Object.keys(scheme).forEach(key => {
             if (typeof scheme[key] === 'object' && key !== 'figurePalettes') {
