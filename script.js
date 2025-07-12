@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ausgewaehlteFigur = JSON.parse(JSON.stringify(figurenInSlots[aktiverSlotIndex]));
         hatFigurGedreht = false;
         
-        if(isTouchDevice) rotateButton.classList.remove('versteckt');
+        if(isTouchDevice) rotateButton.style.display = 'none';
         zeichneSlotHighlights();
         spielbrettElement.style.cursor = 'none';
         zeichneSpielfeld();
@@ -343,15 +343,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePanicButtonStatus() {
         const wasPreviouslyDisabled = refreshFigurenButton.disabled;
-        const cost = currentPanicCost;
-        refreshFigurenButton.disabled = punkte < cost || panicCooldown > 0;
-        refreshFigurenButton.title = `Kosten: ${Math.round(cost)} Punkte, Cooldown: ${panicCooldown} Runden`;
+        refreshFigurenButton.disabled = punkte < currentPanicCost || panicCooldown > 0;
+        refreshFigurenButton.title = `Kosten: ${Math.round(currentPanicCost)} Punkte, Cooldown: ${panicCooldown} Runden`;
 
         if (wasPreviouslyDisabled && !refreshFigurenButton.disabled) {
             refreshFigurenButton.classList.add('wieder-aktiv');
             setTimeout(() => {
                 refreshFigurenButton.classList.remove('wieder-aktiv');
-            }, 1000); // Dauer der Animation
+            }, 1000);
         }
     }
 
@@ -359,9 +358,10 @@ document.addEventListener('DOMContentLoaded', () => {
         abbrechen();
         stopTimer();
         
-        zeigePunkteAnimation(-currentPanicCost);
+        const penaltyPoints = currentPanicCost;
+        zeigePunkteAnimation(-penaltyPoints);
         
-        punkte = Math.max(0, punkte - currentPanicCost);
+        punkte = Math.max(0, punkte - penaltyPoints);
         punkteElement.textContent = punkte;
         
         currentPanicCost += getGameSetting('panicCostIncrement');
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.classList.remove('panic-blinken');
             const kolossFigur = berechneKolossFigur();
             if (kolossFigur) {
-                figurenInSlots[0] = { ...kolossFigur, id: 0 };
+                figurenInSlots[0] = { ...kolossFigur, id: 0, cost: penaltyPoints };
                 for(let i = 1; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
@@ -552,8 +552,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const linienPunkte = leereVolleLinien();
-        const gesamtPunkteGewinn = figurenPunkte + linienPunkte;
+        let gesamtPunkteGewinn = figurenPunkte + linienPunkte;
         
+        if (figur.isKolossFigur && figur.cost) {
+            gesamtPunkteGewinn = Math.min(gesamtPunkteGewinn, figur.cost);
+        }
+
         punkte += gesamtPunkteGewinn;
         punkteElement.textContent = punkte;
         zeigePunkteAnimation(gesamtPunkteGewinn);
