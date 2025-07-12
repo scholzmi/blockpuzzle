@@ -117,10 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
             anzahlJoker = getGameSetting('numberOfJokers');
-            const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
-            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
-            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
-            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker);
+            const erstellePool = (p, kategorie) => Array.isArray(p) ? p.map(f => ({ ...f, kategorie, form: parseShape(f.shape) })) : [];
+            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal, 'normal');
+            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk, 'zonk');
+            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker, 'joker');
             if (spielConfig.figures.normalPool.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
             return true;
         } catch (error) {
@@ -376,9 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (wasPreviouslyDisabled && !refreshFigurenButton.disabled) {
             refreshFigurenButton.classList.add('wieder-aktiv');
-            setTimeout(() => {
+            refreshFigurenButton.addEventListener('animationend', () => {
                 refreshFigurenButton.classList.remove('wieder-aktiv');
-            }, 1000);
+            }, { once: true });
         }
     }
 
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let i = 1; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                        figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
+                        figurenInSlots[i] = { ...zufallsFigur, id: i };
                      } else {
                         figurenInSlots[i] = null;
                      }
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let i = 0; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                        figurenInSlots[i] = { ...zufallsFigur, kategorie: 'joker', id: i };
+                        figurenInSlots[i] = { ...zufallsFigur, id: i };
                      } else {
                         figurenInSlots[i] = null;
                      }
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (minR === -1) return null;
 
             const zugeschnitteneForm = bestesFenster.form.slice(minR, maxR + 1).map(row => row.slice(minC, maxC + 1));
-            return { form: zugeschnitteneForm, isKolossFigur: true, color: 'super' };
+            return { form: zugeschnitteneForm, isKolossFigur: true };
         }
 
         return null;
@@ -484,11 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ersterZug) {
             if (spielConfig.figures.zonkPool.length > 0) {
                 let zonkFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
-                figurenInSlots[0] = { ...zonkFigur, kategorie: 'zonk', id: 0 };
+                figurenInSlots[0] = { ...zonkFigur, id: 0 };
             }
             for (let i = 1; i < 3; i++) {
                  let normalFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
-                 figurenInSlots[i] = { ...normalFigur, kategorie: 'normal', id: i };
+                 figurenInSlots[i] = { ...normalFigur, id: i };
             }
             ersterZug = false;
             for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
@@ -502,7 +502,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
         const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
         for (let i = 0; i < 3; i++) {
-            let zufallsFigur = null, kategorie = 'normal', zufallsZahl = Math.random();
+            let zufallsFigur = null;
+            let kategorie = 'normal';
+            const zufallsZahl = Math.random();
+
             if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
                 zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
                 kategorie = 'zonk';
@@ -511,9 +514,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 kategorie = 'joker';
             } else if (spielConfig.figures.normalPool.length > 0) {
                 zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
+                kategorie = 'normal';
             }
+            
             if (zufallsFigur) {
-                figurenInSlots[i] = { ...zufallsFigur, kategorie: kategorie, id: i };
+                const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes[kategorie].placed;
+                const variedColor = variiereFarbe(baseColor);
+                figurenInSlots[i] = { ...zufallsFigur, id: i, color: variedColor, kategorie: kategorie };
                 zeichneFigurInSlot(i);
             } else {
                 figurenInSlots[i] = null;
@@ -559,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(figur.isKolossFigur) {
                     spielbrett[platziereY + y][platziereX + x] = getGradientColor(x, y, figurBreite, figurHoehe);
                 } else {
-                    spielbrett[platziereY + y][platziereX + x] = figur.kategorie;
+                    spielbrett[platziereY + y][platziereX + x] = figur.color;
                 }
             }
         }));
@@ -676,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const zelle = spielbrettElement.children[y * 9 + x];
                 zelle.className = 'zelle';
                 const figurePalettes = spielConfig.colorSchemes[activeColorScheme].figurePalettes;
-                if(typeof inhalt === 'string' && inhalt.startsWith('rgb')) {
+                if(typeof inhalt === 'string' && inhalt.startsWith('#')) {
                     zelle.classList.add('belegt');
                     zelle.style.backgroundColor = inhalt;
                 } else if (inhalt === 'blocker') {
@@ -701,6 +708,62 @@ document.addEventListener('DOMContentLoaded', () => {
         const g = Math.round(from[1] + factor * (to[1] - from[1]));
         const b = Math.round(from[2] + factor * (to[2] - from[2]));
         return `rgb(${r},${g},${b})`;
+    }
+    
+    function variiereFarbe(hex) {
+        let { h, s, l } = hexToHsl(hex);
+        h += (Math.random() * 10 - 5);
+        s = Math.max(0, Math.min(100, s + (Math.random() * 10 - 5)));
+        l = Math.max(0, Math.min(100, l + (Math.random() * 10 - 5)));
+        return hslToHex(h, s, l);
+    }
+    
+    function hexToHsl(H) {
+      let r = 0, g = 0, b = 0;
+      if (H.length == 4) {
+        r = "0x" + H[1] + H[1];
+        g = "0x" + H[2] + H[2];
+        b = "0x" + H[3] + H[3];
+      } else if (H.length == 7) {
+        r = "0x" + H[1] + H[2];
+        g = "0x" + H[3] + H[4];
+        b = "0x" + H[5] + H[6];
+      }
+      r /= 255; g /= 255; b /= 255;
+      let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin, h = 0, s = 0, l = 0;
+      if (delta == 0) h = 0;
+      else if (cmax == r) h = ((g - b) / delta) % 6;
+      else if (cmax == g) h = (b - r) / delta + 2;
+      else h = (r - g) / delta + 4;
+      h = Math.round(h * 60);
+      if (h < 0) h += 360;
+      l = (cmax + cmin) / 2;
+      s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+      s = +(s * 100).toFixed(1);
+      l = +(l * 100).toFixed(1);
+      return {h, s, l};
+    }
+
+    function hslToHex(h, s, l) {
+      s /= 100;
+      l /= 100;
+      let c = (1 - Math.abs(2 * l - 1)) * s,
+          x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+          m = l - c/2,
+          r = 0, g = 0, b = 0;
+      if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+      else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+      else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+      else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+      else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+      else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+      r = Math.round((r + m) * 255).toString(16);
+      g = Math.round((g + m) * 255).toString(16);
+      b = Math.round((b + m) * 255).toString(16);
+      if (r.length == 1) r = "0" + r;
+      if (g.length == 1) g = "0" + g;
+      if (b.length == 1) b = "0" + b;
+      return "#" + r + g + b;
     }
 
     function zeichneVorschau(figur, startX, startY) {
@@ -803,8 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (figur.isKolossFigur) {
                         blockDiv.style.backgroundColor = getGradientColor(x, y, form[0].length, form.length);
                     } else {
-                        const figurePalettes = spielConfig.colorSchemes[activeColorScheme].figurePalettes;
-                        blockDiv.style.backgroundColor = figurePalettes[figur.kategorie]?.placed || figurePalettes['default'].placed;
+                        blockDiv.style.backgroundColor = figur.color;
                     }
                 }
                 container.appendChild(blockDiv);

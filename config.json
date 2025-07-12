@@ -1,6 +1,6 @@
 {
-    "version": "V10.1",
-    "letzteAenderung": "Herbst-Farbschema und Theming",
+    "version": "V10.12",
+    "letzteAenderung": "Farben",
     "gameSettings": {
         "panicBlinkDuration": 1000,
         "panicBlinkFrequency": "0.2s",
