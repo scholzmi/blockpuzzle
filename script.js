@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let i = 0; i < 3; i++) {
                      if (spielConfig.figures.jokerPool.length > 0) {
                         let zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                         const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes['joker']?.placed || spielConfig.colorSchemes[activeColorScheme].figurePalettes['default'].placed;
+                        const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes['joker']?.placed || spielConfig.colorSchemes[activeColorScheme].figurePalettes['default'].placed;
                         const variedColor = variiereFarbe(baseColor);
                         figurenInSlots[i] = { ...zufallsFigur, id: i, color: variedColor, kategorie: 'joker' };
                      } else {
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panicCooldown--;
             updatePanicButtonStatus();
         }
-        
+
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
@@ -687,7 +687,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function toggleBossKey() { document.body.classList.toggle('boss-key-aktiv'); if (document.body.classList.contains('boss-key-aktiv')) { stopTimer(); abbrechen(); } else { resumeTimer(); } }
-    function startTimer() { const timerDuration = getGameSetting('timerDuration'); verbleibendeZeit = timerDuration; if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(() => { verbleibendeZeit--; const progress = (verbleibendeZeit / timerDuration); timerBar.style.setProperty('--timer-progress', `${progress}`); if (verbleibendeZeit <= 0) { platziereStrafsteine(getGameSetting('timerPenaltyCount')); stopTimer(); timerBar.style.setProperty('--timer-progress', '1'); } }, 1000); }
+    
+    function startTimer() {
+        const timerDuration = getGameSetting('timerDuration');
+        verbleibendeZeit = timerDuration;
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            verbleibendeZeit--;
+            const progress = (verbleibendeZeit / timerDuration);
+            timerBar.style.setProperty('--timer-progress', `${progress}`);
+            if (verbleibendeZeit <= 0) {
+                stopTimer();
+                platziereStrafsteine(getGameSetting('timerPenaltyCount'));
+                timerBar.style.setProperty('--timer-progress', '1');
+                if (istSpielVorbei()) {
+                    handleSpielEnde(true);
+                }
+            }
+        }, 1000);
+    }
+
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
     function resumeTimer() { if (ersterZugGemacht && !timerInterval && punkte > 0) startTimer(); }
     
