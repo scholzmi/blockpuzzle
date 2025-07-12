@@ -3,6 +3,7 @@
     "letzteAenderung": "Dynamische Hintergrundbilder",
     "gameSettings": {
         "gameVersion": "1.0",
+        "mobileBackgroundColor": "#e0f7fa",
         "panicBlinkDuration": 1000,
         "panicBlinkFrequency": "0.2s",
         "panicCooldownRounds": 3,

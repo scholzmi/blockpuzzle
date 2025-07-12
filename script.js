@@ -149,8 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!scheme) return;
         const root = document.documentElement;
 
-        const bgImage = scheme.backgroundImage || 'bg.jpg';
-        root.style.setProperty('--background-image-url', `url('img/${bgImage}')`);
+        if (isTouchDevice) {
+            const mobileBgColor = getGameSetting('mobileBackgroundColor') || '#e0f7fa';
+            root.style.setProperty('--background-image-url', 'none');
+            root.style.setProperty('--background-color', mobileBgColor);
+        } else {
+            const bgImage = scheme.backgroundImage || 'bg.jpg';
+            root.style.setProperty('--background-image-url', `url('img/${bgImage}')`);
+            root.style.setProperty('--background-color', 'transparent');
+        }
 
         Object.keys(scheme).forEach(key => {
             if (typeof scheme[key] === 'object' && key !== 'figurePalettes') {
