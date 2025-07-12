@@ -71,6 +71,15 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
+
+        // NEU: High-Score Reset Logik
+        const serverVersion = getGameSetting('gameVersion') || "1.0";
+        const localVersion = getCookie('gameVersion');
+        if (serverVersion !== localVersion) {
+            setCookie('rekordNormal', '0', 365);
+            setCookie('rekordSchwer', '0', 365);
+            setCookie('gameVersion', serverVersion, 365);
+        }
         
         populateColorSchemeSwitcher();
         const savedScheme = getCookie('colorScheme') || activeColorScheme;
@@ -124,10 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
             anzahlJoker = getGameSetting('numberOfJokers');
-            const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
-            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
-            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
-            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker);
+            const erstellePool = (p, kategorie) => Array.isArray(p) ? p.map(f => ({ ...f, kategorie, form: parseShape(f.shape) })) : [];
+            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal, 'normal');
+            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk, 'zonk');
+            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker, 'joker');
             if (spielConfig.figures.normalPool.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
             return true;
         } catch (error) {
@@ -492,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (minR === -1) return null;
 
             const zugeschnitteneForm = bestesFenster.form.slice(minR, maxR + 1).map(row => row.slice(minC, maxC + 1));
-            return { form: zugeschnitteneForm, isKolossFigur: true };
+            return { form: zugeschnitteneForm, isKolossFigur: true, color: 'super' };
         }
 
         return null;
@@ -504,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panicCooldown--;
             updatePanicButtonStatus();
         }
-        
+
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
@@ -729,9 +738,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function variiereFarbe(hex) {
         let { h, s, l } = hexToHsl(hex);
-        h += (Math.random() * 16 - 8);
-        s = Math.max(0, Math.min(100, s + (Math.random() * 16 - 8)));
-        l = Math.max(0, Math.min(100, l + (Math.random() * 16 - 8)));
+        h += (Math.random() * 20 - 10);
+        s = Math.max(0, Math.min(100, s + (Math.random() * 20 - 10)));
+        l = Math.max(20, Math.min(80, l + (Math.random() * 20 - 10)));
         return hslToHex(h, s, l);
     }
     

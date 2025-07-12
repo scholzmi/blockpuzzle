@@ -1,7 +1,8 @@
 {
-    "version": "V11.07",
-    "letzteAenderung": "Farb-Theming Auswahl",
+    "version": "V11.1",
+    "letzteAenderung": "High-Score-Reset-Mechanismus",
     "gameSettings": {
+        "gameVersion": "1.0",
         "panicBlinkDuration": 1000,
         "panicBlinkFrequency": "0.2s",
         "panicCooldownRounds": 3,
@@ -180,7 +181,7 @@
                 "default": { "placed": "#00d2d3", "preview": "rgba(0, 210, 211, 0.5)" },
                 "normal":  { "placed": "#54a0ff", "preview": "rgba(84, 160, 255, 0.5)" },
                 "joker":   { "placed": "#5f27cd", "preview": "rgba(95, 39, 205, 0.5)" },
-                "zonk":    { "placed": "#c8d6e5", "preview": "rgba(200, 214, 229, 0.5)" }
+                "zonk":    { "placed": "#778ca3", "preview": "rgba(119, 140, 163, 0.5)" }
             }
         }
     },
