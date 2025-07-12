@@ -11,6 +11,8 @@ body {
     align-items: center;
     position: relative;
     overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%; /* Verhindert das Skalieren der Schrift auf iOS */
+    text-size-adjust: 100%;
 }
 
 /* Hintergrundbild mit Transparenz */
@@ -22,6 +24,7 @@ body::before {
     width: 100vw;
     height: 100vh;
     background: var(--background-image-url, url('img/bg.jpg')) center/cover no-repeat;
+    background-color: var(--background-color, transparent);
     opacity: 0.3;
     z-index: -1;
     transition: opacity 0.3s ease-in-out, background-image 0.5s ease-in-out;
