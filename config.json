@@ -1,5 +1,5 @@
 {
-    "version": "V9.52",
+    "version": "V9.54",
     "letzteAenderung": "god mode panic button",
     "gameSettings": {
         "panicBlinkDuration": 1000,
@@ -31,12 +31,12 @@
         }
     },
     "colorThemes": {
-        "default": { "placed": "#AECBFA", "preview": "rgba(174, 203, 250, 0.5)" },
-        "blue": { "placed": "#AECBFA", "preview": "rgba(174, 203, 250, 0.5)" },
-        "green": { "placed": "#C8E6C9", "preview": "rgba(200, 230, 201, 0.5)" },
-        "yellow": { "placed": "#FFF9C4", "preview": "rgba(255, 249, 196, 0.5)" },
-        "red": { "placed": "#FFCDD2", "preview": "rgba(255, 205, 210, 0.5)" },
-        "purple": { "placed": "#E1BEE7", "preview": "rgba(225, 190, 231, 0.5)" }
+        "default": { "placed": "#4A90E2", "preview": "rgba(74, 144, 226, 0.5)" },
+        "blue":    { "placed": "#4A90E2", "preview": "rgba(74, 144, 226, 0.5)" },
+        "green":   { "placed": "#50E3C2", "preview": "rgba(80, 227, 194, 0.5)" },
+        "yellow":  { "placed": "#F8E71C", "preview": "rgba(248, 231, 28, 0.5)" },
+        "red":     { "placed": "#E94E77", "preview": "rgba(233, 78, 119, 0.5)" },
+        "purple":  { "placed": "#9013FE", "preview": "rgba(144, 19, 254, 0.5)" }
     },
     "figures": {
         "normal": [
