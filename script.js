@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const anleitungModalInhalt = document.getElementById('anleitung-modal-inhalt');
     const anleitungLink = document.getElementById('anleitung-link');
     const anleitungSchliessenBtn = document.getElementById('anleitung-schliessen-btn');
+    const colorSchemeSwitcher = document.getElementById('color-scheme-switcher');
 
     // === Spiel-Zustand ===
     let spielbrett = [], punkte = 0, rekordNormal = 0, rekordSchwer = 0, figurenInSlots = [null, null, null];
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ersterZugGemacht = false;
     let lastMausEvent = null;
     let anzahlJoker;
+    let ersterZug = true;
     let currentPanicCost = 0;
     let panicCooldown = 0;
     const isTouchDevice = 'ontouchstart' in window;
@@ -69,6 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
             spielbrettElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Fehler: config.json konnte nicht geladen werden!</p>';
             return;
         }
+        
+        populateColorSchemeSwitcher();
+        const savedScheme = getCookie('colorScheme') || activeColorScheme;
+        colorSchemeSwitcher.value = savedScheme;
+        activeColorScheme = savedScheme;
+
         applyColorScheme();
         await ladeAnleitung();
 
@@ -89,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lastMausEvent = null;
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
+        ersterZug = true;
         currentPanicCost = getGameSetting('refreshPenaltyPoints');
         panicCooldown = 0;
 
@@ -142,6 +151,18 @@ document.addEventListener('DOMContentLoaded', () => {
                  root.style.setProperty(`--${key}`, scheme[key]);
             }
         });
+        zeichneSpielfeld();
+        for(let i=0; i<3; i++) zeichneFigurInSlot(i);
+    }
+    
+    function populateColorSchemeSwitcher() {
+        colorSchemeSwitcher.innerHTML = '';
+        Object.keys(spielConfig.colorSchemes).forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            colorSchemeSwitcher.appendChild(option);
+        });
     }
 
     function getGameSetting(key) {
@@ -181,6 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                  spielStart();
             }
+        });
+        colorSchemeSwitcher.addEventListener('change', (e) => {
+            activeColorScheme = e.target.value;
+            setCookie('colorScheme', activeColorScheme, 365);
+            applyColorScheme();
         });
         confirmJaBtn.addEventListener('click', () => {
             confirmContainer.classList.add('versteckt'), confirmContainer.classList.remove('sichtbar');
@@ -478,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panicCooldown--;
             updatePanicButtonStatus();
         }
-
+        
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');

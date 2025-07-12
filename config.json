@@ -1,6 +1,6 @@
 {
-    "version": "V10.13",
-    "letzteAenderung": "Farben",
+    "version": "V11.01",
+    "letzteAenderung": "Farb-Theming Auswahl",
     "gameSettings": {
         "panicBlinkDuration": 1000,
         "panicBlinkFrequency": "0.2s",
@@ -68,41 +68,49 @@
                 "joker":   { "placed": "#2ecc71", "preview": "rgba(46, 204, 113, 0.5)" },
                 "zonk":    { "placed": "#9b59b6", "preview": "rgba(155, 89, 182, 0.5)" }
             }
+        },
+        "Sommer": {
+            "blocker": "#34495e",
+            "joker_box_full": "#1abc9c",
+            "joker_box_empty": "rgba(26, 188, 156, 0.3)",
+            "linie_vorschau": "rgba(26, 188, 156, 0.2)",
+            "active_slot_border": "#f1c40f",
+            "timer_bar": "linear-gradient(to right, #e74c3c, #f1c40f, #1abc9c)",
+            "title": {
+                "red": "#e74c3c",
+                "yellow": "#f1c40f",
+                "yellow_text": "#8e44ad",
+                "blue": "#3498db",
+                "green": "#1abc9c",
+                "purple": "#9b59b6"
+            },
+            "buttons": {
+                "primary_border": "#3498db",
+                "primary_text": "#3498db",
+                "primary_hover_bg": "#3498db",
+                "disabled_border": "#95a5a6",
+                "disabled_text": "#95a5a6",
+                "success_bg": "#1abc9c",
+                "success_text": "#ffffff",
+                "success_hover_text": "#1abc9c",
+                "danger_bg": "#e74c3c",
+                "danger_text": "#ffffff",
+                "danger_hover_text": "#e74c3c",
+                "auto_panic_bg": "#e74c3c",
+                "auto_panic_border": "#e74c3c",
+                "wieder_aktiv_glow": "#1abc9c"
+            },
+            "figurePalettes": {
+                "default": { "placed": "#3498db", "preview": "rgba(52, 152, 219, 0.5)" },
+                "normal":  { "placed": "#e67e22", "preview": "rgba(230, 126, 34, 0.5)" },
+                "joker":   { "placed": "#2ecc71", "preview": "rgba(46, 204, 113, 0.5)" },
+                "zonk":    { "placed": "#9b59b6", "preview": "rgba(155, 89, 182, 0.5)" }
+            }
         }
     },
     "figures": {
-        "normal": [
-            { "name": "I-4", "shape": [1, 2, 3, 4], "symmetrisch": false },
-            { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "symmetrisch": false },
-            { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "symmetrisch": true },
-            { "name": "L-Klein", "shape": [1, 6, 11, 12], "symmetrisch": false },
-            { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "symmetrisch": false },
-            { "name": "L-Klein 2", "shape": [5, 10, 14, 15], "symmetrisch": false },
-            { "name": "L-Gross 2", "shape": [5, 10, 15, 19, 20], "symmetrisch": false },
-            { "name": "T-Form", "shape": [1, 2, 3, 7], "symmetrisch": false },
-            { "name": "S-Form", "shape": [2, 3, 6, 7], "symmetrisch": false },
-            { "name": "Z-Form", "shape": [1, 2, 7, 8], "symmetrisch": false },
-            { "name": "Plus", "shape": [2, 6, 7, 8, 12], "symmetrisch": true },
-            { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "symmetrisch": false },
-            { "name": "Winkel-Klein", "shape": [1, 2, 6], "symmetrisch": false },
-            { "name": "Winkel-Gross", "shape": [1, 2, 3, 6, 11], "symmetrisch": false },
-            { "name": "Diagonale-3", "shape": [1, 7, 13], "symmetrisch": false }
-        ],
-        "zonk": [
-            { "name": "I-5", "shape": [1, 2, 3, 4, 5], "symmetrisch": false },
-            { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "symmetrisch": true },
-            { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "symmetrisch": false },
-            { "name": "X of death", "shape": [1, 5, 7, 9, 13, 17, 19, 21, 25], "symmetrisch": true },
-            { "name": "+ of death", "shape": [3, 8, 11, 12, 13, 14, 15, 18, 23], "symmetrisch": true },
-            { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "symmetrisch": false },
-            { "name": "ZZoro", "shape": [1, 2, 3, 4, 5, 7, 13, 19, 21,22,23,24,25], "symmetrisch": false },
-            { "name": "Square 5x5", "shape": [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25], "symmetrisch": true}
-        ],
-        "joker": [
-            { "name": "Punkt", "shape": [1], "symmetrisch": true },
-            { "name": "I-3", "shape": [1, 2, 3], "symmetrisch": false },
-            { "name": "Block 2x2", "shape": [1, 2, 6, 7], "symmetrisch": true },
-            { "name": "Joker I-2", "shape": [1, 2], "symmetrisch": false }
-        ]
+        "normal": [],
+        "zonk": [],
+        "joker": []
     }
 }
