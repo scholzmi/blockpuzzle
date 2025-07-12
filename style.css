@@ -135,7 +135,7 @@ body.boss-key-aktiv::before {
     background-color: transparent;
     box-shadow: none;
     padding: 0;
-    opacity: 0.5;
+    opacity: 0.7;
 }
 .paypal-box .qr-code {
     opacity: 1;

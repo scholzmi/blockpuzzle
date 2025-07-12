@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let ersterZugGemacht = false;
     let lastMausEvent = null;
     let anzahlJoker;
-    let ersterZug = true;
     let currentPanicCost = 0;
     let panicCooldown = 0;
     const isTouchDevice = 'ontouchstart' in window;
@@ -90,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lastMausEvent = null;
         aktiverSlotIndex = -1;
         ausgewaehlteFigur = null;
-        ersterZug = true;
         currentPanicCost = getGameSetting('refreshPenaltyPoints');
         panicCooldown = 0;
 
@@ -117,10 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (versionElement) versionElement.textContent = spielConfig.version || "?.??";
             if (aenderungsElement && spielConfig.letzteAenderung) aenderungsElement.textContent = spielConfig.letzteAenderung;
             anzahlJoker = getGameSetting('numberOfJokers');
-            const erstellePool = (p, kategorie) => Array.isArray(p) ? p.map(f => ({ ...f, kategorie, form: parseShape(f.shape) })) : [];
-            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal, 'normal');
-            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk, 'zonk');
-            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker, 'joker');
+            const erstellePool = (p) => Array.isArray(p) ? p.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
+            spielConfig.figures.normalPool = erstellePool(spielConfig.figures.normal);
+            spielConfig.figures.zonkPool = erstellePool(spielConfig.figures.zonk);
+            spielConfig.figures.jokerPool = erstellePool(spielConfig.figures.joker);
             if (spielConfig.figures.normalPool.length === 0) throw new Error("Keine Figuren in config.json gefunden.");
             return true;
         } catch (error) {
@@ -481,44 +479,37 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePanicButtonStatus();
         }
 
-        if (ersterZug) {
-            if (spielConfig.figures.zonkPool.length > 0) {
-                let zonkFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
-                figurenInSlots[0] = { ...zonkFigur, id: 0 };
-            }
-            for (let i = 1; i < 3; i++) {
-                 let normalFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
-                 figurenInSlots[i] = { ...normalFigur, id: i };
-            }
-            ersterZug = false;
-            for (let i = 0; i < 3; i++) zeichneFigurInSlot(i);
-            if (istSpielVorbei()) setTimeout(() => handleSpielEnde(true), 100);
-            return;
-        }
-
         rundenZaehler++;
         const jokerProb = getGameSetting('jokerProbability'), zonkProb = getGameSetting('zonkProbability'),
               reductionInterval = getGameSetting('jokerProbabilityReductionInterval'), minimumJokerProb = getGameSetting('jokerProbabilityMinimum');
         const jokerReduktion = Math.floor((rundenZaehler - 1) / reductionInterval) * 0.01;
         const aktuelleJokerProb = Math.max(minimumJokerProb, jokerProb - jokerReduktion);
+        
         for (let i = 0; i < 3; i++) {
             let zufallsFigur = null;
             let kategorie = 'normal';
-            const zufallsZahl = Math.random();
-
-            if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
-                zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
-                kategorie = 'zonk';
-            } else if (spielConfig.figures.jokerPool.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
-                zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
-                kategorie = 'joker';
-            } else if (spielConfig.figures.normalPool.length > 0) {
-                zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
-                kategorie = 'normal';
+            
+            if (rundenZaehler === 1 && i === 0) {
+                 if (spielConfig.figures.zonkPool.length > 0) {
+                    zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
+                    kategorie = 'zonk';
+                }
+            } else {
+                const zufallsZahl = Math.random();
+                if (spielConfig.figures.zonkPool.length > 0 && zufallsZahl < zonkProb) {
+                    zufallsFigur = spielConfig.figures.zonkPool[Math.floor(Math.random() * spielConfig.figures.zonkPool.length)];
+                    kategorie = 'zonk';
+                } else if (spielConfig.figures.jokerPool.length > 0 && zufallsZahl < zonkProb + aktuelleJokerProb) {
+                    zufallsFigur = spielConfig.figures.jokerPool[Math.floor(Math.random() * spielConfig.figures.jokerPool.length)];
+                    kategorie = 'joker';
+                } else if (spielConfig.figures.normalPool.length > 0) {
+                    zufallsFigur = spielConfig.figures.normalPool[Math.floor(Math.random() * spielConfig.figures.normalPool.length)];
+                    kategorie = 'normal';
+                }
             }
             
             if (zufallsFigur) {
-                const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes[kategorie].placed;
+                const baseColor = spielConfig.colorSchemes[activeColorScheme].figurePalettes[kategorie]?.placed || spielConfig.colorSchemes[activeColorScheme].figurePalettes['default'].placed;
                 const variedColor = variiereFarbe(baseColor);
                 figurenInSlots[i] = { ...zufallsFigur, id: i, color: variedColor, kategorie: kategorie };
                 zeichneFigurInSlot(i);
@@ -712,9 +703,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function variiereFarbe(hex) {
         let { h, s, l } = hexToHsl(hex);
-        h += (Math.random() * 10 - 5);
-        s = Math.max(0, Math.min(100, s + (Math.random() * 10 - 5)));
-        l = Math.max(0, Math.min(100, l + (Math.random() * 10 - 5)));
+        h += (Math.random() * 16 - 8);
+        s = Math.max(0, Math.min(100, s + (Math.random() * 16 - 8)));
+        l = Math.max(0, Math.min(100, l + (Math.random() * 16 - 8)));
         return hslToHex(h, s, l);
     }
     
