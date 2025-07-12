@@ -75,12 +75,12 @@ body.boss-key-aktiv::before {
     border-radius: 4px;
     border: 1px solid rgba(0,0,0,0.2);
 }
-.c-z, .c-z2, .c-z3 { background-color: #E94E77; } /* Red */
-.c-e, .c-e2 { background-color: #F8E71C; color: #827717; } /* Yellow */
-.c-n { background-color: #4A90E2; } /* Blue */
-.c-p { background-color: #50E3C2; } /* Green */
-.c-u { background-color: #9013FE; } /* Purple */
-.c-l { background-color: #4A90E2; } /* Blue */
+.c-z, .c-z2, .c-z3 { background-color: var(--title-red); }
+.c-e, .c-e2 { background-color: var(--title-yellow); color: var(--title-yellow_text); }
+.c-n { background-color: var(--title-blue); }
+.c-p { background-color: var(--title-green); }
+.c-u { background-color: var(--title-purple); }
+.c-l { background-color: var(--title-blue); }
 
 
 .spiel-wrapper {
@@ -225,7 +225,7 @@ body.boss-key-aktiv::before {
     border-radius: 50%;
 }
 input:checked + .slider {
-    background-color: #4A90E2; /* Blue */
+    background-color: var(--buttons-primary_border);
 }
 input:checked + .slider:before {
     transform: translateX(22px);
@@ -247,10 +247,10 @@ input:checked + .slider:before {
     border: 2px solid rgba(0,0,0,0.2);
 }
 .joker-box.voll {
-    background-color: #50E3C2; /* Green */
+    background-color: var(--joker_box_full);
 }
 .joker-box.verbraucht {
-    background-color: rgba(80, 227, 194, 0.3);
+    background-color: var(--joker_box_empty);
 }
 
 #spielbrett {
@@ -274,8 +274,8 @@ input:checked + .slider:before {
     border: 1px solid rgba(0, 0, 0, 0.2);
 }
 .blocker {
-    background-color: #001f3f !important; /* Dark Navy Blue */
-    border-color: #001f3f !important;
+    background-color: var(--blocker) !important;
+    border-color: var(--blocker) !important;
 }
 
 @keyframes zerbroeseln {
@@ -294,14 +294,14 @@ input:checked + .slider:before {
 }
 
 @keyframes panic-blinken-animation {
-    50% { border-color: #E94E77; } /* Red */
+    50% { border-color: var(--buttons-danger_bg); }
 }
 #spielbrett.panic-blinken {
     animation: panic-blinken-animation var(--panic-blink-frequenz) infinite;
 }
 
 .linie-vorschau {
-    background-color: rgba(80, 227, 194, 0.2) !important; /* Green */
+    background-color: var(--linie_vorschau) !important;
 }
 
 #timer-bar-container {
@@ -315,7 +315,7 @@ input:checked + .slider:before {
 #timer-bar {
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, #E94E77, #F8E71C, #50E3C2); /* Red, Yellow, Green */
+    background: var(--timer_bar);
     border-radius: 5px;
     transform-origin: left;
     transform: scaleX(var(--timer-progress, 1));
@@ -345,20 +345,20 @@ input:checked + .slider:before {
 }
 
 #refresh-figuren-button {
-    border-color: #4A90E2; /* Blue */
+    border-color: var(--buttons-primary_border);
     background-color: white;
-    color: #4A90E2; /* Blue */
+    color: var(--buttons-primary_text);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 #refresh-figuren-button:hover:not(:disabled) {
-    background-color: #4A90E2; /* Blue */
+    background-color: var(--buttons-primary_hover_bg);
     color: white;
 }
 #refresh-figuren-button:disabled {
-    border-color: #ccc;
+    border-color: var(--buttons-disabled_border);
     background-color: white;
-    color: #ccc;
+    color: var(--buttons-disabled_text);
     cursor: not-allowed;
 }
 #refresh-figuren-button:focus {
@@ -380,17 +380,17 @@ input:checked + .slider:before {
 }
 #refresh-figuren-button.auto-panic {
     animation: auto-panic-glow 0.5s ease-in-out infinite;
-    background-color: #E94E77; /* Red */
-    border-color: #E94E77; /* Red */
+    background-color: var(--buttons-auto_panic_bg);
+    border-color: var(--buttons-auto_panic_border);
     color: white;
 }
 
 @keyframes wieder-aktiv-glow {
     0%, 100% {
-        box-shadow: 0 0 5px #50E3C2; /* Green */
+        box-shadow: 0 0 5px var(--buttons-wieder_aktiv_glow);
     }
     50% {
-        box-shadow: 0 0 20px #50E3C2; /* Green */
+        box-shadow: 0 0 20px var(--buttons-wieder_aktiv_glow);
     }
 }
 #refresh-figuren-button.wieder-aktiv {
@@ -399,14 +399,14 @@ input:checked + .slider:before {
 
 
 #rotate-button {
-    border-color: #4A90E2; /* Blue */
+    border-color: var(--buttons-primary_border);
     background-color: white;
-    color: #4A90E2; /* Blue */
+    color: var(--buttons-primary_text);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 #rotate-button:hover {
-    background-color: #4A90E2; /* Blue */
+    background-color: var(--buttons-primary_hover_bg);
     color: white;
 }
 #rotate-button:focus {
@@ -446,7 +446,7 @@ input:checked + .slider:before {
 }
 
 .aktiver-slot {
-    border-color: #F8E71C; /* Yellow */
+    border-color: var(--active_slot_border);
     border-style: solid;
     transform: scale(1.05);
 }
@@ -563,22 +563,22 @@ footer a:hover {
     transition: all 0.2s ease;
 }
 #neustart-normal-btn, #confirm-ja-btn {
-    border-color: #50E3C2; /* Green */
-    background-color: #50E3C2; /* Green */
-    color: #004D40;
+    border-color: var(--buttons-success_bg);
+    background-color: var(--buttons-success_bg);
+    color: var(--buttons-success_text);
 }
 #neustart-normal-btn:hover, #confirm-ja-btn:hover {
     background-color: white;
-    color: #50E3C2; /* Green */
+    color: var(--buttons-success_hover_text);
 }
 #neustart-schwer-btn, #confirm-nein-btn, #anleitung-schliessen-btn {
-    border-color: #E94E77; /* Red */
-    background-color: #E94E77; /* Red */
-    color: #880E4F;
+    border-color: var(--buttons-danger_bg);
+    background-color: var(--buttons-danger_bg);
+    color: var(--buttons-danger_text);
 }
 #neustart-schwer-btn:hover, #confirm-nein-btn:hover, #anleitung-schliessen-btn:hover {
     background-color: white;
-    color: #E94E77; /* Red */
+    color: var(--buttons-danger_hover_text);
 }
 
 

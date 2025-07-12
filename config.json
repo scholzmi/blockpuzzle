@@ -1,6 +1,6 @@
 {
-    "version": "V9.55",
-    "letzteAenderung": "god mode panic button",
+    "version": "V10.0",
+    "letzteAenderung": "Komplettes Farb-Theming",
     "gameSettings": {
         "panicBlinkDuration": 1000,
         "panicBlinkFrequency": "0.2s",
@@ -30,13 +30,47 @@
             "jokerProbabilityMinimum": 0.04
         }
     },
-    "colorThemes": {
-        "default": { "placed": "#4A90E2", "preview": "rgba(74, 144, 226, 0.5)" },
-        "blue":    { "placed": "#4A90E2", "preview": "rgba(74, 144, 226, 0.5)" },
-        "green":   { "placed": "#50E3C2", "preview": "rgba(80, 227, 194, 0.5)" },
-        "yellow":  { "placed": "#F8E71C", "preview": "rgba(248, 231, 28, 0.5)" },
-        "red":     { "placed": "#E94E77", "preview": "rgba(233, 78, 119, 0.5)" },
-        "purple":  { "placed": "#9013FE", "preview": "rgba(144, 19, 254, 0.5)" }
+    "colorSchemes": {
+        "kräftig": {
+            "blocker": "#001f3f",
+            "joker_box_full": "#50E3C2",
+            "joker_box_empty": "rgba(80, 227, 194, 0.3)",
+            "linie_vorschau": "rgba(80, 227, 194, 0.2)",
+            "active_slot_border": "#F8E71C",
+            "timer_bar": "linear-gradient(to right, #E94E77, #F8E71C, #50E3C2)",
+            "title": {
+                "red": "#E94E77",
+                "yellow": "#F8E71C",
+                "yellow_text": "#827717",
+                "blue": "#4A90E2",
+                "green": "#50E3C2",
+                "purple": "#9013FE"
+            },
+            "buttons": {
+                "primary_border": "#4A90E2",
+                "primary_text": "#4A90E2",
+                "primary_hover_bg": "#4A90E2",
+                "disabled_border": "#ccc",
+                "disabled_text": "#ccc",
+                "success_bg": "#50E3C2",
+                "success_text": "#004D40",
+                "success_hover_text": "#50E3C2",
+                "danger_bg": "#E94E77",
+                "danger_text": "#880E4F",
+                "danger_hover_text": "#E94E77",
+                "auto_panic_bg": "#E94E77",
+                "auto_panic_border": "#E94E77",
+                "wieder_aktiv_glow": "#50E3C2"
+            },
+            "figurePalettes": {
+                "default": { "placed": "#4A90E2", "preview": "rgba(74, 144, 226, 0.5)" },
+                "blue":    { "placed": "#4A90E2", "preview": "rgba(74, 144, 226, 0.5)" },
+                "green":   { "placed": "#50E3C2", "preview": "rgba(80, 227, 194, 0.5)" },
+                "yellow":  { "placed": "#F8E71C", "preview": "rgba(248, 231, 28, 0.5)" },
+                "red":     { "placed": "#E94E77", "preview": "rgba(233, 78, 119, 0.5)" },
+                "purple":  { "placed": "#9013FE", "preview": "rgba(144, 19, 254, 0.5)" }
+            }
+        }
     },
     "figures": {
         "normal": [
